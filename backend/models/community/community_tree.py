@@ -1,6 +1,7 @@
 from typing import Optional
 from uuid import UUID, uuid4
 
+from backend.models.community.community import Community
 from sqlmodel import SQLModel, Field, Relationship
 
 
