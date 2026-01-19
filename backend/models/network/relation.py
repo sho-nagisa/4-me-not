@@ -1,46 +1,52 @@
-from __future__ import annotations
+from sqlalchemy import ForeignKey, Integer, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime
-
-from sqlmodel import SQLModel, Field
+from models.base.base import BaseModel
+from models.base.enums import RelationType
 
 
-class Relation(SQLModel, table=True):
+class Relation(BaseModel):
+    """
+    Person × Person の相関ネットワーク
+    - 客観・主観どちらも扱える
+    - 人間関係の「構造」を表す
+    """
+
     __tablename__ = "relations"
-
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-
-    # 誰と誰の関係か（向きあり）
-    from_person_id: UUID = Field(foreign_key="persons.id", index=True)
-    to_person_id: UUID = Field(foreign_key="persons.id", index=True)
-
-    # どの文脈での関係か（任意）
-    community_id: Optional[UUID] = Field(
-        default=None,
-        foreign_key="communities.id",
-        index=True
+    __table_args__ = (
+        UniqueConstraint("from_person_id", "to_person_id", name="uq_relation_pair"),
     )
 
-    # 関係タイプ
-    relation_type: str = Field(index=True)
-    # 例:
-    # - introduced_by
-    # - close_friend
-    # - mentor
-    # - coworker
-    # - family
-    # - good_terms
-    # - conflict
+    from_person_id: Mapped[str] = mapped_column(
+        ForeignKey("persons.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    strength: Optional[int] = Field(
-        default=None, ge=1, le=5
-    )  # 関係の強さ（主観）
+    to_person_id: Mapped[str] = mapped_column(
+        ForeignKey("persons.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    note: Optional[str] = None  # 補足（なぜそう思うか）
+    type: Mapped[RelationType] = mapped_column(
+        Integer,
+        nullable=False,
+        comment="関係タイプ"
+    )
 
-    source: str = Field(default="human")
-    # human / ai / inferred
+    strength: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+        comment="関係強度（例: 1〜5）"
+    )
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    from_person = relationship(
+        "Person",
+        foreign_keys=[from_person_id],
+        backref="outgoing_relations"
+    )
+
+    to_person = relationship(
+        "Person",
+        foreign_keys=[to_person_id],
+        backref="incoming_relations"
+    )

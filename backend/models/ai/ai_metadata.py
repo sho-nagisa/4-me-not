@@ -1,29 +1,31 @@
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime
+from sqlalchemy import String, Float
+from sqlalchemy.orm import Mapped, mapped_column
 
-from sqlmodel import SQLModel, Field
+from models.base.base import BaseModel
 
 
-class AIMetadata(SQLModel, table=True):
+class AIMetadata(BaseModel):
+    """
+    AI 推定メタ情報
+    - 信頼度・モデル情報・推定元
+    """
+
     __tablename__ = "ai_metadata"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-
-    parsed_note_id: UUID = Field(
-        foreign_key="parsed_notes.id",
-        index=True
+    model_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        comment="使用した AI モデル名"
     )
 
-    model_name: str            # gemini-1.5-pro など
-    confidence_score: Optional[int] = Field(
-        default=None, ge=1, le=5
+    confidence: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+        comment="推定信頼度（0.0〜1.0）"
     )
 
-    inferred_fields: Optional[str] = None
-    # 例: "community, next_topic, like"
-
-    warnings: Optional[str] = None
-    # 例: "community_ambiguous"
-
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    source: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        comment="推定元（interaction / manual など）"
+    )

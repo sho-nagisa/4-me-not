@@ -1,33 +1,36 @@
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime, date
+from sqlalchemy import String, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from models.base.enums import CommunityRole
 
-from backend.models.person.person import Person
-from sqlmodel import SQLModel, Field, Relationship
+from models.base.base import BaseModel
 
 
-class Membership(SQLModel, table=True):
+class Membership(BaseModel):
+    """
+    Person × Community × Role
+    - 所属と役割の核
+    """
+
     __tablename__ = "memberships"
+    __table_args__ = (
+        UniqueConstraint("person_id", "community_id", name="uq_person_community"),
+    )
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    person_id: Mapped[str] = mapped_column(
+        ForeignKey("persons.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    # 多重属性の中核
-    person_id: UUID = Field(foreign_key="persons.id", index=True)
-    community_id: UUID = Field(foreign_key="communities.id", index=True)
+    community_id: Mapped[str] = mapped_column(
+        ForeignKey("communities.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    # 文脈上の役割（同期 / 上司 / 共同研究者 など）
-    role: Optional[str] = Field(index=True)
+    role: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        comment=CommunityRole.MEMBER
+    )
 
-    # 主観的重要度（文脈ごと）
-    importance: int = Field(default=3, ge=1, le=5)
-
-    # 関係開始・有効期間
-    since: Optional[date] = None
-    until: Optional[date] = None
-
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-
-    # relationships（循環import回避のため文字列参照）
-    person: Optional["Person"] = Relationship()
-    community: Optional["Community"] = Relationship()
+    person = relationship("Person", backref="memberships")
+    community = relationship("Community", backref="memberships")

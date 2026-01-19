@@ -1,24 +1,35 @@
-from typing import Optional
-from uuid import UUID, uuid4
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from backend.models.community.community import Community
-from sqlmodel import SQLModel, Field, Relationship
+from models.base.base import BaseModel
 
 
-class CommunityTree(SQLModel, table=True):
+class CommunityTree(BaseModel):
+    """
+    Community 階層補助（親子関係の明示管理）
+    - 多段階層の高速取得用
+    """
+
     __tablename__ = "community_trees"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-
-    community_id: UUID = Field(
-        foreign_key="communities.id",
-        unique=True
+    parent_id: Mapped[str] = mapped_column(
+        ForeignKey("communities.id", ondelete="CASCADE"),
+        nullable=False
     )
 
-    parent_id: Optional[UUID] = Field(
-        default=None,
-        foreign_key="communities.id"
+    child_id: Mapped[str] = mapped_column(
+        ForeignKey("communities.id", ondelete="CASCADE"),
+        nullable=False
     )
 
-    # relationships
-    community: "Community" = Relationship(back_populates="tree")
+    parent = relationship(
+        "Community",
+        foreign_keys=[parent_id],
+        backref="tree_children"
+    )
+
+    child = relationship(
+        "Community",
+        foreign_keys=[child_id],
+        backref="tree_parents"
+    )

@@ -1,25 +1,51 @@
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime
+from sqlalchemy import String, Integer, Text, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from sqlmodel import SQLModel, Field, Relationship
+from models.base.base import BaseModel
 
 
-class PersonProfile(SQLModel, table=True):
+class PersonProfile(BaseModel):
+    """
+    PersonProfile（第一印象・直感・特徴）
+    - 時間経過で変化しうる主観的情報
+    - 1 Person : 0..1 Profile を想定
+    """
+
     __tablename__ = "person_profiles"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    person_id: UUID = Field(foreign_key="persons.id", unique=True)
+    person_id: Mapped[str] = mapped_column(
+        ForeignKey("persons.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+        comment="対応する Person"
+    )
 
-    # 記憶・直感系（更新頻度低）
-    first_impression: Optional[str] = None
-    appearance_feature: Optional[str] = None   # 外見
-    vibe_feature: Optional[str] = None         # 雰囲気・直感
-    birthday: Optional[str] = None              # 記念日
-    distance_feeling: Optional[str] = None      # 距離感（主観）
+    first_impression: Mapped[str | None] = mapped_column(
+        String(200),
+        nullable=True,
+        comment="第一印象（短文）"
+    )
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    intuition: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment="直感・感覚的なメモ"
+    )
 
-    # relationship
-    person: "Person" = Relationship(back_populates="profile")
+    vibe_score: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+        comment="雰囲気スコア（例: -5〜+5）"
+    )
+
+    notes: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment="その他の特徴・補足"
+    )
+
+    person = relationship(
+        "Person",
+        backref="profile",
+        lazy="joined"
+    )

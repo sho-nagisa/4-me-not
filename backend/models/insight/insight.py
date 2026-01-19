@@ -1,38 +1,40 @@
-from __future__ import annotations
+from sqlalchemy import Text, ForeignKey, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime
-
-from sqlmodel import SQLModel, Field
+from models.base.base import BaseModel
+from models.base.enums import InsightType
 
 
-class Insight(SQLModel, table=True):
+class Insight(BaseModel):
+    """
+    Insight（気づき・好き嫌い・直感的評価）
+    - Interaction などから生まれる内省結果
+    - 事実ではなく「解釈・印象」
+    """
+
     __tablename__ = "insights"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    person_id: Mapped[str] = mapped_column(
+        ForeignKey("persons.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    # 誰についての洞察か
-    person_id: UUID = Field(foreign_key="persons.id", index=True)
+    type: Mapped[InsightType] = mapped_column(
+        Integer,
+        nullable=False,
+        comment="インサイト種別"
+    )
 
-    # 種別（固定語彙にしてもOK）
-    type: str = Field(index=True)
-    # 例:
-    # - like        （好きなもの）
-    # - dislike     （苦手なもの）
-    # - vibe        （雰囲気・直感）
-    # - strength    （強み）
-    # - caution     （注意点）
-    # - gift        （贈り物・支援履歴）
+    content: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+        comment="気づきの内容"
+    )
 
-    value: str                      # 内容（自由記述）
-    confidence: Optional[int] = Field(
-        default=None, ge=1, le=5
-    )                                # 主観的確度（任意）
+    confidence: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+        comment="確信度（例: 1〜5）"
+    )
 
-    # 情報の由来
-    source: str = Field(default="human")  
-    # human / ai / mixed
-
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    person = relationship("Person", backref="insights")

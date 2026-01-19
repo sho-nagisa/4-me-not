@@ -29,3 +29,28 @@ class ReminderPurpose(str, Enum):
     LOG_PROMPT = "log_prompt"
     BIRTHDAY = "birthday"
     TOPIC_EXPIRY = "topic_expiry"
+from enum import IntEnum
+class CommunityRole(IntEnum):
+    OWNER = 1
+    ADMIN = 2
+    MEMBER = 3
+    GUEST = 4
+
+class InteractionType(IntEnum):
+    TALK = 1
+    MEETING = 2
+    MESSAGE = 3
+    EVENT = 4
+
+class InsightType(IntEnum):
+    LIKE = 1
+    DISLIKE = 2
+    TRAIT = 3
+    WARNING = 4
+
+class RelationType(IntEnum):
+    FRIEND = 1
+    COLLEAGUE = 2
+    FAMILY = 3
+    SUPERIOR = 4
+    SUBORDINATE = 5

@@ -1,22 +1,29 @@
-from __future__ import annotations
+from sqlalchemy import Text, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from uuid import UUID, uuid4
-from datetime import datetime
-
-from sqlmodel import SQLModel, Field
+from models.base.base import BaseModel
 
 
-class MeetingSnapshot(SQLModel, table=True):
+class MeetingSnapshot(BaseModel):
+    """
+    直前あらすじ用スナップショット
+    - 会う前に確認するための要約情報
+    """
+
     __tablename__ = "meeting_snapshots"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-
-    calendar_event_id: UUID = Field(
-        foreign_key="calendar_events.id",
-        index=True
+    calendar_event_id: Mapped[str] = mapped_column(
+        ForeignKey("calendar_events.id", ondelete="CASCADE"),
+        nullable=False
     )
 
-    # AI生成の直前要約
-    summary_text: str
+    summary: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+        comment="直前確認用の要約"
+    )
 
-    generated_at: datetime = Field(default_factory=datetime.utcnow)
+    calendar_event = relationship(
+        "CalendarEvent",
+        backref="snapshots"
+    )

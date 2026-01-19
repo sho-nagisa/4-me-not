@@ -1,37 +1,29 @@
-from __future__ import annotations
+from sqlalchemy import String, Text, DateTime
+from sqlalchemy.orm import Mapped, mapped_column
 
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime, date
-
-from sqlmodel import SQLModel, Field
+from models.base.base import BaseModel
 
 
-class Reminder(SQLModel, table=True):
+class Reminder(BaseModel):
+    """
+    リマインド定義
+    - 行動・確認・フォローアップ用
+    """
+
     __tablename__ = "reminders"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-
-    # 文脈の核
-    person_id: UUID = Field(foreign_key="persons.id", index=True)
-    community_id: Optional[UUID] = Field(
-        default=None,
-        foreign_key="communities.id",
-        index=True
+    title: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False
     )
 
-    # 何のための通知か
-    purpose: str
-    # 例:
-    # - meeting_preparation
-    # - follow_up
-    # - log_prompt
-    # - birthday
-    # - topic_expiry
+    message: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True
+    )
 
-    message: str                    # 通知本文
-    scheduled_for: datetime         # 通知予定時刻
-
-    is_active: bool = Field(default=True)
-
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    remind_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        comment="通知予定時刻"
+    )
