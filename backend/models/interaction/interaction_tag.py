@@ -1,15 +1,28 @@
-from uuid import UUID, uuid4
-from datetime import datetime
+from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from sqlmodel import SQLModel, Field
+from models.base.base import BaseModel
 
 
-class InteractionTag(SQLModel, table=True):
+class InteractionTag(BaseModel):
+    """
+    Interaction × Tag 中間
+    """
+
     __tablename__ = "interaction_tags"
+    __table_args__ = (
+        UniqueConstraint("interaction_id", "tag_id", name="uq_interaction_tag"),
+    )
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    interaction_id: Mapped[str] = mapped_column(
+        ForeignKey("interactions.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    interaction_id: UUID = Field(foreign_key="interactions.id")
-    tag_id: UUID = Field(foreign_key="tags.id")
+    tag_id: Mapped[str] = mapped_column(
+        ForeignKey("tags.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    interaction = relationship("Interaction", backref="interaction_tags")
+    tag = relationship("Tag", backref="interaction_tags")

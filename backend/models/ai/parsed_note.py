@@ -1,31 +1,32 @@
-from __future__ import annotations
+from sqlalchemy import Text, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from typing import Optional, Dict, Any
-from uuid import UUID, uuid4
-from datetime import datetime
-
-from sqlmodel import SQLModel, Field
+from models.base.base import BaseModel
 
 
-class ParsedNote(SQLModel, table=True):
+class ParsedNote(BaseModel):
+    """
+    AI パース結果（構造化メモ）
+    - Interaction / Note 等の解析結果
+    """
+
     __tablename__ = "parsed_notes"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-
-    # 元になった入力
-    raw_text: str                           # ユーザーの生メモ
-    parsed_json: Dict[str, Any]             # AIが構造化した結果（17項目）
-
-    # 対象（推定）
-    person_id: Optional[UUID] = Field(
-        default=None, foreign_key="persons.id"
-    )
-    community_id: Optional[UUID] = Field(
-        default=None, foreign_key="communities.id"
+    source_id: Mapped[str] = mapped_column(
+        ForeignKey("interactions.id", ondelete="CASCADE"),
+        nullable=False,
+        comment="解析元（例: Interaction）"
     )
 
-    # 状態管理
-    is_applied: bool = Field(default=False) # DBに反映済みか
-    reviewed_by_user: bool = Field(default=False)
+    content: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+        comment="AI による構造化結果（JSON / 要約文など）"
+    )
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    metadata_id: Mapped[str | None] = mapped_column(
+        ForeignKey("ai_metadata.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
+    metadata = relationship("AIMetadata", backref="parsed_notes")

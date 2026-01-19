@@ -1,25 +1,23 @@
-from __future__ import annotations
+from sqlalchemy import String, DateTime
+from sqlalchemy.orm import Mapped, mapped_column
 
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime, date
-
-from sqlmodel import SQLModel, Field, Relationship
-
-from backend.models.interaction.interaction import Interaction
+from models.base.base import BaseModel
 
 
-class Topic(SQLModel, table=True):
+class Topic(BaseModel):
+    """
+    話題（賞味期限あり）
+    """
+
     __tablename__ = "topics"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    title: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False
+    )
 
-    interaction_id: UUID = Field(foreign_key="interactions.id", index=True)
-
-    title: str                            # 話題（例：転職活動）
-    expires_on: Optional[date] = None     # 賞味期限
-
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    # relationships
-    interaction: "Interaction" = Relationship(back_populates="topics")
+    expires_at: Mapped[DateTime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="話題の有効期限"
+    )

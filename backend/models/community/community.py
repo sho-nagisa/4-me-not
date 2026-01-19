@@ -1,24 +1,38 @@
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime
+from sqlalchemy import String, Text, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from backend.models.community.community_tree import CommunityTree
-from sqlmodel import SQLModel, Field, Relationship
+from models.base.base import BaseModel
 
 
-class Community(SQLModel, table=True):
+class Community(BaseModel):
+    """
+    Community（集団・組織・グループ）
+    - 階層構造を前提
+    - 意味・役割は持つが、所属情報は持たない
+    """
+
     __tablename__ = "communities"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        comment="コミュニティ名"
+    )
 
-    name: str = Field(index=True)
-    description: Optional[str] = None
+    description: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment="概要・説明"
+    )
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    parent_id: Mapped[str | None] = mapped_column(
+        ForeignKey("communities.id", ondelete="SET NULL"),
+        nullable=True,
+        comment="親コミュニティ"
+    )
 
-    # relationships
-    tree: Optional["CommunityTree"] = Relationship(
-        back_populates="community",
-        sa_relationship_kwargs={"uselist": False}
+    parent = relationship(
+        "Community",
+        remote_side="Community.id",
+        backref="children"
     )

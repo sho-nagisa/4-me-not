@@ -1,27 +1,32 @@
-from __future__ import annotations
+from sqlalchemy import Text, ForeignKey, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime, date
-
-from sqlmodel import SQLModel, Field, Relationship
+from models.base.base import BaseModel
+from models.base.enums import InteractionType
 
 
-class Interaction(SQLModel, table=True):
+class Interaction(BaseModel):
+    """
+    会話・接触ログ（文脈付き）
+    """
+
     __tablename__ = "interactions"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    person_id: Mapped[str] = mapped_column(
+        ForeignKey("persons.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    # 文脈の核
-    person_id: UUID = Field(foreign_key="persons.id", index=True)
-    community_id: UUID = Field(foreign_key="communities.id", index=True)
+    type: Mapped[InteractionType] = mapped_column(
+        Integer,
+        nullable=False,
+        comment="接触タイプ"
+    )
 
-    # 内容
-    occurred_on: date = Field(index=True)
-    summary: str                          # 何を話したか（要約）
-    memo: Optional[str] = None            # 生メモ（AI前）
+    content: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment="会話内容・出来事"
+    )
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    # relationships
-    topics: list["Topic"] = Relationship(back_populates="interaction")
+    person = relationship("Person", backref="interactions")

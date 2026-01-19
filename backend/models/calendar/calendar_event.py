@@ -1,30 +1,41 @@
-from __future__ import annotations
+from sqlalchemy import String, DateTime
+from sqlalchemy.orm import Mapped, mapped_column
 
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime
-
-from sqlmodel import SQLModel, Field
+from models.base.base import BaseModel
 
 
-class CalendarEvent(SQLModel, table=True):
+class CalendarEvent(BaseModel):
+    """
+    外部カレンダー予定（同期スナップショット）
+    - Google Calendar 等との連携結果
+    """
+
     __tablename__ = "calendar_events"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-
-    # Google Calendar 側のID
-    external_event_id: str = Field(index=True, unique=True)
-
-    title: str
-    start_time: datetime
-    end_time: datetime
-
-    # 誰と会う予定か（推定）
-    person_id: Optional[UUID] = Field(
-        default=None, foreign_key="persons.id"
-    )
-    community_id: Optional[UUID] = Field(
-        default=None, foreign_key="communities.id"
+    external_id: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        unique=True,
+        comment="外部カレンダーのイベントID"
     )
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    title: Mapped[str] = mapped_column(
+        String(200),
+        nullable=False
+    )
+
+    start_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False
+    )
+
+    end_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False
+    )
+
+    source: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        comment="google / apple など"
+    )

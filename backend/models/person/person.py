@@ -1,23 +1,33 @@
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime
+from sqlalchemy import String, Text
+from sqlalchemy.orm import Mapped, mapped_column
 
-from sqlmodel import SQLModel, Field, Relationship
+from models.base.base import BaseModel
 
 
-class Person(SQLModel, table=True):
+class Person(BaseModel):
+    """
+    Person（人の不変コア）
+    - 実在人物・キャラクター・抽象的対象を含めた最小単位
+    - 状態や印象は持たない（Profile / Insight に分離）
+    """
+
     __tablename__ = "persons"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        comment="表示名・呼称"
+    )
 
-    name: str = Field(index=True)
-    gender: Optional[str] = None
+    canonical_name: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        unique=True,
+        comment="正規化名（重複防止・検索用）"
+    )
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-
-    # relationships
-    profile: Optional["PersonProfile"] = Relationship(
-        back_populates="person",
-        sa_relationship_kwargs={"uselist": False}
+    description: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment="人物の概要・補足説明"
     )

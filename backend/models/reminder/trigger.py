@@ -1,31 +1,25 @@
-from __future__ import annotations
+from sqlalchemy import String, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime
-
-from sqlmodel import SQLModel, Field
+from models.base.base import BaseModel
 
 
-class ReminderTrigger(SQLModel, table=True):
+class Trigger(BaseModel):
+    """
+    Reminder の発火条件
+    """
+
     __tablename__ = "reminder_triggers"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-
-    reminder_id: UUID = Field(
-        foreign_key="reminders.id",
-        index=True
+    reminder_id: Mapped[str] = mapped_column(
+        ForeignKey("reminders.id", ondelete="CASCADE"),
+        nullable=False
     )
 
-    trigger_type: str
-    # 例:
-    # - calendar_event_start
-    # - calendar_event_end
-    # - fixed_time
-    # - relative_time
+    trigger_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        comment="time / calendar など"
+    )
 
-    # Google Calendar連携用
-    calendar_event_id: Optional[str] = None
-    offset_minutes: Optional[int] = None   # 開始◯分前/後
-
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    reminder = relationship("Reminder", backref="triggers")
