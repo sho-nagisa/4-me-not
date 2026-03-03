@@ -1,7 +1,7 @@
 from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
 
 
 class Person(BaseModel):
@@ -12,6 +12,7 @@ class Person(BaseModel):
     """
 
     __tablename__ = "persons"
+    __table_args__ = {"schema": "formegot"}
 
     name: Mapped[str] = mapped_column(
         String(100),

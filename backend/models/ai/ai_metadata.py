@@ -1,7 +1,7 @@
 from sqlalchemy import String, Float
 from sqlalchemy.orm import Mapped, mapped_column
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
 
 
 class AIMetadata(BaseModel):
@@ -11,6 +11,7 @@ class AIMetadata(BaseModel):
     """
 
     __tablename__ = "ai_metadata"
+    __table_args__ = {"schema": "formegot"}
 
     model_name: Mapped[str] = mapped_column(
         String(100),

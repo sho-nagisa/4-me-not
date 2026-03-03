@@ -1,8 +1,8 @@
 from sqlalchemy import String, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from models.base.enums import CommunityRole
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
+from backend.models.base.enums import CommunityRole
 
 
 class Membership(BaseModel):
@@ -14,22 +14,24 @@ class Membership(BaseModel):
     __tablename__ = "memberships"
     __table_args__ = (
         UniqueConstraint("person_id", "community_id", name="uq_person_community"),
+        {"schema": "formegot"},
     )
 
     person_id: Mapped[str] = mapped_column(
-        ForeignKey("persons.id", ondelete="CASCADE"),
+        ForeignKey("formegot.persons.id", ondelete="CASCADE"),
         nullable=False
     )
 
     community_id: Mapped[str] = mapped_column(
-        ForeignKey("communities.id", ondelete="CASCADE"),
+        ForeignKey("formegot.communities.id", ondelete="CASCADE"),
         nullable=False
     )
 
     role: Mapped[str | None] = mapped_column(
         String(50),
         nullable=True,
-        comment=CommunityRole.MEMBER
+        default=CommunityRole.MEMBER,
+        comment="community role"
     )
 
     person = relationship("Person", backref="memberships")

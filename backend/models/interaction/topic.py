@@ -1,7 +1,7 @@
 from sqlalchemy import String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
 
 
 class Topic(BaseModel):
@@ -10,6 +10,7 @@ class Topic(BaseModel):
     """
 
     __tablename__ = "topics"
+    __table_args__ = {"schema": "formegot"}
 
     title: Mapped[str] = mapped_column(
         String(100),

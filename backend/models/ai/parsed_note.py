@@ -1,7 +1,7 @@
 from sqlalchemy import Text, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
 
 
 class ParsedNote(BaseModel):
@@ -11,9 +11,10 @@ class ParsedNote(BaseModel):
     """
 
     __tablename__ = "parsed_notes"
+    __table_args__ = {"schema": "formegot"}
 
     source_id: Mapped[str] = mapped_column(
-        ForeignKey("interactions.id", ondelete="CASCADE"),
+        ForeignKey("formegot.interactions.id", ondelete="CASCADE"),
         nullable=False,
         comment="解析元（例: Interaction）"
     )
@@ -25,8 +26,8 @@ class ParsedNote(BaseModel):
     )
 
     metadata_id: Mapped[str | None] = mapped_column(
-        ForeignKey("ai_metadata.id", ondelete="SET NULL"),
+        ForeignKey("formegot.ai_metadata.id", ondelete="SET NULL"),
         nullable=True
     )
 
-    metadata = relationship("AIMetadata", backref="parsed_notes")
+    ai_metadata = relationship("AIMetadata", backref="parsed_notes")

@@ -1,7 +1,7 @@
 from sqlalchemy import Text, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
 
 
 class MeetingSnapshot(BaseModel):
@@ -11,9 +11,10 @@ class MeetingSnapshot(BaseModel):
     """
 
     __tablename__ = "meeting_snapshots"
+    __table_args__ = {"schema": "formegot"}
 
     calendar_event_id: Mapped[str] = mapped_column(
-        ForeignKey("calendar_events.id", ondelete="CASCADE"),
+        ForeignKey("formegot.calendar_events.id", ondelete="CASCADE"),
         nullable=False
     )
 

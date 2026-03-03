@@ -1,8 +1,8 @@
 from sqlalchemy import Text, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.base.base import BaseModel
-from models.base.enums import InsightType
+from backend.models.base.base import BaseModel
+from backend.models.base.enums import InsightType
 
 
 class Insight(BaseModel):
@@ -15,7 +15,7 @@ class Insight(BaseModel):
     __tablename__ = "insights"
 
     person_id: Mapped[str] = mapped_column(
-        ForeignKey("persons.id", ondelete="CASCADE"),
+        ForeignKey("formegot.persons.id", ondelete="CASCADE"),
         nullable=False
     )
 

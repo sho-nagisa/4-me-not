@@ -1,34 +1,39 @@
-from sqlalchemy import ForeignKey
+from uuid import UUID
+from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
 
 
 class CommunityTree(BaseModel):
     """
     Community 階層補助（親子関係の明示管理）
-    - 多段階層の高速取得用
+    - 多段階層（Closure Table / Adjacency補助）
     """
 
     __tablename__ = "community_trees"
+    __table_args__ = (
+        UniqueConstraint("parent_id", "child_id", name="uq_community_tree"),
+        {"schema": "formegot"}
+    )
 
-    parent_id: Mapped[str] = mapped_column(
-        ForeignKey("communities.id", ondelete="CASCADE"),
+    parent_id: Mapped[UUID] = mapped_column(
+        ForeignKey("formegot.communities.id", ondelete="CASCADE"),
         nullable=False
     )
 
-    child_id: Mapped[str] = mapped_column(
-        ForeignKey("communities.id", ondelete="CASCADE"),
+    child_id: Mapped[UUID] = mapped_column(
+        ForeignKey("formegot.communities.id", ondelete="CASCADE"),
         nullable=False
     )
 
-    parent = relationship(
+    parent: Mapped["Community"] = relationship(
         "Community",
         foreign_keys=[parent_id],
         backref="tree_children"
     )
 
-    child = relationship(
+    child: Mapped["Community"] = relationship(
         "Community",
         foreign_keys=[child_id],
         backref="tree_parents"
