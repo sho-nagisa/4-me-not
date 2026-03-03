@@ -1,7 +1,7 @@
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
 
 
 class InteractionTag(BaseModel):
@@ -12,15 +12,16 @@ class InteractionTag(BaseModel):
     __tablename__ = "interaction_tags"
     __table_args__ = (
         UniqueConstraint("interaction_id", "tag_id", name="uq_interaction_tag"),
+        {"schema": "formegot"},
     )
 
     interaction_id: Mapped[str] = mapped_column(
-        ForeignKey("interactions.id", ondelete="CASCADE"),
+        ForeignKey("formegot.interactions.id", ondelete="CASCADE"),
         nullable=False
     )
 
     tag_id: Mapped[str] = mapped_column(
-        ForeignKey("tags.id", ondelete="CASCADE"),
+        ForeignKey("formegot.tags.id", ondelete="CASCADE"),
         nullable=False
     )
 

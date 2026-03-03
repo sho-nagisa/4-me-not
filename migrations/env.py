@@ -1,79 +1,89 @@
-import os
-import sys
 from logging.config import fileConfig
-from pathlib import Path
 
+from sqlalchemy import engine_from_config, pool
 from alembic import context
-from sqlalchemy import engine_from_config, pool, text
-from sqlmodel import SQLModel
 
-# ================================
-# 1. パス設定：backend フォルダをインポート対象に加える
-# ================================
-# env.py (migrations/) の親の親がプロジェクトルート
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-BACKEND_DIR = PROJECT_ROOT / "backend"
+# ★ Base は base.py から正しく import
+from backend.models.base.base import Base
 
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
+# Alembic が使う MetaData
+target_metadata = Base.metadata
+# --- models import（Alembic に存在を知らせるため） ---
 
-# ================================
-# 2. モデルのインポート
-# SQLModel.metadata にテーブル情報を登録するために必要
-# ================================
-# 各 package の __init__.py で SQLModel を継承したクラスを import しておく必要があります
-try:
-    from models import (
-        base,
-        person,
-        community,
-        membership,
-        interaction,
-        task,
-        insight,
-        network,
-        tag,
-        reminder,
-        ai,
-        calendar,
-    )
-except ImportError as e:
-    print(f"Import Error: {e}")
-    print(f"Current sys.path: {sys.path}")
-    raise
+# person
+import backend.models.person.person
+import backend.models.person.person_profile
+import backend.models.person.person_tag
 
-# ================================
-# 3. Alembic 設定とメタデータ
-# ================================
+# community
+import backend.models.community.community
+import backend.models.community.community_tree
+
+# membership
+import backend.models.membership.membership
+
+# interaction
+import backend.models.interaction.interaction
+import backend.models.interaction.topic
+import backend.models.interaction.interaction_tag
+
+# task
+import backend.models.task.relationship_task
+import backend.models.task.task_history
+
+# reminder
+import backend.models.reminder.reminder
+import backend.models.reminder.trigger
+
+# insight
+import backend.models.insight.insight
+
+# network
+import backend.models.network.relation
+
+# tag
+import backend.models.tag.tag
+
+# ai
+import backend.models.ai.parsed_note
+import backend.models.ai.ai_metadata
+
+# calendar
+import backend.models.calendar.calendar_event
+import backend.models.calendar.meeting_snapshot
+
+
+# Alembic Config
 config = context.config
 
-# ログ設定
+# Logging 設定
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# SQLModel の全メタデータを対象にする
-target_metadata = SQLModel.metadata
 
-# DB URL（環境変数があれば上書き）
-DATABASE_URL = os.getenv("DATABASE_URL")
-if DATABASE_URL:
-    config.set_main_option("sqlalchemy.url", DATABASE_URL.replace("postgres://", "postgresql://"))
+# --- スキーマ制御（formegot のみ対象） ---
+def include_name(name, type_, parent_names):
+    # Alembic管理テーブルは常に除外
+    if name == "alembic_version":
+        return False
 
-# ================================
-# 4. マイグレーション関数
-# ================================
+    if type_ == "schema":
+        return name == "formegot"
+
+    schema = parent_names.get("schema_name")
+    return schema == "formegot"
+
 
 def run_migrations_offline() -> None:
-    """Offline mode: SQLを出力するモード"""
+    """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
+        include_schemas=True,
+        include_name=include_name,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        include_schemas=True,
-        # 指定されたスキーマを使用する場合
-        version_table_schema="forgetmenot",
     )
 
     with context.begin_transaction():
@@ -81,24 +91,19 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Online mode: 実際にDBに接続するモード"""
+    """Run migrations in 'online' mode."""
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 
     with connectable.connect() as connection:
-        # PostgreSQL のスキーマを作成・設定
-        connection.execute(text("CREATE SCHEMA IF NOT EXISTS forgetmenot"))
-        connection.execute(text("SET search_path TO forgetmenot"))
-        connection.commit() # スキーマ設定を確定
-
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
             include_schemas=True,
-            version_table_schema="forgetmenot",
+            include_name=include_name,
         )
 
         with context.begin_transaction():

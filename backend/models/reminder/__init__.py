@@ -1,2 +1,2 @@
 from .reminder import Reminder
-from .trigger import ReminderTrigger
+from .trigger import Trigger

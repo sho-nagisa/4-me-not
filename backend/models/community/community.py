@@ -1,7 +1,8 @@
 from sqlalchemy import String, Text, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from uuid import UUID
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
 
 
 class Community(BaseModel):
@@ -12,6 +13,7 @@ class Community(BaseModel):
     """
 
     __tablename__ = "communities"
+    __table_args__ = {"schema": "formegot"}
 
     name: Mapped[str] = mapped_column(
         String(100),
@@ -25,13 +27,13 @@ class Community(BaseModel):
         comment="概要・説明"
     )
 
-    parent_id: Mapped[str | None] = mapped_column(
-        ForeignKey("communities.id", ondelete="SET NULL"),
+    parent_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("formegot.communities.id", ondelete="SET NULL"),
         nullable=True,
         comment="親コミュニティ"
     )
 
-    parent = relationship(
+    parent: Mapped["Community | None"] = relationship(
         "Community",
         remote_side="Community.id",
         backref="children"

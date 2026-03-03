@@ -1,7 +1,7 @@
 from sqlalchemy import String, Integer, Text, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
 
 
 class PersonProfile(BaseModel):
@@ -12,9 +12,10 @@ class PersonProfile(BaseModel):
     """
 
     __tablename__ = "person_profiles"
+    __table_args__ = {"schema": "formegot"}
 
     person_id: Mapped[str] = mapped_column(
-        ForeignKey("persons.id", ondelete="CASCADE"),
+        ForeignKey("formegot.persons.id", ondelete="CASCADE"),
         nullable=False,
         unique=True,
         comment="対応する Person"

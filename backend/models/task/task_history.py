@@ -1,25 +1,27 @@
-from __future__ import annotations
+from sqlalchemy import ForeignKey, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from uuid import UUID, uuid4
-from datetime import datetime
-
-from pyparsing import Optional
-from sqlmodel import SQLModel, Field, Relationship
-
-from backend.models.task.relationship_task import RelationshipTask
+from backend.models.base.base import BaseModel
+from backend.models.base.enums import TaskStatus
 
 
-class TaskHistory(SQLModel, table=True):
+class TaskHistory(BaseModel):
+    """
+    タスク状態履歴
+    - 完了 / スキップなどの遷移記録
+    """
+
     __tablename__ = "task_histories"
+    __table_args__ = {"schema": "formegot"}
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    task_id: Mapped[str] = mapped_column(
+        ForeignKey("formegot.relationship_tasks.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    task_id: UUID = Field(foreign_key="relationship_tasks.id", index=True)
+    status: Mapped[TaskStatus] = mapped_column(
+        Integer,
+        nullable=False
+    )
 
-    action: str                              # created / done / skipped / updated
-    note: Optional[str] = None               # 補足（なぜスキップ等）
-
-    acted_at: datetime = Field(default_factory=datetime.utcnow)
-
-    # relationships
-    task: "RelationshipTask" = Relationship(back_populates="histories")
+    task = relationship("RelationshipTask", backref="histories")

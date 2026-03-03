@@ -1,7 +1,7 @@
 from sqlalchemy import String, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
 
 
 class Reminder(BaseModel):
@@ -11,6 +11,7 @@ class Reminder(BaseModel):
     """
 
     __tablename__ = "reminders"
+    __table_args__ = {"schema": "formegot"}
 
     title: Mapped[str] = mapped_column(
         String(100),

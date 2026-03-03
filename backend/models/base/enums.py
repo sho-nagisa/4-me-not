@@ -54,3 +54,8 @@ class RelationType(IntEnum):
     FAMILY = 3
     SUPERIOR = 4
     SUBORDINATE = 5
+
+class TaskStatus(IntEnum):
+    TODO = 1
+    DONE = 2
+    SKIPPED = 3

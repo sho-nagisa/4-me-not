@@ -1,35 +1,38 @@
-from __future__ import annotations
+from sqlalchemy import String, Text, ForeignKey, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from typing import Optional
-from uuid import UUID, uuid4
-from datetime import datetime, date
-
-from sqlmodel import SQLModel, Field, Relationship
+from backend.models.base.base import BaseModel
+from backend.models.base.enums import TaskStatus
 
 
-class RelationshipTask(SQLModel, table=True):
+class RelationshipTask(BaseModel):
+    """
+    人間関係タスク（文脈依存）
+    - フォローアップ・確認・行動メモ
+    """
+
     __tablename__ = "relationship_tasks"
+    __table_args__ = {"schema": "formegot"}
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    person_id: Mapped[str] = mapped_column(
+        ForeignKey("formegot.persons.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    # 文脈の核（必須）
-    person_id: UUID = Field(foreign_key="persons.id", index=True)
-    community_id: UUID = Field(foreign_key="communities.id", index=True)
+    title: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False
+    )
 
-    # タスク内容
-    title: str                               # 例：論文の進捗を聞く
-    description: Optional[str] = None
-    due_date: Optional[date] = Field(index=True)
+    description: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True
+    )
 
-    # 状態管理
-    status: str = Field(default="todo", index=True)  # todo / done / skipped
-    priority: int = Field(default=3, ge=1, le=5)
+    status: Mapped[TaskStatus] = mapped_column(
+        Integer,
+        nullable=False,
+        default=TaskStatus.TODO
+    )
 
-    # 由来（AIか人か）
-    source: str = Field(default="human")     # human / ai
-
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-
-    # relationships
-    histories: list["TaskHistory"] = Relationship(back_populates="task")
+    person = relationship("Person", backref="relationship_tasks")

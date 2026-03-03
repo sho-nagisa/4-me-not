@@ -1,7 +1,7 @@
 from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.base.base import BaseModel
+from backend.models.base.base import BaseModel
 
 
 class Tag(BaseModel):

@@ -1,3 +1,5 @@
+# backend/models/base/base.py
+
 from datetime import datetime
 import uuid
 
@@ -7,8 +9,12 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
-    """全モデル共通の Declarative Base"""
-    pass
+    """
+    全モデル共通の Declarative Base
+    - スキーマは formegot に固定
+    """
+    __abstract__ = True
+    __table_args__ = {"schema": "formegot"}
 
 
 class UUIDMixin:
@@ -16,7 +22,7 @@ class UUIDMixin:
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid.uuid4
+        default=uuid.uuid4,
     )
 
 
@@ -25,13 +31,13 @@ class TimestampMixin:
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=datetime.utcnow,
-        nullable=False
+        nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
-        nullable=False
+        nullable=False,
     )
 
 
