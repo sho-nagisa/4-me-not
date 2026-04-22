@@ -58,7 +58,7 @@ class InteractionService:
         db: Session = SessionLocal()
         try:
             person = db.get(Person, person_id)
-            if person is None:
+            if person is None or person.is_hidden:
                 raise HTTPException(status_code=404, detail="Person not found")
 
             community_uuid = self._validate_optional_reference(
@@ -108,7 +108,7 @@ class InteractionService:
 
             if person_id:
                 person = db.get(Person, person_id)
-                if person is None:
+                if person is None or person.is_hidden:
                     raise HTTPException(status_code=404, detail="Person not found")
                 query = query.filter(Interaction.person_id == person_id)
 
@@ -161,7 +161,7 @@ class InteractionService:
             person = (
                 db.query(Person)
                 .options(joinedload(Person.primary_community))
-                .filter(Person.id == person_id)
+                .filter(Person.id == person_id, Person.is_hidden.is_(False))
                 .first()
             )
             if person is None:
@@ -180,10 +180,12 @@ class InteractionService:
                     "id": str(person.id),
                     "name": person.name,
                     "primary_community_id": (
-                        str(person.primary_community_id) if person.primary_community_id else None
+                        str(person.primary_community_id)
+                        if person.primary_community_id and person.primary_community and not person.primary_community.is_hidden
+                        else None
                     ),
                     "primary_community_path": self._build_path(person.primary_community)
-                    if person.primary_community
+                    if person.primary_community and not person.primary_community.is_hidden
                     else None,
                 },
                 "overview": {
@@ -225,13 +227,15 @@ class InteractionService:
     def serialize_interaction(self, interaction: Interaction):
         interaction_type = InteractionType(interaction.type)
         share_level = ShareLevel(interaction.share_level)
+        visible_community = interaction.community if interaction.community and not interaction.community.is_hidden else None
+
         return {
             "id": str(interaction.id),
             "person_id": str(interaction.person_id),
             "person_name": interaction.person.name if interaction.person else "",
-            "community_id": str(interaction.community_id) if interaction.community_id else None,
-            "community_name": interaction.community.name if interaction.community else None,
-            "community_path": self._build_path(interaction.community) if interaction.community else None,
+            "community_id": str(interaction.community_id) if visible_community else None,
+            "community_name": visible_community.name if visible_community else None,
+            "community_path": self._build_path(visible_community) if visible_community else None,
             "topic_id": str(interaction.topic_id) if interaction.topic_id else None,
             "topic_name": interaction.topic.name if interaction.topic else None,
             "topic_path": self._build_path(interaction.topic) if interaction.topic else None,
@@ -248,6 +252,8 @@ class InteractionService:
     def _base_query(self, db: Session):
         return (
             db.query(Interaction)
+            .join(Person, Interaction.person_id == Person.id)
+            .filter(Person.is_hidden.is_(False))
             .options(
                 joinedload(Interaction.person),
                 joinedload(Interaction.community).joinedload(Community.parent),
@@ -263,6 +269,9 @@ class InteractionService:
         nodes = []
         current = record
         while current is not None:
+            if hasattr(current, "is_hidden") and current.is_hidden:
+                current = current.parent
+                continue
             nodes.append(current.name)
             current = current.parent
         return " / ".join(reversed(nodes))
@@ -374,5 +383,7 @@ class InteractionService:
 
         record = db.get(model, normalized_id)
         if record is None:
+            raise HTTPException(status_code=404, detail=detail)
+        if hasattr(record, "is_hidden") and record.is_hidden:
             raise HTTPException(status_code=404, detail=detail)
         return normalized_id

@@ -1,40 +1,43 @@
-from sqlalchemy import String, Text, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from uuid import UUID
+
+from sqlalchemy import Boolean, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.models.base.base import BaseModel
 
 
 class Community(BaseModel):
-    """
-    Community（集団・組織・グループ）
-    - 階層構造を前提
-    - 意味・役割は持つが、所属情報は持たない
-    """
-
     __tablename__ = "communities"
     __table_args__ = {"schema": "formegot"}
 
     name: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
-        comment="コミュニティ名"
+        comment="コミュニティ名",
     )
 
     description: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
-        comment="概要・説明"
+        comment="コミュニティ説明",
+    )
+
+    is_hidden: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+        comment="管理画面から非表示にするフラグ",
     )
 
     parent_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("formegot.communities.id", ondelete="SET NULL"),
         nullable=True,
-        comment="親コミュニティ"
+        comment="親コミュニティ",
     )
 
     parent: Mapped["Community | None"] = relationship(
         "Community",
         remote_side="Community.id",
-        backref="children"
+        backref="children",
     )
