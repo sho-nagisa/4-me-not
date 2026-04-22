@@ -1,5 +1,4 @@
 class InsightService:
-
     def create_insight_from_interaction(
         self,
         person_id,
@@ -7,7 +6,7 @@ class InsightService:
         content: str,
         confidence: int | None = None,
     ):
-        pass
+        return None
 
     def create_insight_from_ai(self, parsed_note_id):
-        pass
+        return None

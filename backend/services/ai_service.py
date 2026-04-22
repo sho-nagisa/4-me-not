@@ -1,7 +1,4 @@
 class AIService:
-
     def analyze_interaction(self, interaction_id):
-        """
-        Interaction → ParsedNote + AIMetadata
-        """
-        pass
+        # Placeholder until real AI parsing is added.
+        return None

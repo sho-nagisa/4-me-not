@@ -1,4 +1,28 @@
-class ReminderService:
+from datetime import datetime
 
+from backend.db.session import SessionLocal
+from backend.models.reminder.reminder import Reminder
+
+
+class ReminderService:
     def create_reminder(self, title: str, remind_at, message: str | None = None):
-        pass
+        remind_at_value = self._parse_remind_at(remind_at)
+
+        db = SessionLocal()
+        try:
+            reminder = Reminder(
+                title=title,
+                remind_at=remind_at_value,
+                message=message,
+            )
+            db.add(reminder)
+            db.commit()
+            db.refresh(reminder)
+            return reminder
+        finally:
+            db.close()
+
+    def _parse_remind_at(self, remind_at) -> datetime:
+        if isinstance(remind_at, datetime):
+            return remind_at
+        return datetime.fromisoformat(str(remind_at).replace("Z", "+00:00"))

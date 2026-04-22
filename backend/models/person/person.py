@@ -1,5 +1,6 @@
-from sqlalchemy import String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from uuid import UUID
 
 from backend.models.base.base import BaseModel
 
@@ -31,4 +32,16 @@ class Person(BaseModel):
         Text,
         nullable=True,
         comment="人物の概要・補足説明"
+    )
+
+    primary_community_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("formegot.communities.id", ondelete="SET NULL"),
+        nullable=True,
+        comment="主な所属コミュニティ"
+    )
+
+    primary_community = relationship(
+        "Community",
+        foreign_keys=[primary_community_id],
+        backref="primary_members"
     )
