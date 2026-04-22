@@ -1,2 +1,9 @@
 from .base import BaseModel
-from .enums import TaskStatus, InteractionType, RelationType, ReminderPurpose
+from .enums import (
+    CommunityRole,
+    InteractionType,
+    RelationType,
+    ReminderPurpose,
+    ShareLevel,
+    TaskStatus,
+)

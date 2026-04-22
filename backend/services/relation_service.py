@@ -1,5 +1,4 @@
 class RelationService:
-
     def update_relation(
         self,
         from_person_id,
@@ -7,4 +6,4 @@ class RelationService:
         relation_type,
         strength_delta: int | None = None,
     ):
-        pass
+        return None
