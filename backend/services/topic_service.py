@@ -39,12 +39,16 @@ class TopicService:
             db.close()
 
     def get_path(self, topic: Topic) -> str:
-        nodes = []
-        current = topic
-        while current is not None:
-            nodes.append(current.name)
-            current = current.parent
-        return " / ".join(reversed(nodes))
+        db = SessionLocal()
+        try:
+            nodes = []
+            current = db.get(Topic, topic.id)
+            while current is not None:
+                nodes.append(current.name)
+                current = db.get(Topic, current.parent_id) if current.parent_id else None
+            return " / ".join(reversed(nodes))
+        finally:
+            db.close()
 
     def _validate_parent_id(self, db, parent_id: str | None):
         if not parent_id:

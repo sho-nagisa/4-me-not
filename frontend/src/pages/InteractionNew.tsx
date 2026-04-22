@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 
+import { useIsMobile } from "../hooks/useIsMobile";
+
 type Person = {
   id: string;
   name: string;
+  is_hidden: boolean;
   primary_community_id: string | null;
   primary_community_path: string | null;
 };
@@ -10,6 +13,7 @@ type Person = {
 type Community = {
   id: string;
   name: string;
+  is_hidden: boolean;
   parent_id: string | null;
   path: string;
 };
@@ -20,6 +24,18 @@ type Topic = {
   parent_id: string | null;
   path: string;
 };
+
+type InteractionType =
+  | "MEETING"
+  | "CHAT"
+  | "CALL"
+  | "MESSAGE"
+  | "OBSERVATION";
+
+type ShareLevel = "SHARED" | "PARTIAL" | "WITHHELD";
+type PageId = "home" | "record" | "history" | "person" | "manage";
+type PersonPanelId = "summary" | "topics" | "notes" | "recent";
+type ManagePanelId = "people" | "communities" | "topics";
 
 type InteractionRecord = {
   id: string;
@@ -33,7 +49,7 @@ type InteractionRecord = {
   topic_path: string | null;
   interaction_type: string;
   interaction_type_label: string;
-  share_level: string;
+  share_level: ShareLevel;
   share_level_label: string;
   occurred_at: string | null;
   content: string | null;
@@ -91,26 +107,16 @@ type PersonDashboard = {
   };
 };
 
-type InteractionType =
-  | "MEETING"
-  | "CHAT"
-  | "CALL"
-  | "MESSAGE"
-  | "OBSERVATION";
-
-type ShareLevel = "SHARED" | "PARTIAL" | "WITHHELD";
-type ViewMode = "record" | "history" | "person" | "manage";
-
 const interactionTypeOptions: Array<{
   value: InteractionType;
   label: string;
   description: string;
 }> = [
-  { value: "MEETING", label: "対面", description: "会って話した内容を記録" },
-  { value: "CHAT", label: "会話", description: "雑談や立ち話を残す" },
-  { value: "CALL", label: "通話", description: "電話やオンライン通話の記録" },
-  { value: "MESSAGE", label: "メッセージ", description: "テキストでのやり取りを残す" },
-  { value: "OBSERVATION", label: "出来事メモ", description: "場で見たことや感じたことを記録" },
+  { value: "MEETING", label: "対面", description: "直接会って話した内容を記録します。" },
+  { value: "CHAT", label: "会話", description: "雑談や立ち話を残します。" },
+  { value: "CALL", label: "通話", description: "電話やオンライン通話の内容をまとめます。" },
+  { value: "MESSAGE", label: "メッセージ", description: "テキストのやり取りを記録します。" },
+  { value: "OBSERVATION", label: "出来事メモ", description: "その場で見たことや感じたことを残します。" },
 ];
 
 const shareLevelOptions: Array<{
@@ -118,16 +124,41 @@ const shareLevelOptions: Array<{
   label: string;
   description: string;
 }> = [
-  { value: "SHARED", label: "話した", description: "そのまま伝えた内容" },
-  { value: "PARTIAL", label: "一部だけ話した", description: "触れたが全部は話していない" },
-  { value: "WITHHELD", label: "話していない", description: "今後のために控えた内容" },
+  { value: "SHARED", label: "話した", description: "そのまま共有した内容です。" },
+  { value: "PARTIAL", label: "一部だけ話した", description: "少し触れたが全部は話していません。" },
+  { value: "WITHHELD", label: "話していない", description: "今回はまだ伏せた内容です。" },
 ];
 
-const viewOptions: Array<{ value: ViewMode; label: string; description: string }> = [
-  { value: "record", label: "記録する", description: "会話内容を残す" },
-  { value: "history", label: "探して振り返る", description: "条件を絞って履歴を見る" },
-  { value: "person", label: "人ごとに見る", description: "次の会話前に整理する" },
-  { value: "manage", label: "階層を整える", description: "コミュニティと話題を管理する" },
+const pageOptions: Array<{
+  id: PageId;
+  label: string;
+  mobileLabel: string;
+  description: string;
+}> = [
+  { id: "home", label: "ホーム", mobileLabel: "ホーム", description: "全体の様子を見る" },
+  { id: "record", label: "記録", mobileLabel: "記録", description: "会話を記録する" },
+  { id: "history", label: "履歴", mobileLabel: "履歴", description: "条件で絞って探す" },
+  { id: "person", label: "人物", mobileLabel: "人物", description: "人ごとに整理する" },
+  { id: "manage", label: "管理", mobileLabel: "管理", description: "候補と階層を整える" },
+];
+
+const personPanelOptions: Array<{
+  id: PersonPanelId;
+  label: string;
+}> = [
+  { id: "summary", label: "概要" },
+  { id: "topics", label: "話題と場" },
+  { id: "notes", label: "補足メモ" },
+  { id: "recent", label: "最近の記録" },
+];
+
+const managePanelOptions: Array<{
+  id: ManagePanelId;
+  label: string;
+}> = [
+  { id: "people", label: "人" },
+  { id: "communities", label: "コミュニティ" },
+  { id: "topics", label: "話題" },
 ];
 
 const toDateTimeLocalValue = (date = new Date()) => {
@@ -154,19 +185,155 @@ const buildDateQuery = (dateText: string, mode: "from" | "to") => {
   return new Date(`${dateText}${suffix}`).toISOString();
 };
 
-const summarizeCountLabel = (count: number, singular: string) =>
-  count === 0 ? `まだ${singular}はありません` : `${count}件の${singular}`;
-
-const truncate = (text: string | null | undefined, max = 90) => {
+const truncate = (text: string | null | undefined, max = 120) => {
   if (!text) return "内容なし";
   if (text.length <= max) return text;
   return `${text.slice(0, max)}...`;
 };
 
+function NavItem({
+  active,
+  compact,
+  label,
+  description,
+  onClick,
+}: {
+  active: boolean;
+  compact?: boolean;
+  label: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`nav-item ${active ? "nav-item--active" : ""} ${compact ? "nav-item--compact" : ""}`}
+      onClick={onClick}
+    >
+      <strong>{label}</strong>
+      {description ? <span>{description}</span> : null}
+    </button>
+  );
+}
+
+function SectionTabs<T extends string>({
+  items,
+  activeId,
+  onSelect,
+}: {
+  items: Array<{ id: T; label: string }>;
+  activeId: T;
+  onSelect: (id: T) => void;
+}) {
+  return (
+    <div className="section-tabs">
+      {items.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          className={`section-tab ${activeId === item.id ? "section-tab--active" : ""}`}
+          onClick={() => onSelect(item.id)}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  description,
+}: {
+  label: string;
+  value: string | number;
+  description: string;
+}) {
+  return (
+    <article className="metric-card">
+      <span className="metric-card__label">{label}</span>
+      <strong>{value}</strong>
+      <p>{description}</p>
+    </article>
+  );
+}
+
+function EmptyState({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="empty-state">
+      <strong>{title}</strong>
+      <p>{description}</p>
+    </div>
+  );
+}
+
+function SummaryRows({
+  items,
+  emptyLabel,
+}: {
+  items: Array<{ title: string; subtitle: string }>;
+  emptyLabel: string;
+}) {
+  if (items.length === 0) {
+    return <p className="muted">{emptyLabel}</p>;
+  }
+
+  return (
+    <div className="summary-list">
+      {items.map((item) => (
+        <div key={`${item.title}-${item.subtitle}`} className="summary-row">
+          <strong>{item.title}</strong>
+          <span>{item.subtitle}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HistoryCard({ item }: { item: InteractionRecord }) {
+  return (
+    <article className="history-card">
+      <div className="history-card__top">
+        <div>
+          <p className="history-card__date">{formatDateTime(item.occurred_at)}</p>
+          <h3>{item.interaction_type_label}</h3>
+        </div>
+        <span className={`pill pill--${item.share_level.toLowerCase()}`}>
+          {item.share_level_label}
+        </span>
+      </div>
+
+      <div className="history-card__meta">
+        <span>相手: {item.person_name}</span>
+        <span>コミュニティ: {item.community_path ?? "未設定"}</span>
+        <span>話題: {item.topic_path ?? "未設定"}</span>
+      </div>
+
+      <p className="history-card__content">{item.content ?? "内容なし"}</p>
+      <p className="history-card__note">{item.note || "補足メモなし"}</p>
+    </article>
+  );
+}
+
 export default function InteractionNew() {
-  const [viewMode, setViewMode] = useState<ViewMode>("record");
+  const isMobile = useIsMobile(820);
+
+  const [currentPage, setCurrentPage] = useState<PageId>("home");
+  const [personPanel, setPersonPanel] = useState<PersonPanelId>("summary");
+  const [managePanel, setManagePanel] = useState<ManagePanelId>("people");
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
   const [persons, setPersons] = useState<Person[]>([]);
   const [communities, setCommunities] = useState<Community[]>([]);
+  const [managedPersons, setManagedPersons] = useState<Person[]>([]);
+  const [managedCommunities, setManagedCommunities] = useState<Community[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [interactions, setInteractions] = useState<InteractionRecord[]>([]);
   const [historyItems, setHistoryItems] = useState<InteractionRecord[]>([]);
@@ -180,6 +347,8 @@ export default function InteractionNew() {
   const [isCreatingPerson, setIsCreatingPerson] = useState(false);
   const [isCreatingCommunity, setIsCreatingCommunity] = useState(false);
   const [isCreatingTopic, setIsCreatingTopic] = useState(false);
+  const [personActionId, setPersonActionId] = useState<string | null>(null);
+  const [communityActionId, setCommunityActionId] = useState<string | null>(null);
 
   const [feedback, setFeedback] = useState<{
     tone: "success" | "error" | "info";
@@ -217,7 +386,6 @@ export default function InteractionNew() {
   const [detailDashboard, setDetailDashboard] = useState<PersonDashboard | null>(null);
 
   const selectedPerson = persons.find((person) => person.id === personId);
-  const selectedHistoryPerson = persons.find((person) => person.id === historyPersonId);
   const selectedDetailPerson = persons.find((person) => person.id === detailPersonId);
   const selectedType = interactionTypeOptions.find(
     (option) => option.value === interactionType
@@ -226,21 +394,21 @@ export default function InteractionNew() {
     (option) => option.value === shareLevel
   );
 
+  const fetchJson = async <T,>(url: string): Promise<T> => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || "データ取得に失敗しました。");
+    }
+    return response.json() as Promise<T>;
+  };
+
   const setError = (message: string) => {
     setFeedback({ tone: "error", message });
   };
 
   const setSuccess = (message: string) => {
     setFeedback({ tone: "success", message });
-  };
-
-  const fetchJson = async <T,>(url: string): Promise<T> => {
-    const res = await fetch(url);
-    if (!res.ok) {
-      const message = await res.text();
-      throw new Error(message || "データ取得に失敗しました");
-    }
-    return res.json() as Promise<T>;
   };
 
   const loadOptions = async () => {
@@ -256,42 +424,60 @@ export default function InteractionNew() {
       setCommunities(communitiesJson);
       setTopics(topicsJson);
 
-      const firstPersonId = personsJson[0]?.id ?? "";
+      const fallbackPerson = personsJson[0] ?? null;
       const currentRecordPerson =
-        personsJson.find((person) => person.id === personId) ?? personsJson[0] ?? null;
+        personsJson.find((person) => person.id === personId) ?? fallbackPerson;
+      const currentDetailPerson =
+        personsJson.find((person) => person.id === detailPersonId) ?? fallbackPerson;
       const currentHistoryPerson =
         personsJson.find((person) => person.id === historyPersonId) ?? null;
-      const currentDetailPerson =
-        personsJson.find((person) => person.id === detailPersonId) ?? personsJson[0] ?? null;
 
       if (!personId || !currentRecordPerson) {
-        setPersonId(firstPersonId);
+        setPersonId(currentRecordPerson?.id ?? "");
         setCommunityId(currentRecordPerson?.primary_community_id ?? "");
         setCommunityTouched(false);
       }
-      if (historyPersonId && !currentHistoryPerson) {
-        setHistoryPersonId("");
-      }
+
       if (!detailPersonId || !currentDetailPerson) {
         setDetailPersonId(currentDetailPerson?.id ?? "");
       }
+
+      if (historyPersonId && !currentHistoryPerson) {
+        setHistoryPersonId("");
+      }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "初期データの読み込みに失敗しました";
+        error instanceof Error ? error.message : "初期データの読み込みに失敗しました。";
       setError(message);
     } finally {
       setLoading(false);
     }
   };
 
+  const loadManageData = async () => {
+    try {
+      const [personsJson, communitiesJson] = await Promise.all([
+        fetchJson<Person[]>("/api/persons?include_hidden=true"),
+        fetchJson<Community[]>("/api/communities?include_hidden=true"),
+      ]);
+
+      setManagedPersons(personsJson);
+      setManagedCommunities(communitiesJson);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "管理データの読み込みに失敗しました。";
+      setError(message);
+    }
+  };
+
   const loadOverviewInteractions = async () => {
     setSummaryLoading(true);
     try {
-      const json = await fetchJson<InteractionRecord[]>("/api/interactions");
-      setInteractions(json);
+      const items = await fetchJson<InteractionRecord[]>("/api/interactions");
+      setInteractions(items);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "全体の記録読み込みに失敗しました";
+        error instanceof Error ? error.message : "全体の履歴取得に失敗しました。";
       setError(message);
     } finally {
       setSummaryLoading(false);
@@ -302,24 +488,25 @@ export default function InteractionNew() {
     setHistoryLoading(true);
     try {
       const params = new URLSearchParams();
+
       if (historyPersonId) params.set("person_id", historyPersonId);
       if (historyCommunityId) params.set("community_id", historyCommunityId);
       if (historyTopicId) params.set("topic_id", historyTopicId);
       if (historyShareLevel) params.set("share_level", historyShareLevel);
       if (historySearch.trim()) params.set("search", historySearch.trim());
 
-      const dateFromQuery = buildDateQuery(historyDateFrom, "from");
-      const dateToQuery = buildDateQuery(historyDateTo, "to");
-      if (dateFromQuery) params.set("date_from", dateFromQuery);
-      if (dateToQuery) params.set("date_to", dateToQuery);
+      const fromDate = buildDateQuery(historyDateFrom, "from");
+      const toDate = buildDateQuery(historyDateTo, "to");
+      if (fromDate) params.set("date_from", fromDate);
+      if (toDate) params.set("date_to", toDate);
 
       const query = params.toString();
       const url = query ? `/api/interactions?${query}` : "/api/interactions";
-      const json = await fetchJson<InteractionRecord[]>(url);
-      setHistoryItems(json);
+      const items = await fetchJson<InteractionRecord[]>(url);
+      setHistoryItems(items);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "履歴の読み込みに失敗しました";
+        error instanceof Error ? error.message : "履歴の取得に失敗しました。";
       setError(message);
     } finally {
       setHistoryLoading(false);
@@ -334,13 +521,13 @@ export default function InteractionNew() {
 
     setRecordDashboardLoading(true);
     try {
-      const json = await fetchJson<PersonDashboard>(
+      const dashboard = await fetchJson<PersonDashboard>(
         `/api/persons/${targetPersonId}/dashboard`
       );
-      setRecordDashboard(json);
+      setRecordDashboard(dashboard);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "事前確認データの取得に失敗しました";
+        error instanceof Error ? error.message : "会話前の確認情報を取得できませんでした。";
       setError(message);
     } finally {
       setRecordDashboardLoading(false);
@@ -355,13 +542,13 @@ export default function InteractionNew() {
 
     setDetailDashboardLoading(true);
     try {
-      const json = await fetchJson<PersonDashboard>(
+      const dashboard = await fetchJson<PersonDashboard>(
         `/api/persons/${targetPersonId}/dashboard`
       );
-      setDetailDashboard(json);
+      setDetailDashboard(dashboard);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "人ごとの要約取得に失敗しました";
+        error instanceof Error ? error.message : "人物ダッシュボードを取得できませんでした。";
       setError(message);
     } finally {
       setDetailDashboardLoading(false);
@@ -370,6 +557,7 @@ export default function InteractionNew() {
 
   useEffect(() => {
     void loadOptions();
+    void loadManageData();
     void loadOverviewInteractions();
   }, []);
 
@@ -395,8 +583,10 @@ export default function InteractionNew() {
 
   const refreshAll = async () => {
     await loadOptions();
+    await loadManageData();
     await loadOverviewInteractions();
     await loadHistory();
+
     if (personId) {
       await loadRecordDashboard(personId);
     }
@@ -405,9 +595,16 @@ export default function InteractionNew() {
     }
   };
 
+  const handlePersonChange = (nextPersonId: string) => {
+    setPersonId(nextPersonId);
+    const nextPerson = persons.find((person) => person.id === nextPersonId);
+    setCommunityId(nextPerson?.primary_community_id ?? "");
+    setCommunityTouched(false);
+  };
+
   const handleSubmit = async () => {
     if (!personId || !content.trim()) {
-      setError("相手と内容は必須です");
+      setError("相手と内容は必須です。");
       return;
     }
 
@@ -415,7 +612,7 @@ export default function InteractionNew() {
     setFeedback({ tone: "info", message: "記録を保存しています..." });
 
     try {
-      const res = await fetch("/api/interactions", {
+      const response = await fetch("/api/interactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -430,15 +627,15 @@ export default function InteractionNew() {
         }),
       });
 
-      if (!res.ok) {
-        const message = await res.text();
-        throw new Error(message || "保存に失敗しました");
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "保存に失敗しました。");
       }
 
-      setSuccess("やり取りを保存しました");
+      setSuccess("やり取りを保存しました。");
+      setOccurredAt(toDateTimeLocalValue());
       setContent("");
       setNote("");
-      setOccurredAt(toDateTimeLocalValue());
       setCommunityTouched(false);
       await loadOverviewInteractions();
       await loadHistory();
@@ -448,7 +645,7 @@ export default function InteractionNew() {
       }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "記録の保存に失敗しました";
+        error instanceof Error ? error.message : "保存に失敗しました。";
       setError(message);
     } finally {
       setIsSaving(false);
@@ -457,13 +654,13 @@ export default function InteractionNew() {
 
   const handleCreatePerson = async () => {
     if (!newPersonName.trim()) {
-      setError("追加する人の名前を入力してください");
+      setError("追加する人の名前を入力してください。");
       return;
     }
 
     setIsCreatingPerson(true);
     try {
-      const res = await fetch("/api/persons", {
+      const response = await fetch("/api/persons", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -472,24 +669,23 @@ export default function InteractionNew() {
         }),
       });
 
-      if (!res.ok) {
-        const message = await res.text();
-        throw new Error(message || "人の追加に失敗しました");
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "人の追加に失敗しました。");
       }
 
-      const person = (await res.json()) as Person;
+      const person = (await response.json()) as Person;
       setNewPersonName("");
       setNewPersonPrimaryCommunityId("");
-      await loadOptions();
+      await refreshAll();
       setPersonId(person.id);
-      setHistoryPersonId(person.id);
       setDetailPersonId(person.id);
-      setCommunityId(person.primary_community_id ?? "");
-      setCommunityTouched(false);
-      setSuccess("人を追加しました");
+      setCurrentPage("manage");
+      setManagePanel("people");
+      setSuccess("人を追加しました。");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "人の追加に失敗しました";
+        error instanceof Error ? error.message : "人の追加に失敗しました。";
       setError(message);
     } finally {
       setIsCreatingPerson(false);
@@ -498,13 +694,13 @@ export default function InteractionNew() {
 
   const handleCreateCommunity = async () => {
     if (!newCommunityName.trim()) {
-      setError("追加するコミュニティ名を入力してください");
+      setError("追加するコミュニティ名を入力してください。");
       return;
     }
 
     setIsCreatingCommunity(true);
     try {
-      const res = await fetch("/api/communities", {
+      const response = await fetch("/api/communities", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -513,20 +709,20 @@ export default function InteractionNew() {
         }),
       });
 
-      if (!res.ok) {
-        const message = await res.text();
-        throw new Error(message || "コミュニティ追加に失敗しました");
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "コミュニティの追加に失敗しました。");
       }
 
-      const community = (await res.json()) as Community;
+      const community = (await response.json()) as Community;
       setNewCommunityName("");
       setNewCommunityParentId("");
       await refreshAll();
       setCommunityId(community.id);
-      setSuccess("コミュニティを追加しました");
+      setSuccess("コミュニティを追加しました。");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "コミュニティ追加に失敗しました";
+        error instanceof Error ? error.message : "コミュニティの追加に失敗しました。";
       setError(message);
     } finally {
       setIsCreatingCommunity(false);
@@ -535,13 +731,13 @@ export default function InteractionNew() {
 
   const handleCreateTopic = async () => {
     if (!newTopicName.trim()) {
-      setError("追加する話題名を入力してください");
+      setError("追加する話題名を入力してください。");
       return;
     }
 
     setIsCreatingTopic(true);
     try {
-      const res = await fetch("/api/topics", {
+      const response = await fetch("/api/topics", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -550,31 +746,138 @@ export default function InteractionNew() {
         }),
       });
 
-      if (!res.ok) {
-        const message = await res.text();
-        throw new Error(message || "話題追加に失敗しました");
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "話題の追加に失敗しました。");
       }
 
-      const topic = (await res.json()) as Topic;
+      const topic = (await response.json()) as Topic;
       setNewTopicName("");
       setNewTopicParentId("");
       await refreshAll();
       setTopicId(topic.id);
-      setSuccess("話題を追加しました");
+      setSuccess("話題を追加しました。");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "話題追加に失敗しました";
+        error instanceof Error ? error.message : "話題の追加に失敗しました。";
       setError(message);
     } finally {
       setIsCreatingTopic(false);
     }
   };
 
-  const handlePersonChange = (nextPersonId: string) => {
-    setPersonId(nextPersonId);
-    const nextPerson = persons.find((person) => person.id === nextPersonId);
-    setCommunityId(nextPerson?.primary_community_id ?? "");
-    setCommunityTouched(false);
+  const handleTogglePersonHidden = async (person: Person) => {
+    setPersonActionId(person.id);
+    try {
+      const response = await fetch(`/api/persons/${person.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_hidden: !person.is_hidden }),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "人物状態の更新に失敗しました。");
+      }
+
+      await refreshAll();
+      setSuccess(
+        person.is_hidden ? "人物を再表示しました。" : "人物を非表示にしました。"
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "人物状態の更新に失敗しました。";
+      setError(message);
+    } finally {
+      setPersonActionId(null);
+    }
+  };
+
+  const handleDeletePerson = async (person: Person) => {
+    if (!window.confirm(`${person.name} を削除しますか？ この人の関連記録も削除されます。`)) {
+      return;
+    }
+
+    setPersonActionId(person.id);
+    try {
+      const response = await fetch(`/api/persons/${person.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "人物削除に失敗しました。");
+      }
+
+      await refreshAll();
+      setSuccess("人物を削除しました。");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "人物削除に失敗しました。";
+      setError(message);
+    } finally {
+      setPersonActionId(null);
+    }
+  };
+
+  const handleToggleCommunityHidden = async (community: Community) => {
+    setCommunityActionId(community.id);
+    try {
+      const response = await fetch(`/api/communities/${community.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_hidden: !community.is_hidden }),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "コミュニティ状態の更新に失敗しました。");
+      }
+
+      await refreshAll();
+      setSuccess(
+        community.is_hidden
+          ? "コミュニティを再表示しました。"
+          : "コミュニティを非表示にしました。"
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "コミュニティ状態の更新に失敗しました。";
+      setError(message);
+    } finally {
+      setCommunityActionId(null);
+    }
+  };
+
+  const handleDeleteCommunity = async (community: Community) => {
+    if (
+      !window.confirm(
+        `${community.name} を削除しますか？ 関連する所属やコミュニティ参照が外れる場合があります。`
+      )
+    ) {
+      return;
+    }
+
+    setCommunityActionId(community.id);
+    try {
+      const response = await fetch(`/api/communities/${community.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "コミュニティ削除に失敗しました。");
+      }
+
+      await refreshAll();
+      setSuccess("コミュニティを削除しました。");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "コミュニティ削除に失敗しました。";
+      setError(message);
+    } finally {
+      setCommunityActionId(null);
+    }
   };
 
   const clearHistoryFilters = () => {
@@ -587,215 +890,180 @@ export default function InteractionNew() {
     setHistoryDateTo("");
   };
 
-  const renderPrepList = (items: PrepTopic[], emptyLabel: string) => {
-    if (items.length === 0) {
-      return <p className="muted">{emptyLabel}</p>;
-    }
+  const homeRecentInteractions = interactions.slice(0, 4);
+  const selectedHistoryLevelLabel =
+    shareLevelOptions.find((option) => option.value === historyShareLevel)?.label ?? "すべて";
 
-    return (
-      <div className="stack stack--compact">
-        {items.map((item) => (
-          <div
-            key={`${item.topic}-${item.community}-${item.occurred_at ?? "none"}`}
-            className="summary-row"
-          >
-            <strong>{item.topic}</strong>
-            <span>
-              {item.community} / {formatDateTime(item.occurred_at)}
-            </span>
+  const renderHomePage = () => (
+    <section className="page-stack">
+      <section className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Home</p>
+            <h2>ホーム</h2>
           </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderRecentInteractionCard = (item: InteractionRecord) => (
-    <article key={item.id} className="history-card">
-      <div className="history-card__top">
-        <div>
-          <p className="history-card__date">{formatDateTime(item.occurred_at)}</p>
-          <h3>{item.interaction_type_label}</h3>
+          <p className="page-card__lead">
+            この画面では全体の状況だけを見て、必要なページへ移動します。
+          </p>
         </div>
-        <span className={`pill pill--${item.share_level.toLowerCase()}`}>
-          {item.share_level_label}
-        </span>
-      </div>
 
-      <div className="history-card__meta">
-        <span>相手: {item.person_name}</span>
-        <span>コミュニティ: {item.community_path ?? "未設定"}</span>
-        <span>話題: {item.topic_path ?? "未設定"}</span>
-      </div>
+        <div className="metric-grid">
+          <MetricCard
+            label="記録数"
+            value={summaryLoading ? "..." : interactions.length}
+            description="全体のやり取り件数です。"
+          />
+          <MetricCard label="人" value={persons.length} description="登録相手の人数です。" />
+          <MetricCard
+            label="コミュニティ / 話題"
+            value={`${communities.length} / ${topics.length}`}
+            description="候補の整理状況です。"
+          />
+          <MetricCard
+            label="今の入力"
+            value={selectedShareLevel?.label ?? "-"}
+            description={selectedType?.description ?? "記録画面から入力できます。"}
+          />
+        </div>
+      </section>
 
-      <p className="history-card__content">{item.content ?? "内容なし"}</p>
-      <p className="history-card__note">{item.note || "補足メモなし"}</p>
-    </article>
+      <section className="page-grid page-grid--two">
+        <article className="page-card">
+          <div className="page-card__header">
+            <div>
+              <p className="eyebrow">Quick Move</p>
+              <h2>目的別に移動</h2>
+            </div>
+          </div>
+          <div className="quick-grid">
+            {pageOptions
+              .filter((page) => page.id !== "home")
+              .map((page) => (
+                <button
+                  key={page.id}
+                  type="button"
+                  className="quick-link"
+                  onClick={() => setCurrentPage(page.id)}
+                >
+                  <strong>{page.label}</strong>
+                  <span>{page.description}</span>
+                </button>
+              ))}
+          </div>
+        </article>
+
+        <article className="page-card">
+          <div className="page-card__header">
+            <div>
+              <p className="eyebrow">Focus</p>
+              <h2>注目人物</h2>
+            </div>
+          </div>
+
+          <label className="field">
+            <span className="field__label">人物</span>
+            <select
+              value={detailPersonId}
+              onChange={(event) => setDetailPersonId(event.target.value)}
+            >
+              <option value="">-- 選択してください --</option>
+              {persons.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {!detailDashboard ? (
+            <EmptyState
+              title="人物ダッシュボードはまだありません"
+              description="人物を選ぶと、この人向けの要約が表示されます。"
+            />
+          ) : (
+            <SummaryRows
+              items={[
+                {
+                  title: "主な所属",
+                  subtitle: detailDashboard.person.primary_community_path ?? "未設定",
+                },
+                {
+                  title: "最後の記録",
+                  subtitle: formatDateTime(detailDashboard.overview.latest_occurred_at),
+                },
+                {
+                  title: "共有状況",
+                  subtitle: `話した ${detailDashboard.overview.shared_count} / 一部 ${detailDashboard.overview.partial_count} / 伏せた ${detailDashboard.overview.withheld_count}`,
+                },
+              ]}
+              emptyLabel="表示できる要約がありません。"
+            />
+          )}
+        </article>
+      </section>
+
+      <section className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Recent</p>
+            <h2>最近のやり取り</h2>
+          </div>
+          <button
+            type="button"
+            className="button button--ghost"
+            onClick={() => setCurrentPage("history")}
+          >
+            履歴画面へ
+          </button>
+        </div>
+
+        {homeRecentInteractions.length === 0 ? (
+          <EmptyState
+            title="まだ記録がありません"
+            description="記録画面で最初のやり取りを保存すると、ここに表示されます。"
+          />
+        ) : (
+          <div className="history-list">
+            {homeRecentInteractions.map((item) => (
+              <HistoryCard key={item.id} item={item} />
+            ))}
+          </div>
+        )}
+      </section>
+    </section>
   );
 
-  const renderRecordView = () => (
-    <section className="layout">
-      <aside className="panel panel--soft">
-        <div className="panel__header">
-          <p className="eyebrow">入力の準備</p>
-          <h2>候補を整えながらすばやく記録</h2>
-          <p className="panel__lead">
-            人を選ぶと主な所属コミュニティを初期値に入れます。必要ならその場だけ手動で
-            上書きできます。
+  const renderRecordPage = () => (
+    <section className="page-grid page-grid--record">
+      <section className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Record</p>
+            <h2>記録画面</h2>
+          </div>
+          <p className="page-card__lead">
+            ここでは入力だけに集中します。候補の追加は管理画面に分けています。
           </p>
         </div>
 
-        <div className="stack">
-          <article className="mini-card">
-            <h3>人を追加</h3>
-            <label className="field">
-              <span className="field__label">名前</span>
-              <input
-                value={newPersonName}
-                onChange={(e) => setNewPersonName(e.target.value)}
-                placeholder="例: 田中さん"
-              />
-            </label>
-            <label className="field">
-              <span className="field__label">主な所属コミュニティ</span>
-              <select
-                value={newPersonPrimaryCommunityId}
-                onChange={(e) => setNewPersonPrimaryCommunityId(e.target.value)}
-              >
-                <option value="">-- 未設定 --</option>
-                {communities.map((community) => (
-                  <option key={community.id} value={community.id}>
-                    {community.path}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              className="button button--secondary"
-              onClick={handleCreatePerson}
-              disabled={isCreatingPerson}
-            >
-              {isCreatingPerson ? "追加中..." : "人を追加"}
-            </button>
-          </article>
-
-          <article className="mini-card">
-            <h3>コミュニティを追加</h3>
-            <label className="field">
-              <span className="field__label">コミュニティ名</span>
-              <input
-                value={newCommunityName}
-                onChange={(e) => setNewCommunityName(e.target.value)}
-                placeholder="例: 飲み"
-              />
-            </label>
-            <label className="field">
-              <span className="field__label">親コミュニティ</span>
-              <select
-                value={newCommunityParentId}
-                onChange={(e) => setNewCommunityParentId(e.target.value)}
-              >
-                <option value="">-- なし --</option>
-                {communities.map((community) => (
-                  <option key={community.id} value={community.id}>
-                    {community.path}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              className="button button--secondary"
-              onClick={handleCreateCommunity}
-              disabled={isCreatingCommunity}
-            >
-              {isCreatingCommunity ? "追加中..." : "コミュニティを追加"}
-            </button>
-          </article>
-
-          <article className="mini-card">
-            <h3>話題を追加</h3>
-            <label className="field">
-              <span className="field__label">話題名</span>
-              <input
-                value={newTopicName}
-                onChange={(e) => setNewTopicName(e.target.value)}
-                placeholder="例: 面接 / 自己紹介"
-              />
-            </label>
-            <label className="field">
-              <span className="field__label">親話題</span>
-              <select
-                value={newTopicParentId}
-                onChange={(e) => setNewTopicParentId(e.target.value)}
-              >
-                <option value="">-- なし --</option>
-                {topics.map((topic) => (
-                  <option key={topic.id} value={topic.id}>
-                    {topic.path}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              className="button button--secondary"
-              onClick={handleCreateTopic}
-              disabled={isCreatingTopic}
-            >
-              {isCreatingTopic ? "追加中..." : "話題を追加"}
-            </button>
-          </article>
-
-          <article className="hint-card">
-            <p className="hint-card__title">会話前の確認</p>
-            {!selectedPerson ? (
-              <p>相手を選ぶと、最近のやり取りや話した範囲をここで見られます。</p>
-            ) : recordDashboardLoading ? (
-              <p>確認メモを読み込み中です...</p>
-            ) : recordDashboard ? (
-              <div className="stack stack--compact">
-                <p>
-                  最後の記録: {formatDateTime(recordDashboard.overview.latest_occurred_at)}
-                </p>
-                <p>主な所属: {recordDashboard.person.primary_community_path ?? "未設定"}</p>
-                <p>
-                  話した: {recordDashboard.overview.shared_count}件 / 一部だけ話した:{" "}
-                  {recordDashboard.overview.partial_count}件 / 話していない:{" "}
-                  {recordDashboard.overview.withheld_count}件
-                </p>
-                <div className="hint-card__section">
-                  <strong>まだ慎重に扱いたい話題</strong>
-                  {renderPrepList(
-                    recordDashboard.conversation_prep.withheld_topics.slice(0, 3),
-                    "今のところ控えた話題はありません"
-                  )}
-                </div>
-              </div>
-            ) : (
-              <p>この人の確認メモはまだありません。</p>
-            )}
-          </article>
-        </div>
-      </aside>
-
-      <section className="panel panel--main">
-        <div className="panel__header">
-          <p className="eyebrow">新しい記録</p>
-          <h2>人との接点を、あとで活きるメモに変える</h2>
-          <p className="panel__lead">
-            誰と、どの場で、どこまで話したかを分けて残すと、次の会話前の確認がぐっと
-            しやすくなります。
-          </p>
+        <div className="notice-row">
+          <span>候補が足りないときは管理画面で追加できます。</span>
+          <button
+            type="button"
+            className="button button--ghost"
+            onClick={() => setCurrentPage("manage")}
+          >
+            管理画面へ
+          </button>
         </div>
 
         <div className="form-grid">
           <label className="field">
-            <span className="field__label">日付</span>
+            <span className="field__label">日時</span>
             <input
               type="datetime-local"
               value={occurredAt}
-              onChange={(e) => setOccurredAt(e.target.value)}
+              onChange={(event) => setOccurredAt(event.target.value)}
             />
           </label>
 
@@ -803,7 +1071,7 @@ export default function InteractionNew() {
             <span className="field__label">相手</span>
             <select
               value={personId}
-              onChange={(e) => handlePersonChange(e.target.value)}
+              onChange={(event) => handlePersonChange(event.target.value)}
               disabled={loading}
             >
               <option value="">-- 選択してください --</option>
@@ -819,8 +1087,8 @@ export default function InteractionNew() {
             <span className="field__label">コミュニティ</span>
             <select
               value={communityId}
-              onChange={(e) => {
-                setCommunityId(e.target.value);
+              onChange={(event) => {
+                setCommunityId(event.target.value);
                 setCommunityTouched(true);
               }}
               disabled={loading}
@@ -838,7 +1106,7 @@ export default function InteractionNew() {
             <span className="field__label">話題</span>
             <select
               value={topicId}
-              onChange={(e) => setTopicId(e.target.value)}
+              onChange={(event) => setTopicId(event.target.value)}
               disabled={loading}
             >
               <option value="">-- 未設定 --</option>
@@ -854,8 +1122,8 @@ export default function InteractionNew() {
             <span className="field__label">接点の種類</span>
             <select
               value={interactionType}
-              onChange={(e) =>
-                setInteractionType(e.target.value as InteractionType)
+              onChange={(event) =>
+                setInteractionType(event.target.value as InteractionType)
               }
             >
               {interactionTypeOptions.map((option) => (
@@ -871,7 +1139,7 @@ export default function InteractionNew() {
             <span className="field__label">どこまで話したか</span>
             <select
               value={shareLevel}
-              onChange={(e) => setShareLevel(e.target.value as ShareLevel)}
+              onChange={(event) => setShareLevel(event.target.value as ShareLevel)}
             >
               {shareLevelOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -886,8 +1154,8 @@ export default function InteractionNew() {
             <span className="field__label">内容</span>
             <textarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="何を話したか、どこまで共有したかを自然文で残します"
+              onChange={(event) => setContent(event.target.value)}
+              placeholder="何を話したか、どこまで共有したかを自然文で残します。"
               rows={5}
             />
           </label>
@@ -896,8 +1164,8 @@ export default function InteractionNew() {
             <span className="field__label">補足メモ</span>
             <textarea
               value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="次に話したいこと、気になった点、印象など"
+              onChange={(event) => setNote(event.target.value)}
+              placeholder="次に聞きたいこと、気になった点、注意したいことを残します。"
               rows={4}
             />
           </label>
@@ -905,6 +1173,7 @@ export default function InteractionNew() {
 
         <div className="action-row">
           <button
+            type="button"
             className="button button--primary"
             onClick={handleSubmit}
             disabled={isSaving || loading}
@@ -912,50 +1181,666 @@ export default function InteractionNew() {
             {isSaving ? "保存中..." : "記録を保存"}
           </button>
           <p className="action-row__hint">
-            {loading
-              ? "候補を読み込み中です"
-              : communityTouched
-                ? `${selectedShareLevel?.label ?? "記録"} として保存します。コミュニティは今回だけ手動で変更しています。`
-                : `${selectedShareLevel?.label ?? "記録"} として保存します。${selectedPerson?.primary_community_path ?? "主な所属未設定"} を初期値にしています。`}
+            {communityTouched
+              ? "コミュニティは今回だけ手動で変更しています。"
+              : `${selectedPerson?.primary_community_path ?? "主な所属未設定"} を初期値にしています。`}
           </p>
         </div>
+      </section>
+
+      <aside className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Before Talk</p>
+            <h2>会話前の確認</h2>
+          </div>
+        </div>
+
+        {!selectedPerson ? (
+          <EmptyState
+            title="相手を選ぶと確認できます"
+            description="この相手について最近話した内容や、まだ伏せている話題を表示します。"
+          />
+        ) : recordDashboardLoading ? (
+          <p className="muted">確認情報を読み込み中です...</p>
+        ) : !recordDashboard ? (
+          <EmptyState
+            title="まだ確認情報がありません"
+            description="この相手の記録が増えると、ここが埋まっていきます。"
+          />
+        ) : (
+          <div className="page-stack page-stack--compact">
+            <SummaryRows
+              items={[
+                {
+                  title: "主な所属",
+                  subtitle: recordDashboard.person.primary_community_path ?? "未設定",
+                },
+                {
+                  title: "最後の記録",
+                  subtitle: formatDateTime(recordDashboard.overview.latest_occurred_at),
+                },
+                {
+                  title: "共有状況",
+                  subtitle: `話した ${recordDashboard.overview.shared_count} / 一部 ${recordDashboard.overview.partial_count} / 伏せた ${recordDashboard.overview.withheld_count}`,
+                },
+              ]}
+              emptyLabel="表示できる情報がありません。"
+            />
+
+            <section className="subsection">
+              <h3>すでに話した話題</h3>
+              <SummaryRows
+                items={recordDashboard.conversation_prep.shared_topics.map((item) => ({
+                  title: item.topic,
+                  subtitle: `${item.community} / ${formatDateTime(item.occurred_at)}`,
+                }))}
+                emptyLabel="まだ十分に話した話題はありません。"
+              />
+            </section>
+
+            <section className="subsection">
+              <h3>まだ伏せている話題</h3>
+              <SummaryRows
+                items={recordDashboard.conversation_prep.withheld_topics.map((item) => ({
+                  title: item.topic,
+                  subtitle: `${item.community} / ${formatDateTime(item.occurred_at)}`,
+                }))}
+                emptyLabel="今のところ伏せている話題はありません。"
+              />
+            </section>
+          </div>
+        )}
+      </aside>
+    </section>
+  );
+
+  const renderHistoryFilters = () => (
+    <div className="page-stack page-stack--compact">
+      <div className="filter-grid">
+        <label className="field">
+          <span className="field__label">人</span>
+          <select
+            value={historyPersonId}
+            onChange={(event) => setHistoryPersonId(event.target.value)}
+          >
+            <option value="">-- すべて --</option>
+            {persons.map((person) => (
+              <option key={person.id} value={person.id}>
+                {person.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span className="field__label">コミュニティ</span>
+          <select
+            value={historyCommunityId}
+            onChange={(event) => setHistoryCommunityId(event.target.value)}
+          >
+            <option value="">-- すべて --</option>
+            {communities.map((community) => (
+              <option key={community.id} value={community.id}>
+                {community.path}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span className="field__label">話題</span>
+          <select
+            value={historyTopicId}
+            onChange={(event) => setHistoryTopicId(event.target.value)}
+          >
+            <option value="">-- すべて --</option>
+            {topics.map((topic) => (
+              <option key={topic.id} value={topic.id}>
+                {topic.path}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span className="field__label">共有レベル</span>
+          <select
+            value={historyShareLevel}
+            onChange={(event) =>
+              setHistoryShareLevel(event.target.value as ShareLevel | "")
+            }
+          >
+            <option value="">-- すべて --</option>
+            {shareLevelOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field field--full">
+          <span className="field__label">キーワード</span>
+          <input
+            value={historySearch}
+            onChange={(event) => setHistorySearch(event.target.value)}
+            placeholder="内容や補足メモを検索"
+          />
+        </label>
+
+        <label className="field">
+          <span className="field__label">開始日</span>
+          <input
+            type="date"
+            value={historyDateFrom}
+            onChange={(event) => setHistoryDateFrom(event.target.value)}
+          />
+        </label>
+
+        <label className="field">
+          <span className="field__label">終了日</span>
+          <input
+            type="date"
+            value={historyDateTo}
+            onChange={(event) => setHistoryDateTo(event.target.value)}
+          />
+        </label>
+      </div>
+
+      <div className="button-row">
+        <button
+          type="button"
+          className="button button--secondary"
+          onClick={() => void loadHistory()}
+          disabled={historyLoading}
+        >
+          {historyLoading ? "更新中..." : "再読み込み"}
+        </button>
+        <button type="button" className="button button--ghost" onClick={clearHistoryFilters}>
+          条件をクリア
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderHistoryPage = () => (
+    <section className="page-grid page-grid--history">
+      <aside className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Filter</p>
+            <h2>履歴の絞り込み</h2>
+          </div>
+        </div>
+
+        {isMobile ? (
+          <>
+            <div className="mobile-filter-summary">
+              <span>人: {persons.find((person) => person.id === historyPersonId)?.name ?? "すべて"}</span>
+              <span>共有レベル: {selectedHistoryLevelLabel}</span>
+            </div>
+            <button
+              type="button"
+              className="button button--ghost mobile-filter-toggle"
+              onClick={() => setMobileFilterOpen((current) => !current)}
+            >
+              {mobileFilterOpen ? "フィルターを閉じる" : "フィルターを開く"}
+            </button>
+            {mobileFilterOpen ? <div className="mobile-filter-body">{renderHistoryFilters()}</div> : null}
+          </>
+        ) : (
+          renderHistoryFilters()
+        )}
+      </aside>
+
+      <section className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">History</p>
+            <h2>履歴一覧</h2>
+          </div>
+          <div className="history-summary">
+            <span>表示 {historyItems.length}件</span>
+            <span>
+              伏せた {historyItems.filter((item) => item.share_level === "WITHHELD").length}件
+            </span>
+          </div>
+        </div>
+
+        {historyItems.length === 0 ? (
+          <EmptyState
+            title="条件に合う履歴がありません"
+            description="フィルターを緩めるか、新しい記録を追加してください。"
+          />
+        ) : (
+          <div className="history-list">
+            {historyItems.map((item) => (
+              <HistoryCard key={item.id} item={item} />
+            ))}
+          </div>
+        )}
       </section>
     </section>
   );
 
-  const renderHistoryView = () => (
-    <section className="layout layout--history">
-      <aside className="panel panel--soft">
-        <div className="panel__header">
-          <p className="eyebrow">検索と絞り込み</p>
-          <h2>条件を組み合わせて履歴を見る</h2>
+  const renderPersonPage = () => {
+    const topicRows =
+      detailDashboard?.top_topics.map((item) => ({
+        title: item.label,
+        subtitle: `${item.count}件 / 話した ${item.shared_count} / 一部 ${item.partial_count} / 伏せた ${item.withheld_count}`,
+      })) ?? [];
+
+    const communityRows =
+      detailDashboard?.top_communities.map((item) => ({
+        title: item.label,
+        subtitle: `${item.count}件 / 話した ${item.shared_count} / 一部 ${item.partial_count} / 伏せた ${item.withheld_count}`,
+      })) ?? [];
+
+    return (
+      <section className="page-stack">
+        <section className="page-card">
+          <div className="page-card__header">
+            <div>
+              <p className="eyebrow">Person</p>
+              <h2>人物画面</h2>
+            </div>
+            <p className="page-card__lead">
+              人物ごとの情報も、概要と詳細を分けて見られるようにしています。
+            </p>
+          </div>
+
+          <div className="page-toolbar">
+            <label className="field field--toolbar">
+              <span className="field__label">人物</span>
+              <select
+                value={detailPersonId}
+                onChange={(event) => setDetailPersonId(event.target.value)}
+                disabled={loading}
+              >
+                <option value="">-- 選択してください --</option>
+                {persons.map((person) => (
+                  <option key={person.id} value={person.id}>
+                    {person.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="button button--secondary"
+              onClick={() => void loadDetailDashboard(detailPersonId)}
+              disabled={detailDashboardLoading || !detailPersonId}
+            >
+              {detailDashboardLoading ? "更新中..." : "要約を更新"}
+            </button>
+          </div>
+
+          <SectionTabs
+            items={personPanelOptions}
+            activeId={personPanel}
+            onSelect={setPersonPanel}
+          />
+        </section>
+
+        {!detailDashboard ? (
+          <EmptyState
+            title="人物を選ぶと要約が出ます"
+            description="主な所属、共有状況、最近の話題をここで分けて見られます。"
+          />
+        ) : null}
+
+        {detailDashboard && personPanel === "summary" ? (
+          <section className="page-grid page-grid--two">
+            <article className="page-card">
+              <div className="page-card__header">
+                <div>
+                  <p className="eyebrow">Summary</p>
+                  <h2>{selectedDetailPerson?.name ?? detailDashboard.person.name}</h2>
+                </div>
+              </div>
+
+              <div className="metric-grid metric-grid--compact">
+                <MetricCard
+                  label="記録数"
+                  value={detailDashboard.overview.interaction_count}
+                  description="この人に関する総記録数です。"
+                />
+                <MetricCard
+                  label="話した"
+                  value={detailDashboard.overview.shared_count}
+                  description="しっかり共有した内容です。"
+                />
+                <MetricCard
+                  label="一部だけ話した"
+                  value={detailDashboard.overview.partial_count}
+                  description="途中まで触れた内容です。"
+                />
+                <MetricCard
+                  label="話していない"
+                  value={detailDashboard.overview.withheld_count}
+                  description="今は伏せている内容です。"
+                />
+              </div>
+            </article>
+
+            <article className="page-card">
+              <div className="page-card__header">
+                <div>
+                  <p className="eyebrow">Basics</p>
+                  <h2>基本情報</h2>
+                </div>
+              </div>
+
+              <SummaryRows
+                items={[
+                  {
+                    title: "主な所属",
+                    subtitle: detailDashboard.person.primary_community_path ?? "未設定",
+                  },
+                  {
+                    title: "最後の記録",
+                    subtitle: formatDateTime(detailDashboard.overview.latest_occurred_at),
+                  },
+                  ...detailDashboard.share_summary.map((item) => ({
+                    title: item.label,
+                    subtitle: `${item.count}件`,
+                  })),
+                ]}
+                emptyLabel="表示できる情報がありません。"
+              />
+            </article>
+          </section>
+        ) : null}
+
+        {detailDashboard && personPanel === "topics" ? (
+          <section className="page-grid page-grid--two">
+            <article className="page-card">
+              <div className="page-card__header">
+                <div>
+                  <p className="eyebrow">Topics</p>
+                  <h2>よく出る話題</h2>
+                </div>
+              </div>
+              <SummaryRows items={topicRows} emptyLabel="話題のまとまりはまだありません。" />
+            </article>
+
+            <article className="page-card">
+              <div className="page-card__header">
+                <div>
+                  <p className="eyebrow">Communities</p>
+                  <h2>よく関わる場</h2>
+                </div>
+              </div>
+              <SummaryRows
+                items={communityRows}
+                emptyLabel="コミュニティのまとまりはまだありません。"
+              />
+            </article>
+
+            <article className="page-card">
+              <div className="page-card__header">
+                <div>
+                  <p className="eyebrow">Shared</p>
+                  <h2>すでに話した話題</h2>
+                </div>
+              </div>
+              <SummaryRows
+                items={detailDashboard.conversation_prep.shared_topics.map((item) => ({
+                  title: item.topic,
+                  subtitle: `${item.community} / ${formatDateTime(item.occurred_at)}`,
+                }))}
+                emptyLabel="まだ十分に話した話題はありません。"
+              />
+            </article>
+
+            <article className="page-card">
+              <div className="page-card__header">
+                <div>
+                  <p className="eyebrow">Withheld</p>
+                  <h2>まだ伏せている話題</h2>
+                </div>
+              </div>
+              <SummaryRows
+                items={detailDashboard.conversation_prep.withheld_topics.map((item) => ({
+                  title: item.topic,
+                  subtitle: `${item.community} / ${formatDateTime(item.occurred_at)}`,
+                }))}
+                emptyLabel="今のところ伏せている話題はありません。"
+              />
+            </article>
+          </section>
+        ) : null}
+
+        {detailDashboard && personPanel === "notes" ? (
+          <section className="page-card">
+            <div className="page-card__header">
+              <div>
+                <p className="eyebrow">Notes</p>
+                <h2>補足メモ</h2>
+              </div>
+            </div>
+            {detailDashboard.conversation_prep.recent_notes.length === 0 ? (
+              <EmptyState
+                title="補足メモはまだありません"
+                description="補足メモを残すと、この画面でまとめて確認できます。"
+              />
+            ) : (
+              <div className="summary-list">
+                {detailDashboard.conversation_prep.recent_notes.map((item, index) => (
+                  <div
+                    key={`${item.topic}-${item.occurred_at ?? "none"}-${index}`}
+                    className="note-row"
+                  >
+                    <div className="note-row__top">
+                      <strong>{item.topic}</strong>
+                      <span className={`pill pill--${item.share_level.toLowerCase()}`}>
+                        {item.share_level_label}
+                      </span>
+                    </div>
+                    <p>{truncate(item.text, 160)}</p>
+                    <span className="note-row__date">
+                      {formatDateTime(item.occurred_at)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : null}
+
+        {detailDashboard && personPanel === "recent" ? (
+          <section className="page-card">
+            <div className="page-card__header">
+              <div>
+                <p className="eyebrow">Recent</p>
+                <h2>最近の記録</h2>
+              </div>
+            </div>
+            {detailDashboard.recent_interactions.length === 0 ? (
+              <EmptyState
+                title="まだ最近の記録はありません"
+                description="記録が増えるとここに並びます。"
+              />
+            ) : (
+              <div className="history-list">
+                {detailDashboard.recent_interactions.map((item) => (
+                  <HistoryCard key={item.id} item={item} />
+                ))}
+              </div>
+            )}
+          </section>
+        ) : null}
+      </section>
+    );
+  };
+
+  const renderPeopleManagePanel = () => (
+    <section className="page-grid page-grid--two">
+      <article className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">People</p>
+            <h2>人を追加</h2>
+          </div>
         </div>
 
-        <div className="stack">
-          <label className="field">
-            <span className="field__label">人</span>
-            <select
-              value={historyPersonId}
-              onChange={(e) => setHistoryPersonId(e.target.value)}
-              disabled={loading}
-            >
-              <option value="">-- すべて --</option>
-              {persons.map((person) => (
-                <option key={person.id} value={person.id}>
-                  {person.name}
-                </option>
-              ))}
-            </select>
-          </label>
+        <label className="field">
+          <span className="field__label">名前</span>
+          <input
+            value={newPersonName}
+            onChange={(event) => setNewPersonName(event.target.value)}
+            placeholder="例: 田中さん"
+          />
+        </label>
+        <label className="field">
+          <span className="field__label">主な所属コミュニティ</span>
+          <select
+            value={newPersonPrimaryCommunityId}
+            onChange={(event) => setNewPersonPrimaryCommunityId(event.target.value)}
+          >
+            <option value="">-- 未設定 --</option>
+            {communities.map((community) => (
+              <option key={community.id} value={community.id}>
+                {community.path}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          className="button button--secondary"
+          onClick={handleCreatePerson}
+          disabled={isCreatingPerson}
+        >
+          {isCreatingPerson ? "追加中..." : "人を追加"}
+        </button>
+      </article>
+
+      <article className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">People List</p>
+            <h2>登録済みの人</h2>
+          </div>
+        </div>
+
+        {persons.length === 0 ? (
+          <EmptyState
+            title="まだ人がいません"
+            description="まずは数人だけ追加すると記録がしやすくなります。"
+          />
+        ) : (
+          <SummaryRows
+            items={persons.map((person) => ({
+              title: person.name,
+              subtitle: person.primary_community_path ?? "主な所属なし",
+            }))}
+            emptyLabel="人はまだいません。"
+          />
+        )}
+      </article>
+    </section>
+  );
+
+  const renderCommunitiesManagePanel = () => (
+    <section className="page-grid page-grid--two">
+      <article className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Community</p>
+            <h2>コミュニティを追加</h2>
+          </div>
+        </div>
+
+        <label className="field">
+          <span className="field__label">コミュニティ名</span>
+          <input
+            value={newCommunityName}
+            onChange={(event) => setNewCommunityName(event.target.value)}
+            placeholder="例: 飲み"
+          />
+        </label>
+        <label className="field">
+          <span className="field__label">親コミュニティ</span>
+          <select
+            value={newCommunityParentId}
+            onChange={(event) => setNewCommunityParentId(event.target.value)}
+          >
+            <option value="">-- なし --</option>
+            {communities.map((community) => (
+              <option key={community.id} value={community.id}>
+                {community.path}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          className="button button--secondary"
+          onClick={handleCreateCommunity}
+          disabled={isCreatingCommunity}
+        >
+          {isCreatingCommunity ? "追加中..." : "コミュニティを追加"}
+        </button>
+      </article>
+
+      <article className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Community Tree</p>
+            <h2>コミュニティ階層</h2>
+          </div>
+        </div>
+
+        {communities.length === 0 ? (
+          <EmptyState
+            title="コミュニティはまだありません"
+            description="大学 / サークル / 活動 のような形で先に整理できます。"
+          />
+        ) : (
+          <SummaryRows
+            items={communities.map((community) => ({
+              title: community.name,
+              subtitle: community.path,
+            }))}
+            emptyLabel="コミュニティはまだありません。"
+          />
+        )}
+      </article>
+    </section>
+  );
+
+  const renderPeopleManagePanelV2 = () => {
+    const sortedPeople = [...managedPersons].sort((left, right) =>
+      left.name.localeCompare(right.name, "ja")
+    );
+
+    return (
+      <section className="page-grid page-grid--two">
+        <article className="page-card">
+          <div className="page-card__header">
+            <div>
+              <p className="eyebrow">People</p>
+              <h2>人物を追加</h2>
+            </div>
+          </div>
 
           <label className="field">
-            <span className="field__label">コミュニティ</span>
+            <span className="field__label">名前</span>
+            <input
+              value={newPersonName}
+              onChange={(event) => setNewPersonName(event.target.value)}
+              placeholder="例: 田中 花子"
+            />
+          </label>
+          <label className="field">
+            <span className="field__label">主な所属コミュニティ</span>
             <select
-              value={historyCommunityId}
-              onChange={(e) => setHistoryCommunityId(e.target.value)}
-              disabled={loading}
+              value={newPersonPrimaryCommunityId}
+              onChange={(event) => setNewPersonPrimaryCommunityId(event.target.value)}
             >
-              <option value="">-- すべて --</option>
+              <option value="">-- 未設定 --</option>
               {communities.map((community) => (
                 <option key={community.id} value={community.id}>
                   {community.path}
@@ -963,550 +1848,382 @@ export default function InteractionNew() {
               ))}
             </select>
           </label>
-
-          <label className="field">
-            <span className="field__label">話題</span>
-            <select
-              value={historyTopicId}
-              onChange={(e) => setHistoryTopicId(e.target.value)}
-              disabled={loading}
-            >
-              <option value="">-- すべて --</option>
-              {topics.map((topic) => (
-                <option key={topic.id} value={topic.id}>
-                  {topic.path}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="field">
-            <span className="field__label">共有レベル</span>
-            <select
-              value={historyShareLevel}
-              onChange={(e) => setHistoryShareLevel(e.target.value as ShareLevel | "")}
-            >
-              <option value="">-- すべて --</option>
-              {shareLevelOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="field">
-            <span className="field__label">キーワード</span>
-            <input
-              value={historySearch}
-              onChange={(e) => setHistorySearch(e.target.value)}
-              placeholder="内容や補足メモを検索"
-            />
-          </label>
-
-          <div className="filter-grid">
-            <label className="field">
-              <span className="field__label">開始日</span>
-              <input
-                type="date"
-                value={historyDateFrom}
-                onChange={(e) => setHistoryDateFrom(e.target.value)}
-              />
-            </label>
-            <label className="field">
-              <span className="field__label">終了日</span>
-              <input
-                type="date"
-                value={historyDateTo}
-                onChange={(e) => setHistoryDateTo(e.target.value)}
-              />
-            </label>
-          </div>
-
-          <div className="button-row">
-            <button
-              type="button"
-              className="button button--secondary"
-              onClick={() => void loadHistory()}
-              disabled={historyLoading}
-            >
-              {historyLoading ? "更新中..." : "再読み込み"}
-            </button>
-            <button
-              type="button"
-              className="button button--ghost"
-              onClick={clearHistoryFilters}
-            >
-              条件をクリア
-            </button>
-          </div>
-
-          <div className="hint-card">
-            <p className="hint-card__title">現在の絞り込み</p>
-            <p>人: {selectedHistoryPerson?.name ?? "すべて"}</p>
-            <p>
-              共有レベル:{" "}
-              {shareLevelOptions.find((option) => option.value === historyShareLevel)?.label ??
-                "すべて"}
-            </p>
-            <p>キーワード: {historySearch.trim() || "なし"}</p>
-          </div>
-        </div>
-      </aside>
-
-      <section className="panel panel--main">
-        <div className="panel__header">
-          <p className="eyebrow">履歴一覧</p>
-          <h2>人・場・話題から横断して振り返る</h2>
-          <p className="panel__lead">
-            人だけでなく、コミュニティや話題単位でも見返せます。面接や日常会話の前の
-            確認にも使える履歴ビューです。
-          </p>
-        </div>
-
-        <div className="summary-strip">
-          <div className="summary-chip">
-            <strong>{historyItems.length}</strong>
-            <span>表示件数</span>
-          </div>
-          <div className="summary-chip">
-            <strong>{historyItems.filter((item) => item.share_level === "PARTIAL").length}</strong>
-            <span>一部だけ話した</span>
-          </div>
-          <div className="summary-chip">
-            <strong>{historyItems.filter((item) => item.share_level === "WITHHELD").length}</strong>
-            <span>話していない</span>
-          </div>
-        </div>
-
-        {historyItems.length === 0 ? (
-          <div className="empty-state">
-            <strong>条件に合う履歴はまだありません</strong>
-            <p>フィルターを緩めるか、新しいやり取りを記録するとここに表示されます。</p>
-          </div>
-        ) : (
-          <div className="history-list">
-            {historyItems.map((item) => renderRecentInteractionCard(item))}
-          </div>
-        )}
-      </section>
-    </section>
-  );
-
-  const renderPersonView = () => (
-    <section className="layout layout--person">
-      <aside className="panel panel--soft">
-        <div className="panel__header">
-          <p className="eyebrow">人ごとの要約</p>
-          <h2>次の会話前に把握する</h2>
-        </div>
-
-        <div className="stack">
-          <label className="field">
-            <span className="field__label">人を選ぶ</span>
-            <select
-              value={detailPersonId}
-              onChange={(e) => setDetailPersonId(e.target.value)}
-              disabled={loading}
-            >
-              <option value="">-- 選択してください --</option>
-              {persons.map((person) => (
-                <option key={person.id} value={person.id}>
-                  {person.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
           <button
             type="button"
             className="button button--secondary"
-            onClick={() => void loadDetailDashboard(detailPersonId)}
-            disabled={detailDashboardLoading || !detailPersonId}
+            onClick={handleCreatePerson}
+            disabled={isCreatingPerson}
           >
-            {detailDashboardLoading ? "更新中..." : "要約を更新"}
+            {isCreatingPerson ? "追加中..." : "人物を追加"}
           </button>
+        </article>
 
-          <div className="hint-card">
-            <p className="hint-card__title">確認ポイント</p>
-            {selectedDetailPerson ? (
-              <>
-                <p>相手: {selectedDetailPerson.name}</p>
-                <p>主な所属: {selectedDetailPerson.primary_community_path ?? "未設定"}</p>
-                <p>次の会話前に、何を話したかと何を控えたかを一度見直せます。</p>
-              </>
-            ) : (
-              <p>人を選ぶと、要約と注意点を表示します。</p>
-            )}
+        <article className="page-card">
+          <div className="page-card__header">
+            <div>
+              <p className="eyebrow">People List</p>
+              <h2>人物の管理</h2>
+            </div>
+          </div>
+
+          {sortedPeople.length === 0 ? (
+            <EmptyState
+              title="まだ人物がいません"
+              description="まずは左側のフォームから人物を追加してください。"
+            />
+          ) : (
+            <div className="manage-list">
+              {sortedPeople.map((person) => {
+                const isBusy = personActionId === person.id;
+
+                return (
+                  <div key={person.id} className="manage-entry">
+                    <div className="manage-entry__main">
+                      <div className="manage-entry__title">
+                        <strong>{person.name}</strong>
+                        {person.is_hidden ? (
+                          <span className="status-tag">非表示</span>
+                        ) : null}
+                      </div>
+                      <span>{person.primary_community_path ?? "主な所属なし"}</span>
+                    </div>
+
+                    <div className="manage-entry__actions">
+                      <button
+                        type="button"
+                        className="button button--ghost button--small"
+                        onClick={() => void handleTogglePersonHidden(person)}
+                        disabled={isBusy}
+                      >
+                        {isBusy
+                          ? "更新中..."
+                          : person.is_hidden
+                            ? "再表示"
+                            : "非表示"}
+                      </button>
+                      <button
+                        type="button"
+                        className="button button--danger button--small"
+                        onClick={() => void handleDeletePerson(person)}
+                        disabled={isBusy}
+                      >
+                        {isBusy ? "削除中..." : "削除"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </article>
+      </section>
+    );
+  };
+
+  const renderCommunitiesManagePanelV2 = () => {
+    const sortedCommunities = [...managedCommunities].sort((left, right) =>
+      left.path.localeCompare(right.path, "ja")
+    );
+
+    return (
+      <section className="page-grid page-grid--two">
+        <article className="page-card">
+          <div className="page-card__header">
+            <div>
+              <p className="eyebrow">Community</p>
+              <h2>コミュニティを追加</h2>
+            </div>
+          </div>
+
+          <label className="field">
+            <span className="field__label">コミュニティ名</span>
+            <input
+              value={newCommunityName}
+              onChange={(event) => setNewCommunityName(event.target.value)}
+              placeholder="例: 飲み会"
+            />
+          </label>
+          <label className="field">
+            <span className="field__label">親コミュニティ</span>
+            <select
+              value={newCommunityParentId}
+              onChange={(event) => setNewCommunityParentId(event.target.value)}
+            >
+              <option value="">-- なし --</option>
+              {communities.map((community) => (
+                <option key={community.id} value={community.id}>
+                  {community.path}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="button button--secondary"
+            onClick={handleCreateCommunity}
+            disabled={isCreatingCommunity}
+          >
+            {isCreatingCommunity ? "追加中..." : "コミュニティを追加"}
+          </button>
+        </article>
+
+        <article className="page-card">
+          <div className="page-card__header">
+            <div>
+              <p className="eyebrow">Community Tree</p>
+              <h2>コミュニティの管理</h2>
+            </div>
+          </div>
+
+          {sortedCommunities.length === 0 ? (
+            <EmptyState
+              title="まだコミュニティがありません"
+              description="大学→サークル→活動のように階層で追加できます。"
+            />
+          ) : (
+            <div className="manage-list">
+              {sortedCommunities.map((community) => {
+                const isBusy = communityActionId === community.id;
+
+                return (
+                  <div key={community.id} className="manage-entry">
+                    <div className="manage-entry__main">
+                      <div className="manage-entry__title">
+                        <strong>{community.name}</strong>
+                        {community.is_hidden ? (
+                          <span className="status-tag">非表示</span>
+                        ) : null}
+                      </div>
+                      <span>{community.path}</span>
+                    </div>
+
+                    <div className="manage-entry__actions">
+                      <button
+                        type="button"
+                        className="button button--ghost button--small"
+                        onClick={() => void handleToggleCommunityHidden(community)}
+                        disabled={isBusy}
+                      >
+                        {isBusy
+                          ? "更新中..."
+                          : community.is_hidden
+                            ? "再表示"
+                            : "非表示"}
+                      </button>
+                      <button
+                        type="button"
+                        className="button button--danger button--small"
+                        onClick={() => void handleDeleteCommunity(community)}
+                        disabled={isBusy}
+                      >
+                        {isBusy ? "削除中..." : "削除"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </article>
+      </section>
+    );
+  };
+
+  const renderTopicsManagePanel = () => (
+    <section className="page-grid page-grid--two">
+      <article className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Topic</p>
+            <h2>話題を追加</h2>
           </div>
         </div>
-      </aside>
 
-      <section className="panel panel--main">
-        {!detailDashboard ? (
-          <div className="empty-state">
-            <strong>人を選ぶと詳細を表示します</strong>
-            <p>最近の会話、よく出る話題、共有レベル別の傾向をまとめて確認できます。</p>
+        <label className="field">
+          <span className="field__label">話題名</span>
+          <input
+            value={newTopicName}
+            onChange={(event) => setNewTopicName(event.target.value)}
+            placeholder="例: 面接 / 自己紹介"
+          />
+        </label>
+        <label className="field">
+          <span className="field__label">親話題</span>
+          <select
+            value={newTopicParentId}
+            onChange={(event) => setNewTopicParentId(event.target.value)}
+          >
+            <option value="">-- なし --</option>
+            {topics.map((topic) => (
+              <option key={topic.id} value={topic.id}>
+                {topic.path}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          className="button button--secondary"
+          onClick={handleCreateTopic}
+          disabled={isCreatingTopic}
+        >
+          {isCreatingTopic ? "追加中..." : "話題を追加"}
+        </button>
+      </article>
+
+      <article className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Topic Tree</p>
+            <h2>話題階層</h2>
           </div>
+        </div>
+
+        {topics.length === 0 ? (
+          <EmptyState
+            title="話題はまだありません"
+            description="就活 / 面接 / 自己紹介 のような形で整理できます。"
+          />
         ) : (
-          <>
-            <div className="panel__header">
-              <p className="eyebrow">人物ダッシュボード</p>
-              <h2>{detailDashboard.person.name} さんの整理</h2>
-              <p className="panel__lead">
-                主な所属: {detailDashboard.person.primary_community_path ?? "未設定"} / 最後の記録:{" "}
-                {formatDateTime(detailDashboard.overview.latest_occurred_at)}
+          <SummaryRows
+            items={topics.map((topic) => ({
+              title: topic.name,
+              subtitle: topic.path,
+            }))}
+            emptyLabel="話題はまだありません。"
+          />
+        )}
+      </article>
+    </section>
+  );
+
+  const renderManagePage = () => (
+    <section className="page-stack">
+      <section className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Manage</p>
+            <h2>管理画面</h2>
+          </div>
+          <p className="page-card__lead">
+            管理画面の中も、人・コミュニティ・話題で分けてあります。
+          </p>
+        </div>
+
+        <SectionTabs
+          items={managePanelOptions}
+          activeId={managePanel}
+          onSelect={setManagePanel}
+        />
+      </section>
+
+      {managePanel === "people" ? renderPeopleManagePanelV2() : null}
+      {managePanel === "communities" ? renderCommunitiesManagePanelV2() : null}
+      {managePanel === "topics" ? renderTopicsManagePanel() : null}
+    </section>
+  );
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case "record":
+        return renderRecordPage();
+      case "history":
+        return renderHistoryPage();
+      case "person":
+        return renderPersonPage();
+      case "manage":
+        return renderManagePage();
+      case "home":
+      default:
+        return renderHomePage();
+    }
+  };
+
+  return (
+    <main className={`app-shell ${isMobile ? "app-shell--mobile" : "app-shell--desktop"}`}>
+      <div className="app-shell__glow app-shell__glow--left" />
+      <div className="app-shell__glow app-shell__glow--right" />
+
+      {!isMobile ? (
+        <div className="desktop-frame">
+          <aside className="desktop-sidebar">
+            <div className="brand-card">
+              <p className="eyebrow">勿忘草</p>
+              <h1>勿忘草</h1>
+              <p>
+                PC では左ナビでページを切り替え、右側はその目的だけに集中できる構成です。
               </p>
             </div>
 
-            <div className="stats-grid">
-              <article className="stat-box">
+            <nav className="nav-list">
+              {pageOptions.map((page) => (
+                <NavItem
+                  key={page.id}
+                  active={currentPage === page.id}
+                  label={page.label}
+                  description={page.description}
+                  onClick={() => setCurrentPage(page.id)}
+                />
+              ))}
+            </nav>
+
+            <div className="sidebar-summary">
+              <div className="sidebar-summary__item">
+                <strong>{interactions.length}</strong>
                 <span>記録数</span>
-                <strong>{detailDashboard.overview.interaction_count}</strong>
-              </article>
-              <article className="stat-box">
-                <span>話した</span>
-                <strong>{detailDashboard.overview.shared_count}</strong>
-              </article>
-              <article className="stat-box">
-                <span>一部だけ話した</span>
-                <strong>{detailDashboard.overview.partial_count}</strong>
-              </article>
-              <article className="stat-box">
-                <span>話していない</span>
-                <strong>{detailDashboard.overview.withheld_count}</strong>
-              </article>
+              </div>
+              <div className="sidebar-summary__item">
+                <strong>{persons.length}</strong>
+                <span>人</span>
+              </div>
+              <div className="sidebar-summary__item">
+                <strong>{communities.length}</strong>
+                <span>コミュニティ</span>
+              </div>
             </div>
+          </aside>
 
-            <section className="detail-section">
-              <div className="section-title">
-                <h3>共有レベルの内訳</h3>
-                <span>{summarizeCountLabel(detailDashboard.share_summary.length, "区分")}</span>
-              </div>
-              <div className="summary-strip">
-                {detailDashboard.share_summary.map((item) => (
-                  <div key={item.share_level} className="summary-chip">
-                    <strong>{item.count}</strong>
-                    <span>{item.label}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="detail-columns">
-              <article className="detail-card">
-                <div className="section-title">
-                  <h3>よく出る話題</h3>
-                  <span>{detailDashboard.top_topics.length}件</span>
-                </div>
-                {detailDashboard.top_topics.length === 0 ? (
-                  <p className="muted">まだ話題はまとまっていません。</p>
-                ) : (
-                  <div className="stack stack--compact">
-                    {detailDashboard.top_topics.map((item) => (
-                      <div key={item.id} className="summary-row">
-                        <strong>{item.label}</strong>
-                        <span>
-                          {item.count}件 / 話した {item.shared_count} / 一部 {item.partial_count} /
-                          控えた {item.withheld_count}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </article>
-
-              <article className="detail-card">
-                <div className="section-title">
-                  <h3>よく関わる場</h3>
-                  <span>{detailDashboard.top_communities.length}件</span>
-                </div>
-                {detailDashboard.top_communities.length === 0 ? (
-                  <p className="muted">まだコミュニティ情報はまとまっていません。</p>
-                ) : (
-                  <div className="stack stack--compact">
-                    {detailDashboard.top_communities.map((item) => (
-                      <div key={item.id} className="summary-row">
-                        <strong>{item.label}</strong>
-                        <span>
-                          {item.count}件 / 話した {item.shared_count} / 一部 {item.partial_count} /
-                          控えた {item.withheld_count}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </article>
-            </section>
-
-            <section className="detail-section">
-              <div className="section-title">
-                <h3>会話前に見たい整理</h3>
-                <span>共有状況のメモ</span>
-              </div>
-              <div className="prep-grid">
-                <article className="prep-card">
-                  <h4>すでに話した話題</h4>
-                  {renderPrepList(
-                    detailDashboard.conversation_prep.shared_topics,
-                    "まだ十分に共有した話題はありません"
-                  )}
-                </article>
-                <article className="prep-card">
-                  <h4>一部だけ話した話題</h4>
-                  {renderPrepList(
-                    detailDashboard.conversation_prep.partial_topics,
-                    "途中まで触れた話題はありません"
-                  )}
-                </article>
-                <article className="prep-card">
-                  <h4>まだ話していない話題</h4>
-                  {renderPrepList(
-                    detailDashboard.conversation_prep.withheld_topics,
-                    "控えている話題はありません"
-                  )}
-                </article>
-              </div>
-            </section>
-
-            <section className="detail-section">
-              <div className="section-title">
-                <h3>最近の補足メモ</h3>
-                <span>{detailDashboard.conversation_prep.recent_notes.length}件</span>
-              </div>
-              {detailDashboard.conversation_prep.recent_notes.length === 0 ? (
-                <p className="muted">補足メモはまだありません。</p>
-              ) : (
-                <div className="stack">
-                  {detailDashboard.conversation_prep.recent_notes.map((item, index) => (
-                    <div
-                      key={`${item.topic}-${item.occurred_at ?? "none"}-${index}`}
-                      className="note-row"
-                    >
-                      <div className="note-row__top">
-                        <strong>{item.topic}</strong>
-                        <span className={`pill pill--${item.share_level.toLowerCase()}`}>
-                          {item.share_level_label}
-                        </span>
-                      </div>
-                      <p>{truncate(item.text, 140)}</p>
-                      <span className="note-row__date">
-                        {formatDateTime(item.occurred_at)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className="detail-section">
-              <div className="section-title">
-                <h3>最近の記録</h3>
-                <span>{detailDashboard.recent_interactions.length}件</span>
-              </div>
-              {detailDashboard.recent_interactions.length === 0 ? (
-                <p className="muted">まだ記録はありません。</p>
-              ) : (
-                <div className="history-list">
-                  {detailDashboard.recent_interactions.map((item) =>
-                    renderRecentInteractionCard(item)
-                  )}
-                </div>
-              )}
-            </section>
-          </>
-        )}
-      </section>
-    </section>
-  );
-
-  const renderManageView = () => (
-    <section className="layout layout--manage">
-      <section className="panel panel--main">
-        <div className="panel__header">
-          <p className="eyebrow">管理画面</p>
-          <h2>コミュニティと話題の階層を整える</h2>
-          <p className="panel__lead">
-            大学 / サークル / 活動 のような構造を先に作っておくと、入力と検索が安定します。
-          </p>
+          <section className="desktop-content">
+            {feedback ? (
+              <section className={`banner banner--${feedback.tone}`}>
+                <p>{feedback.message}</p>
+              </section>
+            ) : null}
+            {renderPage()}
+          </section>
         </div>
+      ) : (
+        <div className="mobile-frame">
+          <header className="mobile-header">
+            <div>
+              <p className="eyebrow">勿忘草</p>
+              <h1>勿忘草</h1>
+            </div>
+            <p>スマホでは 1 画面 1 目的に寄せて、下タブで切り替える構成です。</p>
+          </header>
 
-        <div className="manage-grid">
-          <article className="manage-block">
-            <div className="manage-block__header">
-              <h3>コミュニティ階層</h3>
-              <span>{communities.length}件</span>
-            </div>
-            <div className="hierarchy-list">
-              {communities.length === 0 ? (
-                <p className="muted">コミュニティはまだありません。</p>
-              ) : (
-                communities.map((community) => (
-                  <div key={community.id} className="hierarchy-row">
-                    <strong>{community.name}</strong>
-                    <span>{community.path}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </article>
+          {feedback ? (
+            <section className={`banner banner--${feedback.tone}`}>
+              <p>{feedback.message}</p>
+            </section>
+          ) : null}
 
-          <article className="manage-block">
-            <div className="manage-block__header">
-              <h3>話題階層</h3>
-              <span>{topics.length}件</span>
-            </div>
-            <div className="hierarchy-list">
-              {topics.length === 0 ? (
-                <p className="muted">話題はまだありません。</p>
-              ) : (
-                topics.map((topic) => (
-                  <div key={topic.id} className="hierarchy-row">
-                    <strong>{topic.name}</strong>
-                    <span>{topic.path}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </article>
-        </div>
+          <section className="mobile-content">{renderPage()}</section>
 
-        <div className="manage-grid manage-grid--forms">
-          <article className="mini-card">
-            <h3>新しいコミュニティを追加</h3>
-            <label className="field">
-              <span className="field__label">コミュニティ名</span>
-              <input
-                value={newCommunityName}
-                onChange={(e) => setNewCommunityName(e.target.value)}
-                placeholder="例: 活動"
+          <nav className="mobile-dock">
+            {pageOptions.map((page) => (
+              <NavItem
+                key={page.id}
+                active={currentPage === page.id}
+                compact
+                label={page.mobileLabel}
+                description=""
+                onClick={() => setCurrentPage(page.id)}
               />
-            </label>
-            <label className="field">
-              <span className="field__label">親コミュニティ</span>
-              <select
-                value={newCommunityParentId}
-                onChange={(e) => setNewCommunityParentId(e.target.value)}
-              >
-                <option value="">-- なし --</option>
-                {communities.map((community) => (
-                  <option key={community.id} value={community.id}>
-                    {community.path}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              className="button button--secondary"
-              onClick={handleCreateCommunity}
-              disabled={isCreatingCommunity}
-            >
-              {isCreatingCommunity ? "追加中..." : "コミュニティを追加"}
-            </button>
-          </article>
-
-          <article className="mini-card">
-            <h3>新しい話題を追加</h3>
-            <label className="field">
-              <span className="field__label">話題名</span>
-              <input
-                value={newTopicName}
-                onChange={(e) => setNewTopicName(e.target.value)}
-                placeholder="例: 自己紹介 / 価値観"
-              />
-            </label>
-            <label className="field">
-              <span className="field__label">親話題</span>
-              <select
-                value={newTopicParentId}
-                onChange={(e) => setNewTopicParentId(e.target.value)}
-              >
-                <option value="">-- なし --</option>
-                {topics.map((topic) => (
-                  <option key={topic.id} value={topic.id}>
-                    {topic.path}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              className="button button--secondary"
-              onClick={handleCreateTopic}
-              disabled={isCreatingTopic}
-            >
-              {isCreatingTopic ? "追加中..." : "話題を追加"}
-            </button>
-          </article>
+            ))}
+          </nav>
         </div>
-      </section>
-    </section>
-  );
-
-  return (
-    <main className="shell">
-      <div className="shell__glow shell__glow--left" />
-      <div className="shell__glow shell__glow--right" />
-
-      <section className="hero">
-        <div className="hero__copy">
-          <p className="eyebrow">勿忘草</p>
-          <h1>勿忘草</h1>
-          <p className="hero__lead">
-            面接でも日常会話でも、誰に何をどこまで話したかをあとからすぐ思い出せる
-            形で残します。人、場、話題の階層をまとめて扱える会話ログです。
-          </p>
-        </div>
-
-        <div className="hero__stats">
-          <article className="stat-card">
-            <span className="stat-card__label">記録数</span>
-            <strong>{summaryLoading ? "..." : interactions.length}</strong>
-            <p>保存されているやり取りの総数です。</p>
-          </article>
-          <article className="stat-card">
-            <span className="stat-card__label">人 / コミュニティ / 話題</span>
-            <strong>
-              {persons.length} / {communities.length} / {topics.length}
-            </strong>
-            <p>候補を整えるほど入力と検索がしやすくなります。</p>
-          </article>
-          <article className="stat-card">
-            <span className="stat-card__label">今の共有レベル</span>
-            <strong>{selectedShareLevel?.label ?? "-"}</strong>
-            <p>
-              {selectedType?.description ??
-                "やり取りの種類と共有レベルを分けて保存できます。"}
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section className="view-switcher view-switcher--four">
-        {viewOptions.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            className={`view-pill ${viewMode === option.value ? "view-pill--active" : ""}`}
-            onClick={() => setViewMode(option.value)}
-          >
-            <strong>{option.label}</strong>
-            <span>{option.description}</span>
-          </button>
-        ))}
-      </section>
-
-      {feedback ? (
-        <section className={`banner banner--${feedback.tone}`}>
-          <p>{feedback.message}</p>
-        </section>
-      ) : null}
-
-      {viewMode === "record" ? renderRecordView() : null}
-      {viewMode === "history" ? renderHistoryView() : null}
-      {viewMode === "person" ? renderPersonView() : null}
-      {viewMode === "manage" ? renderManageView() : null}
+      )}
     </main>
   );
 }
