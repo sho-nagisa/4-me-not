@@ -33,6 +33,7 @@ type PersonBubble = {
   person: Person;
   count: number;
   size: number;
+  radius: number;
   x: number;
   y: number;
 };
@@ -233,6 +234,12 @@ const buildPersonBubbles = (
   records: InteractionRecord[],
   communityId: string | null = null
 ): PersonBubble[] => {
+  const mapWidth = 920;
+  const mapHeight = 520;
+  const centerX = mapWidth / 2;
+  const centerY = mapHeight / 2;
+  const padding = 12;
+  const gap = 10;
   const counts = new Map<string, number>();
 
   records.forEach((record) => {
@@ -244,14 +251,16 @@ const buildPersonBubbles = (
 
   const maxCount = Math.max(1, ...people.map((person) => counts.get(person.id) ?? 0));
 
-  return people
+  const sortedBubbles = people
     .map((person) => {
       const count = counts.get(person.id) ?? 0;
       const ratio = count / maxCount;
+      const size = Math.round(78 + ratio * 82);
       return {
         person,
         count,
-        size: Math.round(86 + ratio * 92),
+        size,
+        radius: size / 2,
         x: 50,
         y: 50,
       };
@@ -259,25 +268,70 @@ const buildPersonBubbles = (
     .sort((left, right) => {
       if (right.count !== left.count) return right.count - left.count;
       return left.person.name.localeCompare(right.person.name, "ja");
-    })
-    .map((bubble, index, sortedBubbles) => {
-      if (index === 0) {
-        return { ...bubble, x: 50, y: 50 };
+    });
+
+  const placed: PersonBubble[] = [];
+
+  sortedBubbles.forEach((bubble, index) => {
+    if (index === 0) {
+      placed.push({
+        ...bubble,
+        x: 50,
+        y: 50,
+      });
+      return;
+    }
+
+    const maxRadius = Math.min(mapWidth, mapHeight) / 2 - bubble.radius - padding;
+    let best = {
+      x: centerX,
+      y: centerY,
+      score: Number.POSITIVE_INFINITY,
+    };
+
+    for (let step = 0; step < 320; step += 1) {
+      const ring = Math.floor(step / 24) + 1;
+      const angle = step * 2.399963229728653;
+      const distance = Math.min(maxRadius, ring * 22 + index * 5);
+      const candidateX = Math.min(
+        mapWidth - bubble.radius - padding,
+        Math.max(bubble.radius + padding, centerX + Math.cos(angle) * distance)
+      );
+      const candidateY = Math.min(
+        mapHeight - bubble.radius - padding,
+        Math.max(bubble.radius + padding, centerY + Math.sin(angle) * distance * 0.76)
+      );
+
+      const overlaps = placed.some((other) => {
+        const dx = candidateX - (other.x / 100) * mapWidth;
+        const dy = candidateY - (other.y / 100) * mapHeight;
+        return Math.hypot(dx, dy) < bubble.radius + other.radius + gap;
+      });
+
+      if (overlaps) {
+        continue;
       }
 
-      const outerness = index / Math.max(1, sortedBubbles.length - 1);
-      const countPenalty = bubble.count === 0 ? 8 : 0;
-      const radius = 12 + outerness * 34 + countPenalty;
-      const angle = index * 2.399963229728653;
-      const x = 50 + Math.cos(angle) * radius;
-      const y = 50 + Math.sin(angle) * radius * 0.72;
+      const centerDistance = Math.hypot(candidateX - centerX, candidateY - centerY);
+      const desiredDistance = index * 18;
+      const score = Math.abs(centerDistance - desiredDistance);
+      if (score < best.score) {
+        best = {
+          x: candidateX,
+          y: candidateY,
+          score,
+        };
+      }
+    }
 
-      return {
-        ...bubble,
-        x: Math.min(88, Math.max(12, x)),
-        y: Math.min(84, Math.max(16, y)),
-      };
+    placed.push({
+      ...bubble,
+      x: (best.x / mapWidth) * 100,
+      y: (best.y / mapHeight) * 100,
     });
+  });
+
+  return placed;
 };
 
 function NavItem({

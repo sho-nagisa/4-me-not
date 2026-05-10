@@ -495,7 +495,7 @@ button {
 
 .person-bubble-cloud {
   position: relative;
-  min-height: 440px;
+  min-height: 520px;
   margin-top: 22px;
   padding: 22px;
   border-radius: 26px;
@@ -1011,7 +1011,7 @@ button {
   }
 
   .person-bubble-cloud {
-    min-height: 360px;
+    min-height: 420px;
     padding: 16px;
   }
 
