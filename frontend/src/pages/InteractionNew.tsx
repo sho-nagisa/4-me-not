@@ -232,7 +232,8 @@ const buildTopicTree = (items: Topic[]): TopicTreeNode[] => {
 const buildPersonBubbles = (
   people: Person[],
   records: InteractionRecord[],
-  communityId: string | null = null
+  communityId: string | null = null,
+  maxVisible = 7
 ): PersonBubble[] => {
   const mapWidth = 920;
   const mapHeight = 520;
@@ -268,7 +269,8 @@ const buildPersonBubbles = (
     .sort((left, right) => {
       if (right.count !== left.count) return right.count - left.count;
       return left.person.name.localeCompare(right.person.name, "ja");
-    });
+    })
+    .slice(0, maxVisible);
 
   const placed: PersonBubble[] = [];
 
@@ -1118,7 +1120,7 @@ export default function InteractionNew() {
             <h2>ホーム</h2>
           </div>
           <p className="page-card__lead">
-            この画面では全体の状況だけを見て、必要なページへ移動します。
+            よく話している人物を中心に、全体の状況を見ます。
           </p>
         </div>
 
@@ -1668,10 +1670,10 @@ export default function InteractionNew() {
           <div className="page-card__header">
             <div>
               <p className="eyebrow">Person</p>
-              <h2>人物マップ</h2>
+              <h2>よく話す人物</h2>
             </div>
             <p className="page-card__lead">
-              人物ごとの情報も、概要と詳細を分けて見られるようにしています。
+              話した回数が多い人物を中心に表示します。
             </p>
           </div>
 
