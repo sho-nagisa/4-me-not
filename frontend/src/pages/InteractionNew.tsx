@@ -25,6 +25,18 @@ type Topic = {
   path: string;
 };
 
+type TopicTreeNode = Topic & {
+  children: TopicTreeNode[];
+};
+
+type PersonBubble = {
+  person: Person;
+  count: number;
+  size: number;
+  x: number;
+  y: number;
+};
+
 type InteractionType =
   | "MEETING"
   | "CHAT"
@@ -191,6 +203,83 @@ const truncate = (text: string | null | undefined, max = 120) => {
   return `${text.slice(0, max)}...`;
 };
 
+const buildTopicTree = (items: Topic[]): TopicTreeNode[] => {
+  const nodes = new Map<string, TopicTreeNode>();
+  const roots: TopicTreeNode[] = [];
+
+  items.forEach((topic) => {
+    nodes.set(topic.id, { ...topic, children: [] });
+  });
+
+  nodes.forEach((node) => {
+    if (node.parent_id && nodes.has(node.parent_id)) {
+      nodes.get(node.parent_id)?.children.push(node);
+      return;
+    }
+    roots.push(node);
+  });
+
+  const sortNodes = (treeNodes: TopicTreeNode[]) => {
+    treeNodes.sort((left, right) => left.name.localeCompare(right.name, "ja"));
+    treeNodes.forEach((node) => sortNodes(node.children));
+  };
+
+  sortNodes(roots);
+  return roots;
+};
+
+const buildPersonBubbles = (
+  people: Person[],
+  records: InteractionRecord[],
+  communityId: string | null = null
+): PersonBubble[] => {
+  const counts = new Map<string, number>();
+
+  records.forEach((record) => {
+    if (communityId && record.community_id !== communityId) {
+      return;
+    }
+    counts.set(record.person_id, (counts.get(record.person_id) ?? 0) + 1);
+  });
+
+  const maxCount = Math.max(1, ...people.map((person) => counts.get(person.id) ?? 0));
+
+  return people
+    .map((person) => {
+      const count = counts.get(person.id) ?? 0;
+      const ratio = count / maxCount;
+      return {
+        person,
+        count,
+        size: Math.round(86 + ratio * 92),
+        x: 50,
+        y: 50,
+      };
+    })
+    .sort((left, right) => {
+      if (right.count !== left.count) return right.count - left.count;
+      return left.person.name.localeCompare(right.person.name, "ja");
+    })
+    .map((bubble, index, sortedBubbles) => {
+      if (index === 0) {
+        return { ...bubble, x: 50, y: 50 };
+      }
+
+      const outerness = index / Math.max(1, sortedBubbles.length - 1);
+      const countPenalty = bubble.count === 0 ? 8 : 0;
+      const radius = 12 + outerness * 34 + countPenalty;
+      const angle = index * 2.399963229728653;
+      const x = 50 + Math.cos(angle) * radius;
+      const y = 50 + Math.sin(angle) * radius * 0.72;
+
+      return {
+        ...bubble,
+        x: Math.min(88, Math.max(12, x)),
+        y: Math.min(84, Math.max(16, y)),
+      };
+    });
+};
+
 function NavItem({
   active,
   compact,
@@ -292,6 +381,77 @@ function SummaryRows({
           <strong>{item.title}</strong>
           <span>{item.subtitle}</span>
         </div>
+      ))}
+    </div>
+  );
+}
+
+function TopicTree({
+  nodes,
+}: {
+  nodes: TopicTreeNode[];
+}) {
+  return (
+    <ul className="topic-tree">
+      {nodes.map((node) => (
+        <li key={node.id} className="topic-tree__item">
+          <div className="topic-tree__node">
+            <span className="topic-tree__dot" aria-hidden="true" />
+            <div className="topic-tree__content">
+              <strong>{node.name}</strong>
+              <span>{node.path}</span>
+            </div>
+            {node.children.length > 0 ? (
+              <span className="topic-tree__count">{node.children.length}</span>
+            ) : null}
+          </div>
+          {node.children.length > 0 ? <TopicTree nodes={node.children} /> : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function PersonBubbleCloud({
+  bubbles,
+  selectedPersonId,
+  onSelect,
+}: {
+  bubbles: PersonBubble[];
+  selectedPersonId: string;
+  onSelect: (personId: string) => void;
+}) {
+  if (bubbles.length === 0) {
+    return (
+      <EmptyState
+        title="まだ人物がいません"
+        description="人物を追加すると、ここに関係の濃さが泡で表示されます。"
+      />
+    );
+  }
+
+  return (
+    <div className="person-bubble-cloud">
+      {bubbles.map((bubble, index) => (
+        <button
+          key={bubble.person.id}
+          type="button"
+          className={`person-bubble ${
+            selectedPersonId === bubble.person.id ? "person-bubble--active" : ""
+          } ${bubble.count === 0 ? "person-bubble--quiet" : ""}`}
+          style={{
+            width: `${bubble.size}px`,
+            height: `${bubble.size}px`,
+            left: `${bubble.x}%`,
+            top: `${bubble.y}%`,
+            animationDelay: `${(index % 6) * -0.7}s`,
+          }}
+          onClick={() => onSelect(bubble.person.id)}
+          aria-label={`${bubble.person.name}、記録 ${bubble.count}件`}
+        >
+          <strong>{bubble.person.name}</strong>
+          <span>{bubble.count}件</span>
+        </button>
       ))}
     </div>
   );
@@ -891,6 +1051,7 @@ export default function InteractionNew() {
   };
 
   const homeRecentInteractions = interactions.slice(0, 4);
+  const personBubbles = buildPersonBubbles(persons, interactions);
   const selectedHistoryLevelLabel =
     shareLevelOptions.find((option) => option.value === historyShareLevel)?.label ?? "すべて";
 
@@ -907,7 +1068,17 @@ export default function InteractionNew() {
           </p>
         </div>
 
-        <div className="metric-grid">
+        <PersonBubbleCloud
+          bubbles={personBubbles}
+          selectedPersonId={detailPersonId}
+          onSelect={(nextPersonId) => {
+            setDetailPersonId(nextPersonId);
+            setCurrentPage("person");
+            setPersonPanel("summary");
+          }}
+        />
+
+        <div className="metric-grid metric-grid--home">
           <MetricCard
             label="記録数"
             value={summaryLoading ? "..." : interactions.length}
@@ -1443,19 +1614,31 @@ export default function InteractionNew() {
           <div className="page-card__header">
             <div>
               <p className="eyebrow">Person</p>
-              <h2>人物画面</h2>
+              <h2>人物マップ</h2>
             </div>
             <p className="page-card__lead">
               人物ごとの情報も、概要と詳細を分けて見られるようにしています。
             </p>
           </div>
 
-          <div className="page-toolbar">
+          <PersonBubbleCloud
+            bubbles={personBubbles}
+            selectedPersonId={detailPersonId}
+            onSelect={(nextPersonId) => {
+              setDetailPersonId(nextPersonId);
+              setPersonPanel("summary");
+            }}
+          />
+
+          <div className="page-toolbar person-map-toolbar">
             <label className="field field--toolbar">
-              <span className="field__label">人物</span>
+              <span className="field__label">人物を直接選ぶ</span>
               <select
                 value={detailPersonId}
-                onChange={(event) => setDetailPersonId(event.target.value)}
+                onChange={(event) => {
+                  setDetailPersonId(event.target.value);
+                  setPersonPanel("summary");
+                }}
                 disabled={loading}
               >
                 <option value="">-- 選択してください --</option>
@@ -2029,73 +2212,73 @@ export default function InteractionNew() {
     );
   };
 
-  const renderTopicsManagePanel = () => (
-    <section className="page-grid page-grid--two">
-      <article className="page-card">
-        <div className="page-card__header">
-          <div>
-            <p className="eyebrow">Topic</p>
-            <h2>話題を追加</h2>
-          </div>
-        </div>
+  const renderTopicsManagePanel = () => {
+    const topicTree = buildTopicTree(topics);
 
-        <label className="field">
-          <span className="field__label">話題名</span>
-          <input
-            value={newTopicName}
-            onChange={(event) => setNewTopicName(event.target.value)}
-            placeholder="例: 面接 / 自己紹介"
-          />
-        </label>
-        <label className="field">
-          <span className="field__label">親話題</span>
-          <select
-            value={newTopicParentId}
-            onChange={(event) => setNewTopicParentId(event.target.value)}
+    return (
+      <section className="page-grid page-grid--two">
+        <article className="page-card">
+          <div className="page-card__header">
+            <div>
+              <p className="eyebrow">Topic</p>
+              <h2>話題を追加</h2>
+            </div>
+          </div>
+
+          <label className="field">
+            <span className="field__label">話題名</span>
+            <input
+              value={newTopicName}
+              onChange={(event) => setNewTopicName(event.target.value)}
+              placeholder="例: 面接 / 自己紹介"
+            />
+          </label>
+          <label className="field">
+            <span className="field__label">親話題</span>
+            <select
+              value={newTopicParentId}
+              onChange={(event) => setNewTopicParentId(event.target.value)}
+            >
+              <option value="">-- なし --</option>
+              {topics.map((topic) => (
+                <option key={topic.id} value={topic.id}>
+                  {topic.path}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="button button--secondary"
+            onClick={handleCreateTopic}
+            disabled={isCreatingTopic}
           >
-            <option value="">-- なし --</option>
-            {topics.map((topic) => (
-              <option key={topic.id} value={topic.id}>
-                {topic.path}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          className="button button--secondary"
-          onClick={handleCreateTopic}
-          disabled={isCreatingTopic}
-        >
-          {isCreatingTopic ? "追加中..." : "話題を追加"}
-        </button>
-      </article>
+            {isCreatingTopic ? "追加中..." : "話題を追加"}
+          </button>
+        </article>
 
-      <article className="page-card">
-        <div className="page-card__header">
-          <div>
-            <p className="eyebrow">Topic Tree</p>
-            <h2>話題階層</h2>
+        <article className="page-card">
+          <div className="page-card__header">
+            <div>
+              <p className="eyebrow">Topic Tree</p>
+              <h2>話題階層</h2>
+            </div>
           </div>
-        </div>
 
-        {topics.length === 0 ? (
-          <EmptyState
-            title="話題はまだありません"
-            description="就活 / 面接 / 自己紹介 のような形で整理できます。"
-          />
-        ) : (
-          <SummaryRows
-            items={topics.map((topic) => ({
-              title: topic.name,
-              subtitle: topic.path,
-            }))}
-            emptyLabel="話題はまだありません。"
-          />
-        )}
-      </article>
-    </section>
-  );
+          {topicTree.length === 0 ? (
+            <EmptyState
+              title="話題はまだありません"
+              description="就活 / 面接 / 自己紹介 のような形で整理できます。"
+            />
+          ) : (
+            <div className="topic-tree-panel">
+              <TopicTree nodes={topicTree} />
+            </div>
+          )}
+        </article>
+      </section>
+    );
+  };
 
   const renderManagePage = () => (
     <section className="page-stack">
