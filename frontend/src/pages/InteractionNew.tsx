@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { PointerEvent, useEffect, useState } from "react";
 
 import { useIsMobile } from "../hooks/useIsMobile";
 
@@ -33,7 +33,6 @@ type PersonBubble = {
   person: Person;
   count: number;
   size: number;
-  radius: number;
   x: number;
   y: number;
 };
@@ -235,13 +234,16 @@ const buildPersonBubbles = (
   communityId: string | null = null,
   maxVisible = 7
 ): PersonBubble[] => {
-  const mapWidth = 920;
-  const mapHeight = 520;
-  const centerX = mapWidth / 2;
-  const centerY = mapHeight / 2;
-  const padding = 12;
-  const gap = 10;
   const counts = new Map<string, number>();
+  const layoutSlots = [
+    { x: 50, y: 50 },
+    { x: 31, y: 43 },
+    { x: 69, y: 43 },
+    { x: 39, y: 73 },
+    { x: 61, y: 73 },
+    { x: 18, y: 62 },
+    { x: 82, y: 62 },
+  ];
 
   records.forEach((record) => {
     if (communityId && record.community_id !== communityId) {
@@ -256,12 +258,11 @@ const buildPersonBubbles = (
     .map((person) => {
       const count = counts.get(person.id) ?? 0;
       const ratio = count / maxCount;
-      const size = Math.round(78 + ratio * 82);
+      const size = Math.round(78 + ratio * 58);
       return {
         person,
         count,
         size,
-        radius: size / 2,
         x: 50,
         y: 50,
       };
@@ -272,68 +273,10 @@ const buildPersonBubbles = (
     })
     .slice(0, maxVisible);
 
-  const placed: PersonBubble[] = [];
-
-  sortedBubbles.forEach((bubble, index) => {
-    if (index === 0) {
-      placed.push({
-        ...bubble,
-        x: 50,
-        y: 50,
-      });
-      return;
-    }
-
-    const maxRadius = Math.min(mapWidth, mapHeight) / 2 - bubble.radius - padding;
-    let best = {
-      x: centerX,
-      y: centerY,
-      score: Number.POSITIVE_INFINITY,
-    };
-
-    for (let step = 0; step < 320; step += 1) {
-      const ring = Math.floor(step / 24) + 1;
-      const angle = step * 2.399963229728653;
-      const distance = Math.min(maxRadius, ring * 22 + index * 5);
-      const candidateX = Math.min(
-        mapWidth - bubble.radius - padding,
-        Math.max(bubble.radius + padding, centerX + Math.cos(angle) * distance)
-      );
-      const candidateY = Math.min(
-        mapHeight - bubble.radius - padding,
-        Math.max(bubble.radius + padding, centerY + Math.sin(angle) * distance * 0.76)
-      );
-
-      const overlaps = placed.some((other) => {
-        const dx = candidateX - (other.x / 100) * mapWidth;
-        const dy = candidateY - (other.y / 100) * mapHeight;
-        return Math.hypot(dx, dy) < bubble.radius + other.radius + gap;
-      });
-
-      if (overlaps) {
-        continue;
-      }
-
-      const centerDistance = Math.hypot(candidateX - centerX, candidateY - centerY);
-      const desiredDistance = index * 18;
-      const score = Math.abs(centerDistance - desiredDistance);
-      if (score < best.score) {
-        best = {
-          x: candidateX,
-          y: candidateY,
-          score,
-        };
-      }
-    }
-
-    placed.push({
-      ...bubble,
-      x: (best.x / mapWidth) * 100,
-      y: (best.y / mapHeight) * 100,
-    });
-  });
-
-  return placed;
+  return sortedBubbles.map((bubble, index) => ({
+    ...bubble,
+    ...layoutSlots[index],
+  }));
 };
 
 function NavItem({
@@ -477,6 +420,14 @@ function PersonBubbleCloud({
   selectedPersonId: string;
   onSelect: (personId: string) => void;
 }) {
+  const [dragging, setDragging] = useState<{
+    personId: string;
+    originX: number;
+    originY: number;
+    pointerX: number;
+    pointerY: number;
+  } | null>(null);
+
   if (bubbles.length === 0) {
     return (
       <EmptyState
@@ -486,29 +437,83 @@ function PersonBubbleCloud({
     );
   }
 
+  const handlePointerDown = (
+    event: PointerEvent<HTMLButtonElement>,
+    bubble: PersonBubble
+  ) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDragging({
+      personId: bubble.person.id,
+      originX: bubble.x,
+      originY: bubble.y,
+      pointerX: event.clientX,
+      pointerY: event.clientY,
+    });
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
+    if (!dragging) return;
+
+    const parent = event.currentTarget.parentElement;
+    if (!parent) return;
+
+    const bounds = parent.getBoundingClientRect();
+    const nextX =
+      dragging.originX + ((event.clientX - dragging.pointerX) / bounds.width) * 100;
+    const nextY =
+      dragging.originY + ((event.clientY - dragging.pointerY) / bounds.height) * 100;
+
+    setDragging({
+      ...dragging,
+      originX: Math.min(90, Math.max(10, nextX)),
+      originY: Math.min(86, Math.max(14, nextY)),
+      pointerX: event.clientX,
+      pointerY: event.clientY,
+    });
+  };
+
+  const handlePointerEnd = (event: PointerEvent<HTMLButtonElement>) => {
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    setDragging(null);
+  };
+
   return (
     <div className="person-bubble-cloud">
-      {bubbles.map((bubble, index) => (
-        <button
-          key={bubble.person.id}
-          type="button"
-          className={`person-bubble ${
-            selectedPersonId === bubble.person.id ? "person-bubble--active" : ""
-          } ${bubble.count === 0 ? "person-bubble--quiet" : ""}`}
-          style={{
-            width: `${bubble.size}px`,
-            height: `${bubble.size}px`,
-            left: `${bubble.x}%`,
-            top: `${bubble.y}%`,
-            animationDelay: `${(index % 6) * -0.7}s`,
-          }}
-          onClick={() => onSelect(bubble.person.id)}
-          aria-label={`${bubble.person.name}、記録 ${bubble.count}件`}
-        >
-          <strong>{bubble.person.name}</strong>
-          <span>{bubble.count}件</span>
-        </button>
-      ))}
+      {bubbles.map((bubble, index) => {
+        const isDragging = dragging?.personId === bubble.person.id;
+        const left = isDragging ? dragging.originX : bubble.x;
+        const top = isDragging ? dragging.originY : bubble.y;
+
+        return (
+          <button
+            key={bubble.person.id}
+            type="button"
+            className={`person-bubble ${
+              selectedPersonId === bubble.person.id ? "person-bubble--active" : ""
+            } ${bubble.count === 0 ? "person-bubble--quiet" : ""} ${
+              isDragging ? "person-bubble--dragging" : ""
+            }`}
+            style={{
+              width: `${bubble.size}px`,
+              height: `${bubble.size}px`,
+              left: `${left}%`,
+              top: `${top}%`,
+              animationDelay: `${(index % 6) * -0.7}s`,
+            }}
+            onPointerDown={(event) => handlePointerDown(event, bubble)}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerEnd}
+            onPointerCancel={handlePointerEnd}
+            onClick={() => {
+              if (!isDragging) onSelect(bubble.person.id);
+            }}
+            aria-label={`${bubble.person.name}、記録 ${bubble.count}件`}
+          >
+            <strong>{bubble.person.name}</strong>
+            <span>{bubble.count}件</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -1133,25 +1138,6 @@ export default function InteractionNew() {
             setPersonPanel("summary");
           }}
         />
-
-        <div className="metric-grid metric-grid--home">
-          <MetricCard
-            label="記録数"
-            value={summaryLoading ? "..." : interactions.length}
-            description="全体のやり取り件数です。"
-          />
-          <MetricCard label="人" value={persons.length} description="登録相手の人数です。" />
-          <MetricCard
-            label="コミュニティ / 話題"
-            value={`${communities.length} / ${topics.length}`}
-            description="候補の整理状況です。"
-          />
-          <MetricCard
-            label="今の入力"
-            value={selectedShareLevel?.label ?? "-"}
-            description={selectedType?.description ?? "記録画面から入力できます。"}
-          />
-        </div>
       </section>
 
       <section className="page-grid page-grid--two">
@@ -1175,87 +1161,38 @@ export default function InteractionNew() {
                   <strong>{page.label}</strong>
                   <span>{page.description}</span>
                 </button>
-              ))}
+            ))}
           </div>
         </article>
 
         <article className="page-card">
           <div className="page-card__header">
             <div>
-              <p className="eyebrow">Focus</p>
-              <h2>注目人物</h2>
+              <p className="eyebrow">Recent</p>
+              <h2>最近のやり取り</h2>
             </div>
+            <button
+              type="button"
+              className="button button--ghost"
+              onClick={() => setCurrentPage("history")}
+            >
+              履歴画面へ
+            </button>
           </div>
 
-          <label className="field">
-            <span className="field__label">人物</span>
-            <select
-              value={detailPersonId}
-              onChange={(event) => setDetailPersonId(event.target.value)}
-            >
-              <option value="">-- 選択してください --</option>
-              {persons.map((person) => (
-                <option key={person.id} value={person.id}>
-                  {person.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {!detailDashboard ? (
+          {homeRecentInteractions.length === 0 ? (
             <EmptyState
-              title="人物ダッシュボードはまだありません"
-              description="人物を選ぶと、この人向けの要約が表示されます。"
+              title="まだ記録がありません"
+              description="記録画面で最初のやり取りを保存すると、ここに表示されます。"
             />
           ) : (
-            <SummaryRows
-              items={[
-                {
-                  title: "主な所属",
-                  subtitle: detailDashboard.person.primary_community_path ?? "未設定",
-                },
-                {
-                  title: "最後の記録",
-                  subtitle: formatDateTime(detailDashboard.overview.latest_occurred_at),
-                },
-                {
-                  title: "共有状況",
-                  subtitle: `話した ${detailDashboard.overview.shared_count} / 一部 ${detailDashboard.overview.partial_count} / 伏せた ${detailDashboard.overview.withheld_count}`,
-                },
-              ]}
-              emptyLabel="表示できる要約がありません。"
-            />
+            <div className="history-list history-list--compact">
+              {homeRecentInteractions.map((item) => (
+                <HistoryCard key={item.id} item={item} />
+              ))}
+            </div>
           )}
         </article>
-      </section>
-
-      <section className="page-card">
-        <div className="page-card__header">
-          <div>
-            <p className="eyebrow">Recent</p>
-            <h2>最近のやり取り</h2>
-          </div>
-          <button
-            type="button"
-            className="button button--ghost"
-            onClick={() => setCurrentPage("history")}
-          >
-            履歴画面へ
-          </button>
-        </div>
-
-        {homeRecentInteractions.length === 0 ? (
-          <EmptyState
-            title="まだ記録がありません"
-            description="記録画面で最初のやり取りを保存すると、ここに表示されます。"
-          />
-        ) : (
-          <div className="history-list">
-            {homeRecentInteractions.map((item) => (
-              <HistoryCard key={item.id} item={item} />
-            ))}
-          </div>
-        )}
       </section>
     </section>
   );
