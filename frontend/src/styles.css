@@ -290,11 +290,24 @@ button {
   gap: 18px;
 }
 
+.mobile-home-page {
+  gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .home-bubble-card {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   min-height: min(720px, calc(100vh - 310px));
   padding: 28px;
+}
+
+.mobile-home-bubble-card {
+  padding: 20px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .home-bubble-card .page-card__header h2 {
@@ -523,6 +536,18 @@ button {
 .person-bubble-cloud--home {
   min-height: 100%;
   margin-top: 28px;
+}
+
+.person-bubble-cloud--desktop-home {
+  min-height: 100%;
+}
+
+.person-bubble-cloud--mobile-home {
+  min-height: 430px;
+  margin-top: 18px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .person-bubble-cloud--home .person-bubble {
@@ -826,8 +851,23 @@ button {
   margin-top: 18px;
 }
 
-.home-secondary-grid .history-list--compact {
-  gap: 12px;
+.history-carousel {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(260px, 34%);
+  gap: 14px;
+  margin-top: 18px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+  scrollbar-width: thin;
+  padding: 2px 2px 12px;
+}
+
+.history-carousel--mobile {
+  grid-auto-columns: minmax(0, 82%);
+  width: 100%;
+  max-width: 100%;
 }
 
 .history-card {
@@ -881,15 +921,20 @@ button {
   border-radius: 18px;
 }
 
-.home-secondary-grid .history-list--compact .history-card {
+.history-carousel .history-card {
   padding: 16px;
+  border-radius: 18px;
+  scroll-snap-align: start;
 }
 
+.history-carousel .history-card__meta,
+.history-carousel .history-card__note,
 .history-list--compact .history-card__meta,
 .history-list--compact .history-card__note {
   display: none;
 }
 
+.history-carousel .history-card__content,
 .history-list--compact .history-card__content {
   margin-top: 10px;
 }
@@ -1015,6 +1060,9 @@ button {
 
 .mobile-content {
   margin-top: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .mobile-dock {
@@ -1092,21 +1140,25 @@ button {
     padding: 16px;
   }
 
-  .person-bubble-cloud--home {
+  .person-bubble-cloud--mobile-home {
     min-height: 430px;
   }
 
-  .person-bubble-cloud--home .person-bubble {
+  .person-bubble-cloud--mobile-home .person-bubble {
     min-width: 82px;
     min-height: 82px;
   }
 
-  .person-bubble-cloud--home .person-bubble strong {
+  .person-bubble-cloud--mobile-home .person-bubble strong {
     font-size: 0.86rem;
   }
 
-  .person-bubble-cloud--home .person-bubble span {
+  .person-bubble-cloud--mobile-home .person-bubble span {
     font-size: 0.76rem;
+  }
+
+  .history-carousel--mobile {
+    scroll-padding-inline: 2px;
   }
 
   .topic-tree .topic-tree {
