@@ -46,6 +46,10 @@ button {
   padding: 28px;
 }
 
+.app-shell--desktop.app-shell--home {
+  padding: 18px;
+}
+
 .app-shell--mobile {
   padding: 18px 14px 112px;
 }
@@ -88,6 +92,12 @@ button {
   margin: 0 auto;
 }
 
+.app-shell--home .desktop-frame {
+  max-width: 1720px;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 18px;
+}
+
 .desktop-sidebar,
 .desktop-content,
 .mobile-header,
@@ -112,6 +122,11 @@ button {
   border-radius: 32px;
   padding: 22px;
   min-height: calc(100vh - 56px);
+}
+
+.app-shell--home .desktop-content {
+  min-height: calc(100vh - 36px);
+  padding: 18px;
 }
 
 .brand-card {
@@ -269,6 +284,27 @@ button {
   display: none;
 }
 
+.home-page {
+  min-height: calc(100vh - 72px);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 18px;
+}
+
+.home-bubble-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: min(720px, calc(100vh - 310px));
+  padding: 28px;
+}
+
+.home-bubble-card .page-card__header h2 {
+  font-size: 2rem;
+}
+
+.home-secondary-grid {
+  gap: 24px;
+}
+
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -314,6 +350,10 @@ button {
   margin-top: 22px;
 }
 
+.home-secondary-grid .quick-grid {
+  gap: 16px;
+}
+
 .quick-link {
   display: grid;
   gap: 0;
@@ -325,8 +365,17 @@ button {
   color: #183126;
 }
 
+.home-secondary-grid .quick-link {
+  min-height: 92px;
+  padding: 22px;
+}
+
 .quick-link strong {
   font-size: 1rem;
+}
+
+.home-secondary-grid .quick-link strong {
+  font-size: 1.08rem;
 }
 
 .quick-link span,
@@ -504,6 +553,24 @@ button {
     radial-gradient(circle at 78% 78%, rgba(141, 201, 180, 0.2), transparent 24%),
     rgba(244, 247, 245, 0.74);
   border: 1px solid rgba(73, 97, 79, 0.08);
+}
+
+.person-bubble-cloud--home {
+  min-height: 100%;
+  margin-top: 28px;
+}
+
+.person-bubble-cloud--home .person-bubble {
+  min-width: 136px;
+  min-height: 136px;
+}
+
+.person-bubble-cloud--home .person-bubble strong {
+  font-size: 1.18rem;
+}
+
+.person-bubble-cloud--home .person-bubble span {
+  font-size: 0.96rem;
 }
 
 .person-bubble {
@@ -794,6 +861,10 @@ button {
   margin-top: 18px;
 }
 
+.home-secondary-grid .history-list--compact {
+  gap: 12px;
+}
+
 .history-card {
   padding: 18px;
   border-radius: 24px;
@@ -843,6 +914,10 @@ button {
 .history-list--compact .history-card {
   padding: 14px;
   border-radius: 18px;
+}
+
+.home-secondary-grid .history-list--compact .history-card {
+  padding: 16px;
 }
 
 .history-list--compact .history-card__meta,
@@ -1051,6 +1126,15 @@ button {
   .person-bubble-cloud {
     min-height: 360px;
     padding: 16px;
+  }
+
+  .person-bubble-cloud--home {
+    min-height: 430px;
+  }
+
+  .person-bubble-cloud--home .person-bubble {
+    min-width: 82px;
+    min-height: 82px;
   }
 
   .topic-tree .topic-tree {

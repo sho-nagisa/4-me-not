@@ -33,6 +33,7 @@ type PersonBubble = {
   person: Person;
   count: number;
   size: number;
+  distance: number;
   x: number;
   y: number;
 };
@@ -263,6 +264,7 @@ const buildPersonBubbles = (
         person,
         count,
         size,
+        distance: 0,
         x: 50,
         y: 50,
       };
@@ -273,10 +275,27 @@ const buildPersonBubbles = (
     })
     .slice(0, maxVisible);
 
-  return sortedBubbles.map((bubble, index) => ({
-    ...bubble,
-    ...layoutSlots[index],
-  }));
+  return sortedBubbles.map((bubble, index) => {
+    if (index === 0) {
+      return {
+        ...bubble,
+        distance: 0,
+        ...layoutSlots[index],
+      };
+    }
+
+    const sizePressure = bubble.size / sortedBubbles[0].size;
+    const ringPressure = Math.min(1, index / Math.max(1, sortedBubbles.length - 1));
+    const distance = 1 + sizePressure * 0.4 + ringPressure * 0.28;
+    const slot = layoutSlots[index];
+
+    return {
+      ...bubble,
+      distance,
+      x: 50 + (slot.x - 50) * distance,
+      y: 50 + (slot.y - 50) * distance,
+    };
+  });
 };
 
 function NavItem({
@@ -415,10 +434,14 @@ function PersonBubbleCloud({
   bubbles,
   selectedPersonId,
   onSelect,
+  className = "",
+  bubbleScale = 1,
 }: {
   bubbles: PersonBubble[];
   selectedPersonId: string;
   onSelect: (personId: string) => void;
+  className?: string;
+  bubbleScale?: number;
 }) {
   const [dragging, setDragging] = useState<{
     personId: string;
@@ -478,7 +501,7 @@ function PersonBubbleCloud({
   };
 
   return (
-    <div className="person-bubble-cloud">
+    <div className={`person-bubble-cloud ${className}`}>
       {bubbles.map((bubble, index) => {
         const isDragging = dragging?.personId === bubble.person.id;
         const left = isDragging ? dragging.originX : bubble.x;
@@ -493,13 +516,13 @@ function PersonBubbleCloud({
             } ${bubble.count === 0 ? "person-bubble--quiet" : ""} ${
               isDragging ? "person-bubble--dragging" : ""
             }`}
-            style={{
-              width: `${bubble.size}px`,
-              height: `${bubble.size}px`,
-              left: `${left}%`,
-              top: `${top}%`,
-              animationDelay: `${(index % 6) * -0.7}s`,
-            }}
+          style={{
+            width: `${Math.round(bubble.size * bubbleScale)}px`,
+            height: `${Math.round(bubble.size * bubbleScale)}px`,
+            left: `${Math.min(88, Math.max(12, left))}%`,
+            top: `${Math.min(84, Math.max(16, top))}%`,
+            animationDelay: `${(index % 6) * -0.7}s`,
+          }}
             onPointerDown={(event) => handlePointerDown(event, bubble)}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerEnd}
@@ -823,6 +846,11 @@ export default function InteractionNew() {
     setCommunityTouched(false);
   };
 
+  const openRecordForPerson = (nextPersonId: string) => {
+    handlePersonChange(nextPersonId);
+    setCurrentPage("record");
+  };
+
   const handleSubmit = async () => {
     if (!personId || !content.trim()) {
       setError("相手と内容は必須です。");
@@ -1117,8 +1145,8 @@ export default function InteractionNew() {
     shareLevelOptions.find((option) => option.value === historyShareLevel)?.label ?? "すべて";
 
   const renderHomePage = () => (
-    <section className="page-stack">
-      <section className="page-card">
+    <section className="page-stack home-page">
+      <section className="page-card home-bubble-card">
         <div className="page-card__header">
           <div>
             <p className="eyebrow">Home</p>
@@ -1132,15 +1160,13 @@ export default function InteractionNew() {
         <PersonBubbleCloud
           bubbles={personBubbles}
           selectedPersonId={detailPersonId}
-          onSelect={(nextPersonId) => {
-            setDetailPersonId(nextPersonId);
-            setCurrentPage("person");
-            setPersonPanel("summary");
-          }}
+          className="person-bubble-cloud--home"
+          bubbleScale={1.7}
+          onSelect={openRecordForPerson}
         />
       </section>
 
-      <section className="page-grid page-grid--two">
+      <section className="page-grid page-grid--two home-secondary-grid">
         <article className="page-card">
           <div className="page-card__header">
             <div>
@@ -1617,10 +1643,7 @@ export default function InteractionNew() {
           <PersonBubbleCloud
             bubbles={personBubbles}
             selectedPersonId={detailPersonId}
-            onSelect={(nextPersonId) => {
-              setDetailPersonId(nextPersonId);
-              setPersonPanel("summary");
-            }}
+            onSelect={openRecordForPerson}
           />
 
           <div className="page-toolbar person-map-toolbar">
@@ -2316,7 +2339,11 @@ export default function InteractionNew() {
   };
 
   return (
-    <main className={`app-shell ${isMobile ? "app-shell--mobile" : "app-shell--desktop"}`}>
+    <main
+      className={`app-shell ${isMobile ? "app-shell--mobile" : "app-shell--desktop"} ${
+        currentPage === "home" ? "app-shell--home" : ""
+      }`}
+    >
       <div className="app-shell__glow app-shell__glow--left" />
       <div className="app-shell__glow app-shell__glow--right" />
 
