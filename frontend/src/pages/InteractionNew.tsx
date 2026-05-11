@@ -38,6 +38,14 @@ type PersonBubble = {
   y: number;
 };
 
+type HomeViewProps = {
+  personBubbles: PersonBubble[];
+  selectedPersonId: string;
+  recentInteractions: InteractionRecord[];
+  onBubbleSelect: (personId: string) => void;
+  onOpenHistory: () => void;
+};
+
 type InteractionType =
   | "MEETING"
   | "CHAT"
@@ -563,6 +571,129 @@ function HistoryCard({ item }: { item: InteractionRecord }) {
       <p className="history-card__content">{item.content ?? "内容なし"}</p>
       <p className="history-card__note">{item.note || "補足メモなし"}</p>
     </article>
+  );
+}
+
+function DesktopHome({
+  personBubbles,
+  selectedPersonId,
+  recentInteractions,
+  onBubbleSelect,
+  onOpenHistory,
+}: HomeViewProps) {
+  return (
+    <section className="page-stack home-page home-page--desktop">
+      <section className="page-card home-bubble-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Home</p>
+            <h2>ホーム</h2>
+          </div>
+          <p className="page-card__lead">
+            よく話している人物を中心に、全体の状況を見ます。
+          </p>
+        </div>
+
+        <PersonBubbleCloud
+          bubbles={personBubbles}
+          selectedPersonId={selectedPersonId}
+          className="person-bubble-cloud--home person-bubble-cloud--desktop-home"
+          bubbleScale={1.7}
+          onSelect={onBubbleSelect}
+        />
+      </section>
+
+      <section className="home-secondary-grid">
+        <article className="page-card">
+          <div className="page-card__header">
+            <div>
+              <p className="eyebrow">Recent</p>
+              <h2>最近のやり取り</h2>
+            </div>
+            <button
+              type="button"
+              className="button button--ghost button--small"
+              onClick={onOpenHistory}
+            >
+              履歴画面へ
+            </button>
+          </div>
+
+          {recentInteractions.length === 0 ? (
+            <EmptyState
+              title="まだ記録がありません"
+              description="記録画面で最初のやり取りを保存すると、ここに表示されます。"
+            />
+          ) : (
+            <div className="history-carousel history-carousel--desktop">
+              {recentInteractions.map((item) => (
+                <HistoryCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
+        </article>
+      </section>
+    </section>
+  );
+}
+
+function MobileHome({
+  personBubbles,
+  selectedPersonId,
+  recentInteractions,
+  onBubbleSelect,
+  onOpenHistory,
+}: HomeViewProps) {
+  return (
+    <section className="page-stack mobile-home-page">
+      <section className="page-card mobile-home-bubble-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Home</p>
+            <h2>ホーム</h2>
+          </div>
+        </div>
+
+        <PersonBubbleCloud
+          bubbles={personBubbles}
+          selectedPersonId={selectedPersonId}
+          className="person-bubble-cloud--home person-bubble-cloud--mobile-home"
+          bubbleScale={0.92}
+          onSelect={onBubbleSelect}
+        />
+      </section>
+
+      <section className="mobile-home-recent">
+        <article className="page-card">
+          <div className="page-card__header mobile-home-recent__header">
+            <div>
+              <p className="eyebrow">Recent</p>
+              <h2>最近のやり取り</h2>
+            </div>
+            <button
+              type="button"
+              className="button button--ghost button--small"
+              onClick={onOpenHistory}
+            >
+              履歴へ
+            </button>
+          </div>
+
+          {recentInteractions.length === 0 ? (
+            <EmptyState
+              title="まだ記録がありません"
+              description="記録画面で最初のやり取りを保存すると、ここに表示されます。"
+            />
+          ) : (
+            <div className="history-carousel history-carousel--mobile">
+              {recentInteractions.map((item) => (
+                <HistoryCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
+        </article>
+      </section>
+    </section>
   );
 }
 
@@ -1141,64 +1272,20 @@ export default function InteractionNew() {
 
   const homeRecentInteractions = interactions.slice(0, 4);
   const personBubbles = buildPersonBubbles(persons, interactions);
-  const homeBubbleScale = isMobile ? 0.92 : 1.7;
   const selectedHistoryLevelLabel =
     shareLevelOptions.find((option) => option.value === historyShareLevel)?.label ?? "すべて";
 
-  const renderHomePage = () => (
-    <section className="page-stack home-page">
-      <section className="page-card home-bubble-card">
-        <div className="page-card__header">
-          <div>
-            <p className="eyebrow">Home</p>
-            <h2>ホーム</h2>
-          </div>
-          <p className="page-card__lead">
-            よく話している人物を中心に、全体の状況を見ます。
-          </p>
-        </div>
+  const renderHomePage = () => {
+    const props: HomeViewProps = {
+      personBubbles,
+      selectedPersonId: detailPersonId,
+      recentInteractions: homeRecentInteractions,
+      onBubbleSelect: openRecordForPerson,
+      onOpenHistory: () => setCurrentPage("history"),
+    };
 
-        <PersonBubbleCloud
-          bubbles={personBubbles}
-          selectedPersonId={detailPersonId}
-          className="person-bubble-cloud--home"
-          bubbleScale={homeBubbleScale}
-          onSelect={openRecordForPerson}
-        />
-      </section>
-
-      <section className="home-secondary-grid">
-        <article className="page-card">
-          <div className="page-card__header">
-            <div>
-              <p className="eyebrow">Recent</p>
-              <h2>最近のやり取り</h2>
-            </div>
-            <button
-              type="button"
-              className="button button--ghost"
-              onClick={() => setCurrentPage("history")}
-            >
-              履歴画面へ
-            </button>
-          </div>
-
-          {homeRecentInteractions.length === 0 ? (
-            <EmptyState
-              title="まだ記録がありません"
-              description="記録画面で最初のやり取りを保存すると、ここに表示されます。"
-            />
-          ) : (
-            <div className="history-list history-list--compact">
-              {homeRecentInteractions.map((item) => (
-                <HistoryCard key={item.id} item={item} />
-              ))}
-            </div>
-          )}
-        </article>
-      </section>
-    </section>
-  );
+    return isMobile ? <MobileHome {...props} /> : <DesktopHome {...props} />;
+  };
 
   const renderRecordPage = () => (
     <section className="page-grid page-grid--record">
