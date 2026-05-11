@@ -1137,6 +1137,14 @@ button {
     min-height: 82px;
   }
 
+  .person-bubble-cloud--home .person-bubble strong {
+    font-size: 0.86rem;
+  }
+
+  .person-bubble-cloud--home .person-bubble span {
+    font-size: 0.76rem;
+  }
+
   .topic-tree .topic-tree {
     margin-left: 10px;
     padding-left: 18px;
