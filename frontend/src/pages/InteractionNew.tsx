@@ -1141,6 +1141,7 @@ export default function InteractionNew() {
 
   const homeRecentInteractions = interactions.slice(0, 4);
   const personBubbles = buildPersonBubbles(persons, interactions);
+  const homeBubbleScale = isMobile ? 0.92 : 1.7;
   const selectedHistoryLevelLabel =
     shareLevelOptions.find((option) => option.value === historyShareLevel)?.label ?? "すべて";
 
@@ -1161,7 +1162,7 @@ export default function InteractionNew() {
           bubbles={personBubbles}
           selectedPersonId={detailPersonId}
           className="person-bubble-cloud--home"
-          bubbleScale={1.7}
+          bubbleScale={homeBubbleScale}
           onSelect={openRecordForPerson}
         />
       </section>
