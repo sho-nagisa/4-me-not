@@ -18,7 +18,7 @@ class APISmokeTest(unittest.TestCase):
         community_root = cls.client.post(
             "/api/communities",
             json={
-                "name": "スモーク大学",
+                "name": f"{cls.prefix} スモーク大学",
                 "description": f"{cls.prefix} root",
             },
         )
@@ -28,7 +28,7 @@ class APISmokeTest(unittest.TestCase):
         community_child = cls.client.post(
             "/api/communities",
             json={
-                "name": "面接練習会",
+                "name": f"{cls.prefix} 面接練習会",
                 "description": f"{cls.prefix} child",
                 "parent_id": cls.community_root_id,
             },
@@ -100,6 +100,26 @@ class APISmokeTest(unittest.TestCase):
             any(item["id"] == self.topic_child_id for item in topics.json()),
             "Created topic is not listed in /api/topics",
         )
+
+    def test_03_duplicate_community_sibling_is_rejected(self) -> None:
+        duplicate_root = self.client.post(
+            "/api/communities",
+            json={
+                "name": f"{self.prefix} スモーク大学",
+                "description": f"{self.prefix} duplicate-root",
+            },
+        )
+        duplicate_child = self.client.post(
+            "/api/communities",
+            json={
+                "name": f"{self.prefix} 面接練習会",
+                "description": f"{self.prefix} duplicate-child",
+                "parent_id": self.community_root_id,
+            },
+        )
+
+        self.assertEqual(duplicate_root.status_code, 409, duplicate_root.text)
+        self.assertEqual(duplicate_child.status_code, 409, duplicate_child.text)
 
     def test_03_manage_visibility_and_delete(self) -> None:
         temp_community = self.client.post(

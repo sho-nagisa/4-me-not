@@ -16,9 +16,18 @@ class CommunityService:
     ):
         db = SessionLocal()
         try:
+            normalized_name = name.strip()
+            if not normalized_name:
+                raise HTTPException(status_code=400, detail="Community name is required")
+
             normalized_parent_id = self._validate_parent_id(db, parent_id)
+            self._ensure_unique_sibling(
+                db=db,
+                name=normalized_name,
+                parent_id=normalized_parent_id,
+            )
             community = Community(
-                name=name,
+                name=normalized_name,
                 description=description,
                 parent_id=normalized_parent_id,
             )
@@ -95,6 +104,19 @@ class CommunityService:
         if parent is None or parent.is_hidden:
             raise HTTPException(status_code=404, detail="Parent community not found")
         return normalized_id
+
+    def _ensure_unique_sibling(self, db, name: str, parent_id: UUID | None):
+        query = db.query(Community).filter(Community.name == name)
+        if parent_id is None:
+            query = query.filter(Community.parent_id.is_(None))
+        else:
+            query = query.filter(Community.parent_id == parent_id)
+
+        if query.first() is not None:
+            raise HTTPException(
+                status_code=409,
+                detail="Community already exists under the same parent",
+            )
 
     def _normalize_community_id(self, community_id: str) -> UUID:
         try:
