@@ -1287,8 +1287,8 @@ export default function InteractionNew() {
     return isMobile ? <MobileHome {...props} /> : <DesktopHome {...props} />;
   };
 
-  const renderRecordPage = () => (
-    <section className="page-grid page-grid--record">
+  const renderRecordPage = () => {
+    const recordFormCard = (
       <section className="page-card">
         <div className="page-card__header">
           <div>
@@ -1441,7 +1441,9 @@ export default function InteractionNew() {
           </p>
         </div>
       </section>
+    );
 
+    const beforeTalkCard = (
       <aside className="page-card">
         <div className="page-card__header">
           <div>
@@ -1506,8 +1508,30 @@ export default function InteractionNew() {
           </div>
         )}
       </aside>
-    </section>
-  );
+    );
+
+    if (isMobile) {
+      return (
+        <section className="mobile-record-page">
+          <div className="mobile-record-tabs" aria-hidden="true">
+            <span className="mobile-record-tab">入力</span>
+            <span className="mobile-record-tab">確認</span>
+          </div>
+          <div className="mobile-record-swipe" aria-label="記録画面">
+            <div className="mobile-record-panel">{recordFormCard}</div>
+            <div className="mobile-record-panel">{beforeTalkCard}</div>
+          </div>
+        </section>
+      );
+    }
+
+    return (
+      <section className="page-grid page-grid--record">
+        {recordFormCard}
+        {beforeTalkCard}
+      </section>
+    );
+  };
 
   const renderHistoryFilters = () => (
     <div className="page-stack page-stack--compact">
