@@ -1167,31 +1167,7 @@ export default function InteractionNew() {
         />
       </section>
 
-      <section className="page-grid page-grid--two home-secondary-grid">
-        <article className="page-card">
-          <div className="page-card__header">
-            <div>
-              <p className="eyebrow">Quick Move</p>
-              <h2>目的別に移動</h2>
-            </div>
-          </div>
-          <div className="quick-grid">
-            {pageOptions
-              .filter((page) => page.id !== "home")
-              .map((page) => (
-                <button
-                  key={page.id}
-                  type="button"
-                  className="quick-link"
-                  onClick={() => setCurrentPage(page.id)}
-                >
-                  <strong>{page.label}</strong>
-                  <span>{page.description}</span>
-                </button>
-            ))}
-          </div>
-        </article>
-
+      <section className="home-secondary-grid">
         <article className="page-card">
           <div className="page-card__header">
             <div>
