@@ -774,6 +774,7 @@ export default function InteractionNew() {
   const [historyDateTo, setHistoryDateTo] = useState<string>("");
 
   const [detailPersonId, setDetailPersonId] = useState<string>("");
+  const [detailCommunityId, setDetailCommunityId] = useState<string>("");
   const [recordDashboard, setRecordDashboard] = useState<PersonDashboard | null>(null);
   const [detailDashboard, setDetailDashboard] = useState<PersonDashboard | null>(null);
 
@@ -1288,7 +1289,20 @@ export default function InteractionNew() {
   };
 
   const homeRecentInteractions = interactions.slice(0, 4);
-  const personBubbles = buildPersonBubbles(persons, interactions);
+  const personMatchesDetailCommunity = (person: Person) => {
+    if (!detailCommunityId) return true;
+    if (person.primary_community_id === detailCommunityId) return true;
+    return interactions.some(
+      (item) => item.person_id === person.id && item.community_id === detailCommunityId
+    );
+  };
+  const detailPersons = persons.filter(personMatchesDetailCommunity);
+  const homePersonBubbles = buildPersonBubbles(persons, interactions);
+  const detailPersonBubbles = buildPersonBubbles(
+    detailPersons,
+    interactions,
+    detailCommunityId || null
+  );
   const selectedHistoryLevelLabel =
     shareLevelOptions.find((option) => option.value === historyShareLevel)?.label ?? "すべて";
 
@@ -1314,7 +1328,7 @@ export default function InteractionNew() {
 
   const renderHomePage = () => {
     const props: HomeViewProps = {
-      personBubbles,
+      personBubbles: homePersonBubbles,
       selectedPersonId: detailPersonId,
       recentInteractions: homeRecentInteractions,
       onBubbleSelect: openRecordForPerson,
@@ -1776,12 +1790,48 @@ export default function InteractionNew() {
           </div>
 
           <PersonBubbleCloud
-            bubbles={personBubbles}
+            bubbles={detailPersonBubbles}
             selectedPersonId={detailPersonId}
             onSelect={openRecordForPerson}
           />
 
           <div className="page-toolbar person-map-toolbar">
+            <label className="field field--toolbar">
+              <span className="field__label">コミュニティで絞る</span>
+              <select
+                value={detailCommunityId}
+                onChange={(event) => {
+                  const nextCommunityId = event.target.value;
+                  setDetailCommunityId(nextCommunityId);
+                  setPersonPanel("summary");
+
+                  const nextPersons = persons.filter((person) => {
+                    if (!nextCommunityId) return true;
+                    if (person.primary_community_id === nextCommunityId) return true;
+                    return interactions.some(
+                      (item) =>
+                        item.person_id === person.id &&
+                        item.community_id === nextCommunityId
+                    );
+                  });
+
+                  if (
+                    detailPersonId &&
+                    !nextPersons.some((person) => person.id === detailPersonId)
+                  ) {
+                    setDetailPersonId(nextPersons[0]?.id ?? "");
+                  }
+                }}
+                disabled={loading}
+              >
+                <option value="">-- すべて --</option>
+                {communities.map((community) => (
+                  <option key={community.id} value={community.id}>
+                    {community.path}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="field field--toolbar">
               <span className="field__label">人物を直接選ぶ</span>
               <select
@@ -1793,7 +1843,7 @@ export default function InteractionNew() {
                 disabled={loading}
               >
                 <option value="">-- 選択してください --</option>
-                {persons.map((person) => (
+                {detailPersons.map((person) => (
                   <option key={person.id} value={person.id}>
                     {person.name}
                   </option>
