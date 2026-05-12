@@ -353,10 +353,63 @@ button {
 }
 
 .mobile-home-page {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 14px;
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  overflow: hidden;
+}
+
+.mobile-home-swiper {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(100%, 100%);
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  touch-action: pan-x;
+  scrollbar-width: none;
+}
+
+.mobile-home-swiper::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-home-slide {
+  display: grid;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.mobile-home-slide > .page-card,
+.mobile-home-slide > .mobile-home-recent,
+.mobile-home-recent > .page-card {
+  min-width: 0;
+  height: 100%;
+}
+
+.mobile-home-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mobile-home-pagination span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(93, 112, 101, 0.35);
+}
+
+.mobile-home-pagination span:first-child {
+  width: 18px;
+  background: rgba(197, 94, 51, 0.62);
 }
 
 .home-bubble-card {
@@ -367,6 +420,8 @@ button {
 }
 
 .mobile-home-bubble-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   padding: 20px;
   min-width: 0;
   overflow: hidden;
@@ -913,6 +968,14 @@ button {
   margin-top: 18px;
 }
 
+.history-list--mobile-home {
+  gap: 12px;
+  margin-top: 18px;
+  max-height: calc(100vh - 290px);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
 .history-carousel {
   display: grid;
   grid-auto-flow: column;
@@ -983,6 +1046,11 @@ button {
   border-radius: 18px;
 }
 
+.history-list--mobile-home .history-card {
+  padding: 14px;
+  border-radius: 18px;
+}
+
 .history-carousel .history-card {
   padding: 16px;
   border-radius: 18px;
@@ -991,12 +1059,15 @@ button {
 
 .history-carousel .history-card__meta,
 .history-carousel .history-card__note,
+.history-list--mobile-home .history-card__meta,
+.history-list--mobile-home .history-card__note,
 .history-list--compact .history-card__meta,
 .history-list--compact .history-card__note {
   display: none;
 }
 
 .history-carousel .history-card__content,
+.history-list--mobile-home .history-card__content,
 .history-list--compact .history-card__content {
   margin-top: 10px;
 }

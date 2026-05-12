@@ -645,8 +645,10 @@ function MobileHome({
   onOpenHistory,
 }: HomeViewProps) {
   return (
-    <section className="page-stack mobile-home-page">
-      <section className="page-card mobile-home-bubble-card">
+    <section className="mobile-home-page">
+      <div className="mobile-home-swiper" aria-label="Home slides">
+        <section className="mobile-home-slide mobile-home-slide--home">
+          <section className="page-card mobile-home-bubble-card">
         <div className="page-card__header">
           <div>
             <p className="eyebrow">Home</p>
@@ -661,9 +663,11 @@ function MobileHome({
           bubbleScale={0.92}
           onSelect={onBubbleSelect}
         />
-      </section>
+          </section>
+        </section>
 
-      <section className="mobile-home-recent">
+        <section className="mobile-home-slide mobile-home-slide--recent">
+          <section className="mobile-home-recent">
         <article className="page-card">
           <div className="page-card__header mobile-home-recent__header">
             <div>
@@ -685,14 +689,20 @@ function MobileHome({
               description="記録画面で最初のやり取りを保存すると、ここに表示されます。"
             />
           ) : (
-            <div className="history-carousel history-carousel--mobile">
+            <div className="history-list history-list--mobile-home">
               {recentInteractions.map((item) => (
                 <HistoryCard key={item.id} item={item} />
               ))}
             </div>
           )}
         </article>
-      </section>
+          </section>
+        </section>
+      </div>
+      <div className="mobile-home-pagination" aria-hidden="true">
+        <span />
+        <span />
+      </div>
     </section>
   );
 }
