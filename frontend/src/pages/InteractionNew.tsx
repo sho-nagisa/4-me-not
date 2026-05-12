@@ -1337,17 +1337,6 @@ export default function InteractionNew() {
           </p>
         </div>
 
-        <div className="notice-row">
-          <span>候補が足りないときは管理画面で追加できます。</span>
-          <button
-            type="button"
-            className="button button--ghost"
-            onClick={() => setCurrentPage("manage")}
-          >
-            管理画面へ
-          </button>
-        </div>
-
         <div className="form-grid">
           <label className="field">
             <span className="field__label">日時</span>
