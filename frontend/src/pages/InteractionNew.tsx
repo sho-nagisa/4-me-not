@@ -163,6 +163,11 @@ const pageOptions: Array<{
   { id: "manage", label: "管理", mobileLabel: "管理", description: "候補と階層を整える" },
 ];
 
+const mobilePageOrder: PageId[] = ["record", "history", "home", "person", "manage"];
+const mobilePageOptions = mobilePageOrder
+  .map((pageId) => pageOptions.find((page) => page.id === pageId))
+  .filter((page): page is (typeof pageOptions)[number] => Boolean(page));
+
 const personPanelOptions: Array<{
   id: PersonPanelId;
   label: string;
@@ -2555,7 +2560,7 @@ export default function InteractionNew() {
           <section className="mobile-content">{renderPage()}</section>
 
           <nav className="mobile-dock">
-            {pageOptions.map((page) => (
+            {mobilePageOptions.map((page) => (
               <NavItem
                 key={page.id}
                 active={currentPage === page.id}
