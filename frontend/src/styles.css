@@ -284,17 +284,24 @@ button {
   text-align: center;
 }
 
+.mobile-record-tab--active {
+  background: rgba(255, 246, 239, 0.96);
+  border-color: rgba(197, 94, 51, 0.24);
+  color: #173126;
+}
+
 .mobile-record-swipe {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 100%;
+  grid-auto-columns: minmax(100%, 100%);
   gap: 12px;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
-  scroll-snap-type: inline mandatory;
+  scroll-snap-type: x mandatory;
+  touch-action: pan-x;
   scrollbar-width: none;
 }
 

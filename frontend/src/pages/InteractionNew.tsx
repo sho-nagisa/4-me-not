@@ -1,4 +1,4 @@
-import { PointerEvent, useEffect, useState } from "react";
+import { PointerEvent, useEffect, useRef, useState } from "react";
 
 import { useIsMobile } from "../hooks/useIsMobile";
 
@@ -704,6 +704,8 @@ export default function InteractionNew() {
   const [personPanel, setPersonPanel] = useState<PersonPanelId>("summary");
   const [managePanel, setManagePanel] = useState<ManagePanelId>("people");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [mobileRecordPanel, setMobileRecordPanel] = useState<"input" | "check">("input");
+  const mobileRecordSwipeRef = useRef<HTMLDivElement | null>(null);
 
   const [persons, setPersons] = useState<Person[]>([]);
   const [communities, setCommunities] = useState<Community[]>([]);
@@ -1275,6 +1277,26 @@ export default function InteractionNew() {
   const selectedHistoryLevelLabel =
     shareLevelOptions.find((option) => option.value === historyShareLevel)?.label ?? "すべて";
 
+  const switchMobileRecordPanel = (panel: "input" | "check") => {
+    setMobileRecordPanel(panel);
+    const container = mobileRecordSwipeRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      left: panel === "input" ? 0 : container.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
+  const handleMobileRecordScroll = () => {
+    const container = mobileRecordSwipeRef.current;
+    if (!container) return;
+
+    const nextPanel =
+      container.scrollLeft > container.clientWidth * 0.5 ? "check" : "input";
+    setMobileRecordPanel(nextPanel);
+  };
+
   const renderHomePage = () => {
     const props: HomeViewProps = {
       personBubbles,
@@ -1513,11 +1535,32 @@ export default function InteractionNew() {
     if (isMobile) {
       return (
         <section className="mobile-record-page">
-          <div className="mobile-record-tabs" aria-hidden="true">
-            <span className="mobile-record-tab">入力</span>
-            <span className="mobile-record-tab">確認</span>
+          <div className="mobile-record-tabs" aria-label="記録画面の切り替え">
+            <button
+              type="button"
+              className={`mobile-record-tab ${
+                mobileRecordPanel === "input" ? "mobile-record-tab--active" : ""
+              }`}
+              onClick={() => switchMobileRecordPanel("input")}
+            >
+              入力
+            </button>
+            <button
+              type="button"
+              className={`mobile-record-tab ${
+                mobileRecordPanel === "check" ? "mobile-record-tab--active" : ""
+              }`}
+              onClick={() => switchMobileRecordPanel("check")}
+            >
+              確認
+            </button>
           </div>
-          <div className="mobile-record-swipe" aria-label="記録画面">
+          <div
+            ref={mobileRecordSwipeRef}
+            className="mobile-record-swipe"
+            aria-label="記録画面"
+            onScroll={handleMobileRecordScroll}
+          >
             <div className="mobile-record-panel">{recordFormCard}</div>
             <div className="mobile-record-panel">{beforeTalkCard}</div>
           </div>
