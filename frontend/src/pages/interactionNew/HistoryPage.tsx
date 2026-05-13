@@ -216,49 +216,54 @@ export function HistoryPage(props: HistoryPageProps) {
         </aside>
       ) : null}
 
-      <section className="page-card">
-        <div className="page-card__header">
-          <div>
-            <p className="eyebrow">History</p>
-            <h2>履歴一覧</h2>
-          </div>
-          <div className="history-header-actions">
-            <div className="history-summary">
-              <span>表示 {historyItems.length}件</span>
-              <span>
-                伏せた {historyItems.filter((item) => item.share_level === "WITHHELD").length}件
-              </span>
+      <div className="history-main">
+        <div className="history-summary history-summary--outside">
+          <span>表示 {historyItems.length}件</span>
+          <span>
+            伏せた {historyItems.filter((item) => item.share_level === "WITHHELD").length}件
+          </span>
+        </div>
+
+        <section className="page-card">
+          <div className="page-card__header history-list-card__header">
+            <div className="history-list-card__title">
+              <p className="eyebrow">History</p>
+              <h2>履歴一覧</h2>
             </div>
             <button
               type="button"
-              className="button button--ghost filter-panel__toggle"
+              className={`button button--ghost filter-panel__toggle filter-panel__icon-toggle${
+                historyFilterOpen ? " filter-panel__icon-toggle--active" : ""
+              }`}
               onClick={() => setHistoryFilterOpen((current) => !current)}
               aria-expanded={historyFilterOpen}
               aria-controls="history-filter-body"
+              aria-label={historyFilterOpen ? "絞り込みを閉じる" : "絞り込みを開く"}
+              title={historyFilterOpen ? "絞り込みを閉じる" : "絞り込みを開く"}
             >
-              {historyFilterOpen ? "絞り込みを閉じる" : "絞り込み"}
+              <span className="filter-panel__icon" aria-hidden="true" />
             </button>
           </div>
-        </div>
-        {!historyFilterOpen && historyFilterSummary.length > 0 ? (
-          <div className="filter-panel__summary filter-panel__summary--inline">
-            {historyFilterSummary.map((item) => <span key={item}>{item}</span>)}
-          </div>
-        ) : null}
+          {!historyFilterOpen && historyFilterSummary.length > 0 ? (
+            <div className="filter-panel__summary filter-panel__summary--inline">
+              {historyFilterSummary.map((item) => <span key={item}>{item}</span>)}
+            </div>
+          ) : null}
 
-        {historyItems.length === 0 ? (
-          <EmptyState
-            title="条件に合う履歴がありません"
-            description="フィルターを緩めるか、新しい記録を追加してください。"
-          />
-        ) : (
-          <div className="history-list">
-            {historyItems.map((item) => (
-              <HistoryCard key={item.id} item={item} />
-            ))}
-          </div>
-        )}
-      </section>
+          {historyItems.length === 0 ? (
+            <EmptyState
+              title="条件に合う履歴がありません"
+              description="フィルターを緩めるか、新しい記録を追加してください。"
+            />
+          ) : (
+            <div className="history-list">
+              {historyItems.map((item) => (
+                <HistoryCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </section>
   );
 
