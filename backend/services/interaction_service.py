@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from backend.db.session import SessionLocal
@@ -151,7 +152,56 @@ class InteractionService:
                 query = query.limit(limit)
 
             interactions = query.all()
-            return [self.serialize_interaction(interaction) for interaction in interactions]
+            path_cache = {}
+            return [
+                self.serialize_interaction(interaction, path_cache=path_cache)
+                for interaction in interactions
+            ]
+        finally:
+            db.close()
+
+    def get_interaction_overview(self, recent_limit: int = 4, person_limit: int = 7):
+        db: Session = SessionLocal()
+        try:
+            visible_query = (
+                db.query(Interaction)
+                .join(Person, Interaction.person_id == Person.id)
+                .filter(Person.is_hidden.is_(False))
+            )
+            total_count = visible_query.count()
+
+            recent_interactions = self._base_query(db).limit(recent_limit).all()
+            path_cache = {}
+            serialized_recent = [
+                self.serialize_interaction(interaction, path_cache=path_cache)
+                for interaction in recent_interactions
+            ]
+
+            interaction_count = func.count(Interaction.id)
+            person_counts = (
+                db.query(
+                    Person.id.label("person_id"),
+                    interaction_count.label("interaction_count"),
+                )
+                .outerjoin(Interaction, Interaction.person_id == Person.id)
+                .filter(Person.is_hidden.is_(False))
+                .group_by(Person.id, Person.name)
+                .order_by(interaction_count.desc(), Person.name.asc())
+                .limit(person_limit)
+                .all()
+            )
+
+            return {
+                "total_count": total_count,
+                "recent_interactions": serialized_recent,
+                "person_counts": [
+                    {
+                        "person_id": str(row.person_id),
+                        "count": int(row.interaction_count),
+                    }
+                    for row in person_counts
+                ],
+            }
         finally:
             db.close()
 
@@ -172,7 +222,11 @@ class InteractionService:
                 .filter(Interaction.person_id == person.id)
                 .all()
             )
-            serialized = [self.serialize_interaction(interaction) for interaction in interactions]
+            path_cache = {}
+            serialized = [
+                self.serialize_interaction(interaction, path_cache=path_cache)
+                for interaction in interactions
+            ]
             share_counts = Counter(item["share_level"] for item in serialized)
 
             return {
@@ -224,7 +278,7 @@ class InteractionService:
         finally:
             db.close()
 
-    def serialize_interaction(self, interaction: Interaction):
+    def serialize_interaction(self, interaction: Interaction, path_cache: dict | None = None):
         interaction_type = InteractionType(interaction.type)
         share_level = ShareLevel(interaction.share_level)
         visible_community = interaction.community if interaction.community and not interaction.community.is_hidden else None
@@ -235,10 +289,10 @@ class InteractionService:
             "person_name": interaction.person.name if interaction.person else "",
             "community_id": str(interaction.community_id) if visible_community else None,
             "community_name": visible_community.name if visible_community else None,
-            "community_path": self._build_path(visible_community) if visible_community else None,
+            "community_path": self._build_path(visible_community, path_cache) if visible_community else None,
             "topic_id": str(interaction.topic_id) if interaction.topic_id else None,
             "topic_name": interaction.topic.name if interaction.topic else None,
-            "topic_path": self._build_path(interaction.topic) if interaction.topic else None,
+            "topic_path": self._build_path(interaction.topic, path_cache) if interaction.topic else None,
             "interaction_type": interaction_type.name,
             "interaction_type_label": self.TYPE_LABELS.get(interaction_type, interaction_type.name),
             "share_level": share_level.name,
@@ -265,7 +319,14 @@ class InteractionService:
             )
         )
 
-    def _build_path(self, record):
+    def _build_path(self, record, path_cache: dict | None = None):
+        if record is None:
+            return None
+
+        cache_key = (record.__class__.__name__, str(record.id))
+        if path_cache is not None and cache_key in path_cache:
+            return path_cache[cache_key]
+
         nodes = []
         current = record
         while current is not None:
@@ -274,7 +335,10 @@ class InteractionService:
                 continue
             nodes.append(current.name)
             current = current.parent
-        return " / ".join(reversed(nodes))
+        path = " / ".join(reversed(nodes))
+        if path_cache is not None:
+            path_cache[cache_key] = path
+        return path
 
     def _summarize_dimension(self, interactions, id_key: str, label_key: str):
         buckets: dict[str, dict[str, int | str]] = {}

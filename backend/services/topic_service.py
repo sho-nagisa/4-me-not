@@ -7,6 +7,9 @@ from backend.models.interaction.topic import Topic
 
 
 class TopicService:
+    def __init__(self):
+        self._path_cache: dict[str, str] = {}
+
     def create_topic(
         self,
         name: str,
@@ -33,12 +36,24 @@ class TopicService:
         db = SessionLocal()
         try:
             topics = db.query(Topic).all()
-            topics.sort(key=lambda item: self.get_path(item))
+            topics_by_id = {topic.id: topic for topic in topics}
+            self._path_cache = {
+                str(topic.id): self._build_path_from_map(
+                    topic=topic,
+                    topics_by_id=topics_by_id,
+                )
+                for topic in topics
+            }
+            topics.sort(key=lambda item: self._path_cache[str(item.id)])
             return topics
         finally:
             db.close()
 
     def get_path(self, topic: Topic) -> str:
+        cache_key = str(topic.id)
+        if cache_key in self._path_cache:
+            return self._path_cache[cache_key]
+
         db = SessionLocal()
         try:
             nodes = []
@@ -49,6 +64,18 @@ class TopicService:
             return " / ".join(reversed(nodes))
         finally:
             db.close()
+
+    def _build_path_from_map(
+        self,
+        topic: Topic,
+        topics_by_id: dict[UUID, Topic],
+    ) -> str:
+        nodes = []
+        current: Topic | None = topic
+        while current is not None:
+            nodes.append(current.name)
+            current = topics_by_id.get(current.parent_id) if current.parent_id else None
+        return " / ".join(reversed(nodes))
 
     def _validate_parent_id(self, db, parent_id: str | None):
         if not parent_id:

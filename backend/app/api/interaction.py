@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 from backend.services.ai_service import AIService
@@ -44,6 +44,18 @@ def list_interactions(
         date_from=date_from,
         date_to=date_to,
         limit=limit,
+    )
+
+
+@router.get("/overview")
+def get_interaction_overview(
+    recent_limit: int = Query(default=4, ge=1, le=20),
+    person_limit: int = Query(default=7, ge=1, le=30),
+):
+    interaction_service = InteractionService()
+    return interaction_service.get_interaction_overview(
+        recent_limit=recent_limit,
+        person_limit=person_limit,
     )
 
 

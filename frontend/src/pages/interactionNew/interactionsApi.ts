@@ -1,5 +1,6 @@
 import type {
   Community,
+  InteractionOverview,
   InteractionRecord,
   InteractionType,
   Person,
@@ -97,6 +98,9 @@ export const listInteractions = (filters?: HistoryFilters) => {
     query ? `/api/interactions?${query}` : "/api/interactions"
   );
 };
+
+export const getInteractionOverview = () =>
+  fetchJson<InteractionOverview>("/api/interactions/overview");
 
 export const getPersonDashboard = (personId: string) =>
   fetchJson<PersonDashboard>(`/api/persons/${personId}/dashboard`);
