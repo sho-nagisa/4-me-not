@@ -160,7 +160,8 @@ button {
 .history-card__meta span,
 .notice-row span,
 .sidebar-summary__item span,
-.mobile-filter-summary span {
+.mobile-filter-summary span,
+.filter-panel__summary span {
   color: #5d7065;
 }
 
@@ -320,6 +321,10 @@ button {
 }
 
 .page-grid--history {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.page-grid--history-filter-open {
   grid-template-columns: 320px minmax(0, 1fr);
 }
 
@@ -1149,19 +1154,48 @@ button {
   color: #6a7f73;
 }
 
+.history-filter-card {
+  align-self: start;
+}
+
+.history-filter-card .page-card__header {
+  align-items: center;
+}
+
+.history-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-panel__summary,
 .mobile-filter-summary {
-  display: grid;
-  gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   margin-top: 16px;
   padding: 14px 16px;
   border-radius: 18px;
   background: rgba(244, 247, 245, 0.92);
 }
 
-.mobile-filter-toggle {
-  margin-top: 12px;
+.filter-panel__summary span {
+  overflow-wrap: anywhere;
 }
 
+.filter-panel__summary--inline {
+  margin-top: 14px;
+}
+
+.filter-panel__toggle {
+  flex: 0 0 auto;
+  min-width: 72px;
+  white-space: nowrap;
+}
+
+.filter-panel__body,
 .mobile-filter-body {
   margin-top: 16px;
 }
