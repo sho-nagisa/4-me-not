@@ -1,317 +1,37 @@
 import { PointerEvent, useEffect, useRef, useState } from "react";
 
 import { useIsMobile } from "../hooks/useIsMobile";
-
-type Person = {
-  id: string;
-  name: string;
-  is_hidden: boolean;
-  primary_community_id: string | null;
-  primary_community_path: string | null;
-};
-
-type Community = {
-  id: string;
-  name: string;
-  is_hidden: boolean;
-  parent_id: string | null;
-  path: string;
-};
-
-type Topic = {
-  id: string;
-  name: string;
-  parent_id: string | null;
-  path: string;
-};
-
-type TopicTreeNode = Topic & {
-  children: TopicTreeNode[];
-};
-
-type PersonBubble = {
-  person: Person;
-  count: number;
-  size: number;
-  distance: number;
-  x: number;
-  y: number;
-};
-
-type HomeViewProps = {
-  personBubbles: PersonBubble[];
-  selectedPersonId: string;
-  recentInteractions: InteractionRecord[];
-  onBubbleSelect: (personId: string) => void;
-  onOpenHistory: () => void;
-  onOpenRecord: () => void;
-};
-
-type InteractionType =
-  | "MEETING"
-  | "CHAT"
-  | "CALL"
-  | "MESSAGE"
-  | "OBSERVATION";
-
-type ShareLevel = "SHARED" | "PARTIAL" | "WITHHELD";
-type PageId = "home" | "record" | "history" | "person" | "manage";
-type PersonPanelId = "summary" | "topics" | "notes" | "recent";
-type ManagePanelId = "people" | "communities" | "topics";
-
-type InteractionRecord = {
-  id: string;
-  person_id: string;
-  person_name: string;
-  community_id: string | null;
-  community_name: string | null;
-  community_path: string | null;
-  topic_id: string | null;
-  topic_name: string | null;
-  topic_path: string | null;
-  interaction_type: string;
-  interaction_type_label: string;
-  share_level: ShareLevel;
-  share_level_label: string;
-  occurred_at: string | null;
-  content: string | null;
-  note: string | null;
-  created_at: string;
-};
-
-type SummaryItem = {
-  id: string;
-  label: string;
-  count: number;
-  shared_count: number;
-  partial_count: number;
-  withheld_count: number;
-};
-
-type ShareSummary = {
-  share_level: ShareLevel;
-  label: string;
-  count: number;
-};
-
-type PrepTopic = {
-  topic: string;
-  community: string;
-  occurred_at: string | null;
-};
-
-type PrepNote = {
-  text: string;
-  topic: string;
-  share_level: ShareLevel;
-  share_level_label: string;
-  occurred_at: string | null;
-};
-
-type PersonDashboard = {
-  person: Person;
-  overview: {
-    interaction_count: number;
-    latest_occurred_at: string | null;
-    shared_count: number;
-    partial_count: number;
-    withheld_count: number;
-  };
-  share_summary: ShareSummary[];
-  top_topics: SummaryItem[];
-  top_communities: SummaryItem[];
-  recent_interactions: InteractionRecord[];
-  conversation_prep: {
-    shared_topics: PrepTopic[];
-    partial_topics: PrepTopic[];
-    withheld_topics: PrepTopic[];
-    recent_notes: PrepNote[];
-  };
-};
-
-const interactionTypeOptions: Array<{
-  value: InteractionType;
-  label: string;
-  description: string;
-}> = [
-  { value: "MEETING", label: "対面", description: "直接会って話した内容を記録します。" },
-  { value: "CHAT", label: "会話", description: "雑談や立ち話を残します。" },
-  { value: "CALL", label: "通話", description: "電話やオンライン通話の内容をまとめます。" },
-  { value: "MESSAGE", label: "メッセージ", description: "テキストのやり取りを記録します。" },
-  { value: "OBSERVATION", label: "出来事メモ", description: "その場で見たことや感じたことを残します。" },
-];
-
-const shareLevelOptions: Array<{
-  value: ShareLevel;
-  label: string;
-  description: string;
-}> = [
-  { value: "SHARED", label: "話した", description: "そのまま共有した内容です。" },
-  { value: "PARTIAL", label: "一部だけ話した", description: "少し触れたが全部は話していません。" },
-  { value: "WITHHELD", label: "話していない", description: "今回はまだ伏せた内容です。" },
-];
-
-const pageOptions: Array<{
-  id: PageId;
-  label: string;
-  mobileLabel: string;
-  description: string;
-}> = [
-  { id: "home", label: "ホーム", mobileLabel: "ホーム", description: "全体の様子を見る" },
-  { id: "record", label: "記録", mobileLabel: "記録", description: "会話を記録する" },
-  { id: "history", label: "履歴", mobileLabel: "履歴", description: "条件で絞って探す" },
-  { id: "person", label: "人物", mobileLabel: "人物", description: "人ごとに整理する" },
-  { id: "manage", label: "管理", mobileLabel: "管理", description: "候補と階層を整える" },
-];
-
-const mobilePageOrder: PageId[] = ["record", "history", "home", "person", "manage"];
-const mobilePageOptions = mobilePageOrder
-  .map((pageId) => pageOptions.find((page) => page.id === pageId))
-  .filter((page): page is (typeof pageOptions)[number] => Boolean(page));
-
-const personPanelOptions: Array<{
-  id: PersonPanelId;
-  label: string;
-}> = [
-  { id: "summary", label: "概要" },
-  { id: "topics", label: "話題と場" },
-  { id: "notes", label: "補足メモ" },
-  { id: "recent", label: "最近の記録" },
-];
-
-const managePanelOptions: Array<{
-  id: ManagePanelId;
-  label: string;
-}> = [
-  { id: "people", label: "人" },
-  { id: "communities", label: "コミュニティ" },
-  { id: "topics", label: "話題" },
-];
-
-const toDateTimeLocalValue = (date = new Date()) => {
-  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return localDate.toISOString().slice(0, 16);
-};
-
-const formatDateTime = (isoText: string | null) => {
-  if (!isoText) return "未設定";
-  const date = new Date(isoText);
-  if (Number.isNaN(date.getTime())) return isoText;
-  return date.toLocaleString("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-const buildDateQuery = (dateText: string, mode: "from" | "to") => {
-  if (!dateText) return null;
-  const suffix = mode === "from" ? "T00:00:00" : "T23:59:59";
-  return new Date(`${dateText}${suffix}`).toISOString();
-};
-
-const truncate = (text: string | null | undefined, max = 120) => {
-  if (!text) return "内容なし";
-  if (text.length <= max) return text;
-  return `${text.slice(0, max)}...`;
-};
-
-const buildTopicTree = (items: Topic[]): TopicTreeNode[] => {
-  const nodes = new Map<string, TopicTreeNode>();
-  const roots: TopicTreeNode[] = [];
-
-  items.forEach((topic) => {
-    nodes.set(topic.id, { ...topic, children: [] });
-  });
-
-  nodes.forEach((node) => {
-    if (node.parent_id && nodes.has(node.parent_id)) {
-      nodes.get(node.parent_id)?.children.push(node);
-      return;
-    }
-    roots.push(node);
-  });
-
-  const sortNodes = (treeNodes: TopicTreeNode[]) => {
-    treeNodes.sort((left, right) => left.name.localeCompare(right.name, "ja"));
-    treeNodes.forEach((node) => sortNodes(node.children));
-  };
-
-  sortNodes(roots);
-  return roots;
-};
-
-const buildPersonBubbles = (
-  people: Person[],
-  records: InteractionRecord[],
-  communityId: string | null = null,
-  maxVisible = 7
-): PersonBubble[] => {
-  const counts = new Map<string, number>();
-  const layoutSlots = [
-    { x: 50, y: 50 },
-    { x: 31, y: 43 },
-    { x: 69, y: 43 },
-    { x: 39, y: 73 },
-    { x: 61, y: 73 },
-    { x: 18, y: 62 },
-    { x: 82, y: 62 },
-  ];
-
-  records.forEach((record) => {
-    if (communityId && record.community_id !== communityId) {
-      return;
-    }
-    counts.set(record.person_id, (counts.get(record.person_id) ?? 0) + 1);
-  });
-
-  const maxCount = Math.max(1, ...people.map((person) => counts.get(person.id) ?? 0));
-
-  const sortedBubbles = people
-    .map((person) => {
-      const count = counts.get(person.id) ?? 0;
-      const ratio = count / maxCount;
-      const size = Math.round(78 + ratio * 58);
-      return {
-        person,
-        count,
-        size,
-        distance: 0,
-        x: 50,
-        y: 50,
-      };
-    })
-    .sort((left, right) => {
-      if (right.count !== left.count) return right.count - left.count;
-      return left.person.name.localeCompare(right.person.name, "ja");
-    })
-    .slice(0, maxVisible);
-
-  return sortedBubbles.map((bubble, index) => {
-    if (index === 0) {
-      return {
-        ...bubble,
-        distance: 0,
-        ...layoutSlots[index],
-      };
-    }
-
-    const sizePressure = bubble.size / sortedBubbles[0].size;
-    const ringPressure = Math.min(1, index / Math.max(1, sortedBubbles.length - 1));
-    const distance = 1 + sizePressure * 0.4 + ringPressure * 0.28;
-    const slot = layoutSlots[index];
-
-    return {
-      ...bubble,
-      distance,
-      x: 50 + (slot.x - 50) * distance,
-      y: 50 + (slot.y - 50) * distance,
-    };
-  });
-};
-
+import {
+  interactionTypeOptions,
+  managePanelOptions,
+  mobilePageOptions,
+  pageOptions,
+  personPanelOptions,
+  shareLevelOptions,
+} from "./interactionNew/constants";
+import type {
+  Community,
+  HomeViewProps,
+  InteractionRecord,
+  InteractionType,
+  ManagePanelId,
+  PageId,
+  Person,
+  PersonBubble,
+  PersonDashboard,
+  PersonPanelId,
+  ShareLevel,
+  Topic,
+  TopicTreeNode,
+} from "./interactionNew/types";
+import {
+  buildDateQuery,
+  buildPersonBubbles,
+  buildTopicTree,
+  formatDateTime,
+  toDateTimeLocalValue,
+  truncate,
+} from "./interactionNew/utils";
 function NavItem({
   active,
   compact,
