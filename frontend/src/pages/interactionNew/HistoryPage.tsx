@@ -1,0 +1,238 @@
+import type { Dispatch, SetStateAction } from "react";
+
+import { EmptyState, HistoryCard } from "./components";
+import { shareLevelOptions } from "./constants";
+import type { Community, InteractionRecord, Person, ShareLevel, Topic } from "./types";
+
+type HistoryPageProps = {
+  isMobile: boolean;
+  persons: Person[];
+  communities: Community[];
+  topics: Topic[];
+  historyPersonId: string;
+  setHistoryPersonId: Dispatch<SetStateAction<string>>;
+  historyCommunityId: string;
+  setHistoryCommunityId: Dispatch<SetStateAction<string>>;
+  historyTopicId: string;
+  setHistoryTopicId: Dispatch<SetStateAction<string>>;
+  historyShareLevel: ShareLevel | "";
+  setHistoryShareLevel: Dispatch<SetStateAction<ShareLevel | "">>;
+  historySearch: string;
+  setHistorySearch: Dispatch<SetStateAction<string>>;
+  historyDateFrom: string;
+  setHistoryDateFrom: Dispatch<SetStateAction<string>>;
+  historyDateTo: string;
+  setHistoryDateTo: Dispatch<SetStateAction<string>>;
+  historyLoading: boolean;
+  onLoadHistory: () => void | Promise<void>;
+  onClearHistoryFilters: () => void;
+  mobileFilterOpen: boolean;
+  setMobileFilterOpen: Dispatch<SetStateAction<boolean>>;
+  selectedHistoryLevelLabel: string;
+  historyItems: InteractionRecord[];
+};
+
+export function HistoryPage(props: HistoryPageProps) {
+  const {
+    isMobile,
+    persons,
+    communities,
+    topics,
+    historyPersonId,
+    setHistoryPersonId,
+    historyCommunityId,
+    setHistoryCommunityId,
+    historyTopicId,
+    setHistoryTopicId,
+    historyShareLevel,
+    setHistoryShareLevel,
+    historySearch,
+    setHistorySearch,
+    historyDateFrom,
+    setHistoryDateFrom,
+    historyDateTo,
+    setHistoryDateTo,
+    historyLoading,
+    onLoadHistory: loadHistory,
+    onClearHistoryFilters: clearHistoryFilters,
+    mobileFilterOpen,
+    setMobileFilterOpen,
+    selectedHistoryLevelLabel,
+    historyItems,
+  } = props;
+
+  const renderHistoryFilters = () => (
+    <div className="page-stack page-stack--compact">
+      <div className="filter-grid">
+        <label className="field">
+          <span className="field__label">人</span>
+          <select
+            value={historyPersonId}
+            onChange={(event) => setHistoryPersonId(event.target.value)}
+          >
+            <option value="">-- すべて --</option>
+            {persons.map((person) => (
+              <option key={person.id} value={person.id}>
+                {person.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span className="field__label">コミュニティ</span>
+          <select
+            value={historyCommunityId}
+            onChange={(event) => setHistoryCommunityId(event.target.value)}
+          >
+            <option value="">-- すべて --</option>
+            {communities.map((community) => (
+              <option key={community.id} value={community.id}>
+                {community.path}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span className="field__label">話題</span>
+          <select
+            value={historyTopicId}
+            onChange={(event) => setHistoryTopicId(event.target.value)}
+          >
+            <option value="">-- すべて --</option>
+            {topics.map((topic) => (
+              <option key={topic.id} value={topic.id}>
+                {topic.path}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span className="field__label">共有レベル</span>
+          <select
+            value={historyShareLevel}
+            onChange={(event) =>
+              setHistoryShareLevel(event.target.value as ShareLevel | "")
+            }
+          >
+            <option value="">-- すべて --</option>
+            {shareLevelOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field field--full">
+          <span className="field__label">キーワード</span>
+          <input
+            value={historySearch}
+            onChange={(event) => setHistorySearch(event.target.value)}
+            placeholder="内容や補足メモを検索"
+          />
+        </label>
+
+        <label className="field">
+          <span className="field__label">開始日</span>
+          <input
+            type="date"
+            value={historyDateFrom}
+            onChange={(event) => setHistoryDateFrom(event.target.value)}
+          />
+        </label>
+
+        <label className="field">
+          <span className="field__label">終了日</span>
+          <input
+            type="date"
+            value={historyDateTo}
+            onChange={(event) => setHistoryDateTo(event.target.value)}
+          />
+        </label>
+      </div>
+
+      <div className="button-row">
+        <button
+          type="button"
+          className="button button--secondary"
+          onClick={() => void loadHistory()}
+          disabled={historyLoading}
+        >
+          {historyLoading ? "更新中..." : "再読み込み"}
+        </button>
+        <button type="button" className="button button--ghost" onClick={clearHistoryFilters}>
+          条件をクリア
+        </button>
+      </div>
+    </div>
+  );
+
+
+
+  const renderHistoryPage = () => (
+    <section className="page-grid page-grid--history">
+      <aside className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">Filter</p>
+            <h2>履歴の絞り込み</h2>
+          </div>
+        </div>
+
+        {isMobile ? (
+          <>
+            <div className="mobile-filter-summary">
+              <span>人: {persons.find((person) => person.id === historyPersonId)?.name ?? "すべて"}</span>
+              <span>共有レベル: {selectedHistoryLevelLabel}</span>
+            </div>
+            <button
+              type="button"
+              className="button button--ghost mobile-filter-toggle"
+              onClick={() => setMobileFilterOpen((current) => !current)}
+            >
+              {mobileFilterOpen ? "フィルターを閉じる" : "フィルターを開く"}
+            </button>
+            {mobileFilterOpen ? <div className="mobile-filter-body">{renderHistoryFilters()}</div> : null}
+          </>
+        ) : (
+          renderHistoryFilters()
+        )}
+      </aside>
+
+      <section className="page-card">
+        <div className="page-card__header">
+          <div>
+            <p className="eyebrow">History</p>
+            <h2>履歴一覧</h2>
+          </div>
+          <div className="history-summary">
+            <span>表示 {historyItems.length}件</span>
+            <span>
+              伏せた {historyItems.filter((item) => item.share_level === "WITHHELD").length}件
+            </span>
+          </div>
+        </div>
+
+        {historyItems.length === 0 ? (
+          <EmptyState
+            title="条件に合う履歴がありません"
+            description="フィルターを緩めるか、新しい記録を追加してください。"
+          />
+        ) : (
+          <div className="history-list">
+            {historyItems.map((item) => (
+              <HistoryCard key={item.id} item={item} />
+            ))}
+          </div>
+        )}
+      </section>
+    </section>
+  );
+
+
+
+  return renderHistoryPage();
+}
