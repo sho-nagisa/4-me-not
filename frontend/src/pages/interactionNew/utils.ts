@@ -1,4 +1,11 @@
-import type { InteractionRecord, Person, PersonBubble, Topic, TopicTreeNode } from "./types";
+import type {
+  InteractionRecord,
+  Person,
+  PersonBubble,
+  PersonInteractionCount,
+  Topic,
+  TopicTreeNode,
+} from "./types";
 
 export const toDateTimeLocalValue = (date = new Date()) => {
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -62,6 +69,34 @@ export const buildPersonBubbles = (
   maxVisible = 7
 ): PersonBubble[] => {
   const counts = new Map<string, number>();
+
+  records.forEach((record) => {
+    if (communityId && record.community_id !== communityId) {
+      return;
+    }
+    counts.set(record.person_id, (counts.get(record.person_id) ?? 0) + 1);
+  });
+
+  return buildPersonBubblesFromCountMap(people, counts, maxVisible);
+};
+
+export const buildPersonBubblesFromCounts = (
+  people: Person[],
+  counts: PersonInteractionCount[],
+  maxVisible = 7
+): PersonBubble[] => {
+  return buildPersonBubblesFromCountMap(
+    people,
+    new Map(counts.map((item) => [item.person_id, item.count])),
+    maxVisible
+  );
+};
+
+const buildPersonBubblesFromCountMap = (
+  people: Person[],
+  counts: Map<string, number>,
+  maxVisible = 7
+): PersonBubble[] => {
   const layoutSlots = [
     { x: 50, y: 50 },
     { x: 31, y: 43 },
@@ -71,13 +106,6 @@ export const buildPersonBubbles = (
     { x: 18, y: 62 },
     { x: 82, y: 62 },
   ];
-
-  records.forEach((record) => {
-    if (communityId && record.community_id !== communityId) {
-      return;
-    }
-    counts.set(record.person_id, (counts.get(record.person_id) ?? 0) + 1);
-  });
 
   const maxCount = Math.max(1, ...people.map((person) => counts.get(person.id) ?? 0));
 

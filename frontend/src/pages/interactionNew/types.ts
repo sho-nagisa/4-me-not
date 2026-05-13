@@ -75,6 +75,17 @@ export type InteractionRecord = {
   created_at: string;
 };
 
+export type PersonInteractionCount = {
+  person_id: string;
+  count: number;
+};
+
+export type InteractionOverview = {
+  total_count: number;
+  recent_interactions: InteractionRecord[];
+  person_counts: PersonInteractionCount[];
+};
+
 export type SummaryItem = {
   id: string;
   label: string;

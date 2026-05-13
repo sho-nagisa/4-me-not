@@ -8,6 +8,9 @@ from backend.models.community.community import Community
 
 
 class CommunityService:
+    def __init__(self):
+        self._path_cache: dict[tuple[bool, str], str] = {}
+
     def create_community(
         self,
         name: str,
@@ -32,11 +35,28 @@ class CommunityService:
     def list_communities(self, include_hidden: bool = False):
         db = SessionLocal()
         try:
-            query = db.query(Community)
+            all_communities = db.query(Community).all()
             if not include_hidden:
-                query = query.filter(Community.is_hidden.is_(False))
-            communities = query.all()
-            communities.sort(key=lambda item: self.get_path(item, include_hidden=include_hidden))
+                communities = [
+                    community
+                    for community in all_communities
+                    if not community.is_hidden
+                ]
+            else:
+                communities = all_communities
+
+            communities_by_id = {community.id: community for community in all_communities}
+            self._path_cache = {
+                (include_hidden, str(community.id)): self._build_path_from_map(
+                    community=community,
+                    communities_by_id=communities_by_id,
+                    include_hidden=include_hidden,
+                )
+                for community in communities
+            }
+            communities.sort(
+                key=lambda item: self._path_cache[(include_hidden, str(item.id))]
+            )
             return communities
         finally:
             db.close()
@@ -68,6 +88,10 @@ class CommunityService:
             db.close()
 
     def get_path(self, community: Community, include_hidden: bool = False) -> str:
+        cache_key = (include_hidden, str(community.id))
+        if cache_key in self._path_cache:
+            return self._path_cache[cache_key]
+
         db = SessionLocal()
         try:
             nodes = []
@@ -81,6 +105,22 @@ class CommunityService:
             return " / ".join(reversed(nodes))
         finally:
             db.close()
+
+    def _build_path_from_map(
+        self,
+        community: Community,
+        communities_by_id: dict[UUID, Community],
+        include_hidden: bool = False,
+    ) -> str:
+        nodes = []
+        current: Community | None = community
+        while current is not None:
+            if current.is_hidden and not include_hidden:
+                current = communities_by_id.get(current.parent_id) if current.parent_id else None
+                continue
+            nodes.append(current.name)
+            current = communities_by_id.get(current.parent_id) if current.parent_id else None
+        return " / ".join(reversed(nodes))
 
     def _validate_parent_id(self, db, parent_id: str | None):
         if not parent_id:

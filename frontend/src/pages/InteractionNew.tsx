@@ -10,6 +10,7 @@ import {
 import type {
   Community,
   HomeViewProps,
+  InteractionOverview,
   InteractionRecord,
   InteractionType,
   ManagePanelId,
@@ -29,6 +30,7 @@ import {
   createTopic,
   deleteCommunity,
   deletePerson,
+  getInteractionOverview,
   getPersonDashboard,
   listCommunities,
   listInteractions,
@@ -40,7 +42,11 @@ import {
 import { ManagePage } from "./interactionNew/ManagePage";
 import { PersonPage } from "./interactionNew/PersonPage";
 import { RecordPage } from "./interactionNew/RecordPage";
-import { buildPersonBubbles, toDateTimeLocalValue } from "./interactionNew/utils";
+import {
+  buildPersonBubbles,
+  buildPersonBubblesFromCounts,
+  toDateTimeLocalValue,
+} from "./interactionNew/utils";
 export default function InteractionNew() {
   const isMobile = useIsMobile(820);
 
@@ -56,7 +62,13 @@ export default function InteractionNew() {
   const [managedPersons, setManagedPersons] = useState<Person[]>([]);
   const [managedCommunities, setManagedCommunities] = useState<Community[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [overview, setOverview] = useState<InteractionOverview>({
+    total_count: 0,
+    recent_interactions: [],
+    person_counts: [],
+  });
   const [interactions, setInteractions] = useState<InteractionRecord[]>([]);
+  const [interactionsLoaded, setInteractionsLoaded] = useState(false);
   const [historyItems, setHistoryItems] = useState<InteractionRecord[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -186,11 +198,26 @@ export default function InteractionNew() {
   const loadOverviewInteractions = async () => {
     setSummaryLoading(true);
     try {
-      const items = await listInteractions();
-      setInteractions(items);
+      const items = await getInteractionOverview();
+      setOverview(items);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "全体の履歴取得に失敗しました。";
+      setError(message);
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
+  const loadAllInteractions = async () => {
+    setSummaryLoading(true);
+    try {
+      const items = await listInteractions();
+      setInteractions(items);
+      setInteractionsLoaded(true);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to load interactions.";
       setError(message);
     } finally {
       setSummaryLoading(false);
@@ -259,13 +286,21 @@ export default function InteractionNew() {
 
   useEffect(() => {
     void loadOptions();
-    void loadManageData();
     void loadOverviewInteractions();
   }, []);
 
   useEffect(() => {
-    void loadHistory();
+    if (currentPage === "manage") {
+      void loadManageData();
+    }
+  }, [currentPage]);
+
+  useEffect(() => {
+    if (currentPage === "history") {
+      void loadHistory();
+    }
   }, [
+    currentPage,
     historyPersonId,
     historyCommunityId,
     historyTopicId,
@@ -276,23 +311,40 @@ export default function InteractionNew() {
   ]);
 
   useEffect(() => {
-    void loadRecordDashboard(personId);
-  }, [personId]);
+    if (currentPage === "person" && !interactionsLoaded) {
+      void loadAllInteractions();
+    }
+  }, [currentPage, interactionsLoaded]);
 
   useEffect(() => {
-    void loadDetailDashboard(detailPersonId);
-  }, [detailPersonId]);
+    if (currentPage === "record") {
+      void loadRecordDashboard(personId);
+    }
+  }, [currentPage, personId]);
+
+  useEffect(() => {
+    if (currentPage === "person") {
+      void loadDetailDashboard(detailPersonId);
+    }
+  }, [currentPage, detailPersonId]);
 
   const refreshAll = async () => {
     await loadOptions();
-    await loadManageData();
     await loadOverviewInteractions();
-    await loadHistory();
 
-    if (personId) {
+    if (currentPage === "manage") {
+      await loadManageData();
+    }
+    if (currentPage === "history") {
+      await loadHistory();
+    }
+    if (currentPage === "person" || interactionsLoaded) {
+      await loadAllInteractions();
+    }
+    if (currentPage === "record" && personId) {
       await loadRecordDashboard(personId);
     }
-    if (detailPersonId) {
+    if (currentPage === "person" && detailPersonId) {
       await loadDetailDashboard(detailPersonId);
     }
   };
@@ -336,9 +388,16 @@ export default function InteractionNew() {
       setNote("");
       setCommunityTouched(false);
       await loadOverviewInteractions();
-      await loadHistory();
-      await loadRecordDashboard(personId);
-      if (detailPersonId === personId) {
+      if (currentPage === "history") {
+        await loadHistory();
+      }
+      if (currentPage === "person" || interactionsLoaded) {
+        await loadAllInteractions();
+      }
+      if (currentPage === "record") {
+        await loadRecordDashboard(personId);
+      }
+      if (currentPage === "person" && detailPersonId === personId) {
         await loadDetailDashboard(personId);
       }
     } catch (error) {
@@ -523,7 +582,7 @@ export default function InteractionNew() {
     setHistoryDateTo("");
   };
 
-  const homeRecentInteractions = interactions.slice(0, 4);
+  const homeRecentInteractions = overview.recent_interactions;
   const personMatchesDetailCommunity = (person: Person) => {
     if (!detailCommunityId) return true;
     if (person.primary_community_id === detailCommunityId) return true;
@@ -532,7 +591,10 @@ export default function InteractionNew() {
     );
   };
   const detailPersons = persons.filter(personMatchesDetailCommunity);
-  const homePersonBubbles = buildPersonBubbles(persons, interactions);
+  const homePersonBubbles = buildPersonBubblesFromCounts(
+    persons,
+    overview.person_counts
+  );
   const detailPersonBubbles = buildPersonBubbles(
     detailPersons,
     interactions,
@@ -741,7 +803,7 @@ export default function InteractionNew() {
 
             <div className="sidebar-summary">
               <div className="sidebar-summary__item">
-                <strong>{interactions.length}</strong>
+                <strong>{overview.total_count}</strong>
                 <span>記録数</span>
               </div>
               <div className="sidebar-summary__item">

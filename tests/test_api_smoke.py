@@ -233,6 +233,28 @@ class APISmokeTest(unittest.TestCase):
         self.assertIn("top_communities", payload)
         self.assertIn("conversation_prep", payload)
 
+    def test_07_interaction_overview(self) -> None:
+        if self.interaction_id is None:
+            self.skipTest("interaction is not created")
+
+        response = self.client.get(
+            "/api/interactions/overview",
+            params={"recent_limit": 20, "person_limit": 30},
+        )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        payload = response.json()
+        self.assertGreaterEqual(payload["total_count"], 1)
+        self.assertTrue(
+            any(item["id"] == self.interaction_id for item in payload["recent_interactions"])
+        )
+        self.assertTrue(
+            any(
+                item["person_id"] == self.person_id and item["count"] >= 1
+                for item in payload["person_counts"]
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
