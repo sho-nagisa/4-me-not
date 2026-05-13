@@ -20,12 +20,27 @@ import type {
   ShareLevel,
   Topic,
 } from "./interactionNew/types";
-import { buildDateQuery, buildPersonBubbles, toDateTimeLocalValue } from "./interactionNew/utils";
 import { DesktopHome, MobileHome, NavItem } from "./interactionNew/components";
 import { HistoryPage } from "./interactionNew/HistoryPage";
+import {
+  createCommunity,
+  createInteraction,
+  createPerson,
+  createTopic,
+  deleteCommunity,
+  deletePerson,
+  getPersonDashboard,
+  listCommunities,
+  listInteractions,
+  listPersons,
+  listTopics,
+  updateCommunityHidden,
+  updatePersonHidden,
+} from "./interactionNew/interactionsApi";
 import { ManagePage } from "./interactionNew/ManagePage";
 import { PersonPage } from "./interactionNew/PersonPage";
 import { RecordPage } from "./interactionNew/RecordPage";
+import { buildPersonBubbles, toDateTimeLocalValue } from "./interactionNew/utils";
 export default function InteractionNew() {
   const isMobile = useIsMobile(820);
 
@@ -101,15 +116,6 @@ export default function InteractionNew() {
     (option) => option.value === shareLevel
   );
 
-  const fetchJson = async <T,>(url: string): Promise<T> => {
-    const response = await fetch(url);
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(message || "データ取得に失敗しました。");
-    }
-    return response.json() as Promise<T>;
-  };
-
   const setError = (message: string) => {
     setFeedback({ tone: "error", message });
   };
@@ -122,9 +128,9 @@ export default function InteractionNew() {
     setLoading(true);
     try {
       const [personsJson, communitiesJson, topicsJson] = await Promise.all([
-        fetchJson<Person[]>("/api/persons"),
-        fetchJson<Community[]>("/api/communities"),
-        fetchJson<Topic[]>("/api/topics"),
+        listPersons(),
+        listCommunities(),
+        listTopics(),
       ]);
 
       setPersons(personsJson);
@@ -164,8 +170,8 @@ export default function InteractionNew() {
   const loadManageData = async () => {
     try {
       const [personsJson, communitiesJson] = await Promise.all([
-        fetchJson<Person[]>("/api/persons?include_hidden=true"),
-        fetchJson<Community[]>("/api/communities?include_hidden=true"),
+        listPersons(true),
+        listCommunities(true),
       ]);
 
       setManagedPersons(personsJson);
@@ -180,7 +186,7 @@ export default function InteractionNew() {
   const loadOverviewInteractions = async () => {
     setSummaryLoading(true);
     try {
-      const items = await fetchJson<InteractionRecord[]>("/api/interactions");
+      const items = await listInteractions();
       setInteractions(items);
     } catch (error) {
       const message =
@@ -194,22 +200,15 @@ export default function InteractionNew() {
   const loadHistory = async () => {
     setHistoryLoading(true);
     try {
-      const params = new URLSearchParams();
-
-      if (historyPersonId) params.set("person_id", historyPersonId);
-      if (historyCommunityId) params.set("community_id", historyCommunityId);
-      if (historyTopicId) params.set("topic_id", historyTopicId);
-      if (historyShareLevel) params.set("share_level", historyShareLevel);
-      if (historySearch.trim()) params.set("search", historySearch.trim());
-
-      const fromDate = buildDateQuery(historyDateFrom, "from");
-      const toDate = buildDateQuery(historyDateTo, "to");
-      if (fromDate) params.set("date_from", fromDate);
-      if (toDate) params.set("date_to", toDate);
-
-      const query = params.toString();
-      const url = query ? `/api/interactions?${query}` : "/api/interactions";
-      const items = await fetchJson<InteractionRecord[]>(url);
+      const items = await listInteractions({
+        personId: historyPersonId,
+        communityId: historyCommunityId,
+        topicId: historyTopicId,
+        shareLevel: historyShareLevel,
+        search: historySearch,
+        dateFrom: historyDateFrom,
+        dateTo: historyDateTo,
+      });
       setHistoryItems(items);
     } catch (error) {
       const message =
@@ -228,9 +227,7 @@ export default function InteractionNew() {
 
     setRecordDashboardLoading(true);
     try {
-      const dashboard = await fetchJson<PersonDashboard>(
-        `/api/persons/${targetPersonId}/dashboard`
-      );
+      const dashboard = await getPersonDashboard(targetPersonId);
       setRecordDashboard(dashboard);
     } catch (error) {
       const message =
@@ -249,9 +246,7 @@ export default function InteractionNew() {
 
     setDetailDashboardLoading(true);
     try {
-      const dashboard = await fetchJson<PersonDashboard>(
-        `/api/persons/${targetPersonId}/dashboard`
-      );
+      const dashboard = await getPersonDashboard(targetPersonId);
       setDetailDashboard(dashboard);
     } catch (error) {
       const message =
@@ -324,25 +319,16 @@ export default function InteractionNew() {
     setFeedback({ tone: "info", message: "記録を保存しています..." });
 
     try {
-      const response = await fetch("/api/interactions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          occurred_at: occurredAt,
-          person_id: personId,
-          community_id: communityId || null,
-          topic_id: topicId || null,
-          interaction_type: interactionType,
-          share_level: shareLevel,
-          content,
-          note,
-        }),
+      await createInteraction({
+        occurred_at: occurredAt,
+        person_id: personId,
+        community_id: communityId || null,
+        topic_id: topicId || null,
+        interaction_type: interactionType,
+        share_level: shareLevel,
+        content,
+        note,
       });
-
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "保存に失敗しました。");
-      }
 
       setSuccess("やり取りを保存しました。");
       setOccurredAt(toDateTimeLocalValue());
@@ -372,21 +358,10 @@ export default function InteractionNew() {
 
     setIsCreatingPerson(true);
     try {
-      const response = await fetch("/api/persons", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newPersonName.trim(),
-          primary_community_id: newPersonPrimaryCommunityId || null,
-        }),
+      const person = await createPerson({
+        name: newPersonName.trim(),
+        primary_community_id: newPersonPrimaryCommunityId || null,
       });
-
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "人の追加に失敗しました。");
-      }
-
-      const person = (await response.json()) as Person;
       setNewPersonName("");
       setNewPersonPrimaryCommunityId("");
       await refreshAll();
@@ -412,21 +387,10 @@ export default function InteractionNew() {
 
     setIsCreatingCommunity(true);
     try {
-      const response = await fetch("/api/communities", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newCommunityName.trim(),
-          parent_id: newCommunityParentId || null,
-        }),
+      const community = await createCommunity({
+        name: newCommunityName.trim(),
+        parent_id: newCommunityParentId || null,
       });
-
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "コミュニティの追加に失敗しました。");
-      }
-
-      const community = (await response.json()) as Community;
       setNewCommunityName("");
       setNewCommunityParentId("");
       await refreshAll();
@@ -449,21 +413,10 @@ export default function InteractionNew() {
 
     setIsCreatingTopic(true);
     try {
-      const response = await fetch("/api/topics", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newTopicName.trim(),
-          parent_id: newTopicParentId || null,
-        }),
+      const topic = await createTopic({
+        name: newTopicName.trim(),
+        parent_id: newTopicParentId || null,
       });
-
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "話題の追加に失敗しました。");
-      }
-
-      const topic = (await response.json()) as Topic;
       setNewTopicName("");
       setNewTopicParentId("");
       await refreshAll();
@@ -481,16 +434,7 @@ export default function InteractionNew() {
   const handleTogglePersonHidden = async (person: Person) => {
     setPersonActionId(person.id);
     try {
-      const response = await fetch(`/api/persons/${person.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_hidden: !person.is_hidden }),
-      });
-
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "人物状態の更新に失敗しました。");
-      }
+      await updatePersonHidden(person.id, !person.is_hidden);
 
       await refreshAll();
       setSuccess(
@@ -512,14 +456,7 @@ export default function InteractionNew() {
 
     setPersonActionId(person.id);
     try {
-      const response = await fetch(`/api/persons/${person.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "人物削除に失敗しました。");
-      }
+      await deletePerson(person.id);
 
       await refreshAll();
       setSuccess("人物を削除しました。");
@@ -535,16 +472,7 @@ export default function InteractionNew() {
   const handleToggleCommunityHidden = async (community: Community) => {
     setCommunityActionId(community.id);
     try {
-      const response = await fetch(`/api/communities/${community.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_hidden: !community.is_hidden }),
-      });
-
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "コミュニティ状態の更新に失敗しました。");
-      }
+      await updateCommunityHidden(community.id, !community.is_hidden);
 
       await refreshAll();
       setSuccess(
@@ -572,14 +500,7 @@ export default function InteractionNew() {
 
     setCommunityActionId(community.id);
     try {
-      const response = await fetch(`/api/communities/${community.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "コミュニティ削除に失敗しました。");
-      }
+      await deleteCommunity(community.id);
 
       await refreshAll();
       setSuccess("コミュニティを削除しました。");
