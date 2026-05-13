@@ -72,7 +72,7 @@ export function ManagePage(props: ManagePageProps) {
     onDeleteCommunity: handleDeleteCommunity,
   } = props;
 
-  const renderPeopleManagePanel = () => {
+  const renderPeoplePanel = () => {
     const sortedPeople = [...managedPersons].sort((left, right) =>
       left.name.localeCompare(right.name, "ja")
     );
@@ -183,7 +183,7 @@ export function ManagePage(props: ManagePageProps) {
 
 
 
-  const renderCommunitiesManagePanel = () => {
+  const renderCommunitiesPanel = () => {
     const sortedCommunities = [...managedCommunities].sort((left, right) =>
       left.path.localeCompare(right.path, "ja")
     );
@@ -384,8 +384,8 @@ export function ManagePage(props: ManagePageProps) {
         />
       </section>
 
-      {managePanel === "people" ? renderPeopleManagePanel() : null}
-      {managePanel === "communities" ? renderCommunitiesManagePanel() : null}
+      {managePanel === "people" ? renderPeoplePanel() : null}
+      {managePanel === "communities" ? renderCommunitiesPanel() : null}
       {managePanel === "topics" ? renderTopicsManagePanel() : null}
     </section>
   );
