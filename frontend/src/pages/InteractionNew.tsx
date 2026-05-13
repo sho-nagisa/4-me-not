@@ -44,6 +44,7 @@ type HomeViewProps = {
   recentInteractions: InteractionRecord[];
   onBubbleSelect: (personId: string) => void;
   onOpenHistory: () => void;
+  onOpenRecord: () => void;
 };
 
 type InteractionType =
@@ -585,6 +586,7 @@ function DesktopHome({
   recentInteractions,
   onBubbleSelect,
   onOpenHistory,
+  onOpenRecord,
 }: HomeViewProps) {
   return (
     <section className="page-stack home-page home-page--desktop">
@@ -594,6 +596,15 @@ function DesktopHome({
             <p className="eyebrow">Home</p>
             <h2>ホーム</h2>
           </div>
+          <button
+            type="button"
+            className="home-record-button"
+            onClick={onOpenRecord}
+            aria-label="Open record"
+            title="Record"
+          >
+            +
+          </button>
           <p className="page-card__lead">
             よく話している人物を中心に、全体の状況を見ます。
           </p>
@@ -648,6 +659,7 @@ function MobileHome({
   recentInteractions,
   onBubbleSelect,
   onOpenHistory,
+  onOpenRecord,
 }: HomeViewProps) {
   return (
     <section className="mobile-home-page">
@@ -659,6 +671,15 @@ function MobileHome({
             <p className="eyebrow">Home</p>
             <h2>ホーム</h2>
           </div>
+          <button
+            type="button"
+            className="home-record-button"
+            onClick={onOpenRecord}
+            aria-label="Open record"
+            title="Record"
+          >
+            +
+          </button>
         </div>
 
         <PersonBubbleCloud
@@ -1333,6 +1354,7 @@ export default function InteractionNew() {
       recentInteractions: homeRecentInteractions,
       onBubbleSelect: openRecordForPerson,
       onOpenHistory: () => setCurrentPage("history"),
+      onOpenRecord: () => setCurrentPage("record"),
     };
 
     return isMobile ? <MobileHome {...props} /> : <DesktopHome {...props} />;
