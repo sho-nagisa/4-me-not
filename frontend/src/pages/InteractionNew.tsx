@@ -47,7 +47,7 @@ export default function InteractionNew() {
   const [currentPage, setCurrentPage] = useState<PageId>("home");
   const [personPanel, setPersonPanel] = useState<PersonPanelId>("summary");
   const [managePanel, setManagePanel] = useState<ManagePanelId>("people");
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [historyFilterOpen, setHistoryFilterOpen] = useState(false);
   const [mobileRecordPanel, setMobileRecordPanel] = useState<"input" | "check">("input");
   const mobileRecordSwipeRef = useRef<HTMLDivElement | null>(null);
 
@@ -618,7 +618,6 @@ export default function InteractionNew() {
       case "history":
         return (
           <HistoryPage
-            isMobile={isMobile}
             persons={persons}
             communities={communities}
             topics={topics}
@@ -639,8 +638,8 @@ export default function InteractionNew() {
             historyLoading={historyLoading}
             onLoadHistory={loadHistory}
             onClearHistoryFilters={clearHistoryFilters}
-            mobileFilterOpen={mobileFilterOpen}
-            setMobileFilterOpen={setMobileFilterOpen}
+            historyFilterOpen={historyFilterOpen}
+            setHistoryFilterOpen={setHistoryFilterOpen}
             selectedHistoryLevelLabel={selectedHistoryLevelLabel}
             historyItems={historyItems}
           />

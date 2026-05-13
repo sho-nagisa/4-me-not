@@ -5,7 +5,6 @@ import { shareLevelOptions } from "./constants";
 import type { Community, InteractionRecord, Person, ShareLevel, Topic } from "./types";
 
 type HistoryPageProps = {
-  isMobile: boolean;
   persons: Person[];
   communities: Community[];
   topics: Topic[];
@@ -26,15 +25,14 @@ type HistoryPageProps = {
   historyLoading: boolean;
   onLoadHistory: () => void | Promise<void>;
   onClearHistoryFilters: () => void;
-  mobileFilterOpen: boolean;
-  setMobileFilterOpen: Dispatch<SetStateAction<boolean>>;
+  historyFilterOpen: boolean;
+  setHistoryFilterOpen: Dispatch<SetStateAction<boolean>>;
   selectedHistoryLevelLabel: string;
   historyItems: InteractionRecord[];
 };
 
 export function HistoryPage(props: HistoryPageProps) {
   const {
-    isMobile,
     persons,
     communities,
     topics,
@@ -55,11 +53,28 @@ export function HistoryPage(props: HistoryPageProps) {
     historyLoading,
     onLoadHistory: loadHistory,
     onClearHistoryFilters: clearHistoryFilters,
-    mobileFilterOpen,
-    setMobileFilterOpen,
+    historyFilterOpen,
+    setHistoryFilterOpen,
     selectedHistoryLevelLabel,
     historyItems,
   } = props;
+
+  const selectedHistoryPersonName =
+    persons.find((person) => person.id === historyPersonId)?.name ?? "すべて";
+  const selectedHistoryCommunityPath =
+    communities.find((community) => community.id === historyCommunityId)?.path ?? "すべて";
+  const selectedHistoryTopicPath =
+    topics.find((topic) => topic.id === historyTopicId)?.path ?? "すべて";
+  const trimmedHistorySearch = historySearch.trim();
+  const historyFilterSummary = [
+    historyPersonId ? `人: ${selectedHistoryPersonName}` : null,
+    historyCommunityId ? `コミュニティ: ${selectedHistoryCommunityPath}` : null,
+    historyTopicId ? `話題: ${selectedHistoryTopicPath}` : null,
+    historyShareLevel ? `共有レベル: ${selectedHistoryLevelLabel}` : null,
+    trimmedHistorySearch ? `キーワード: ${trimmedHistorySearch}` : null,
+    historyDateFrom ? `開始日: ${historyDateFrom}` : null,
+    historyDateTo ? `終了日: ${historyDateTo}` : null,
+  ].filter((item): item is string => Boolean(item));
 
   const renderHistoryFilters = () => (
     <div className="page-stack page-stack--compact">
@@ -173,34 +188,33 @@ export function HistoryPage(props: HistoryPageProps) {
 
 
   const renderHistoryPage = () => (
-    <section className="page-grid page-grid--history">
-      <aside className="page-card">
-        <div className="page-card__header">
-          <div>
-            <p className="eyebrow">Filter</p>
-            <h2>履歴の絞り込み</h2>
-          </div>
-        </div>
-
-        {isMobile ? (
-          <>
-            <div className="mobile-filter-summary">
-              <span>人: {persons.find((person) => person.id === historyPersonId)?.name ?? "すべて"}</span>
-              <span>共有レベル: {selectedHistoryLevelLabel}</span>
+    <section
+      className={`page-grid page-grid--history${
+        historyFilterOpen ? " page-grid--history-filter-open" : ""
+      }`}
+    >
+      {historyFilterOpen ? (
+        <aside className="page-card history-filter-card">
+          <div className="page-card__header">
+            <div>
+              <p className="eyebrow">Filter</p>
+              <h2>履歴の絞り込み</h2>
             </div>
             <button
               type="button"
-              className="button button--ghost mobile-filter-toggle"
-              onClick={() => setMobileFilterOpen((current) => !current)}
+              className="button button--ghost filter-panel__toggle"
+              onClick={() => setHistoryFilterOpen(false)}
+              aria-expanded={historyFilterOpen}
+              aria-controls="history-filter-body"
             >
-              {mobileFilterOpen ? "フィルターを閉じる" : "フィルターを開く"}
+              閉じる
             </button>
-            {mobileFilterOpen ? <div className="mobile-filter-body">{renderHistoryFilters()}</div> : null}
-          </>
-        ) : (
-          renderHistoryFilters()
-        )}
-      </aside>
+          </div>
+          <div className="filter-panel__body" id="history-filter-body">
+            {renderHistoryFilters()}
+          </div>
+        </aside>
+      ) : null}
 
       <section className="page-card">
         <div className="page-card__header">
@@ -208,13 +222,29 @@ export function HistoryPage(props: HistoryPageProps) {
             <p className="eyebrow">History</p>
             <h2>履歴一覧</h2>
           </div>
-          <div className="history-summary">
-            <span>表示 {historyItems.length}件</span>
-            <span>
-              伏せた {historyItems.filter((item) => item.share_level === "WITHHELD").length}件
-            </span>
+          <div className="history-header-actions">
+            <div className="history-summary">
+              <span>表示 {historyItems.length}件</span>
+              <span>
+                伏せた {historyItems.filter((item) => item.share_level === "WITHHELD").length}件
+              </span>
+            </div>
+            <button
+              type="button"
+              className="button button--ghost filter-panel__toggle"
+              onClick={() => setHistoryFilterOpen((current) => !current)}
+              aria-expanded={historyFilterOpen}
+              aria-controls="history-filter-body"
+            >
+              {historyFilterOpen ? "絞り込みを閉じる" : "絞り込み"}
+            </button>
           </div>
         </div>
+        {!historyFilterOpen && historyFilterSummary.length > 0 ? (
+          <div className="filter-panel__summary filter-panel__summary--inline">
+            {historyFilterSummary.map((item) => <span key={item}>{item}</span>)}
+          </div>
+        ) : null}
 
         {historyItems.length === 0 ? (
           <EmptyState
