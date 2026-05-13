@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/hooks/useismobile.ts","./src/mocks/api.ts","./src/mocks/data.ts","./src/pages/interactionnew.tsx"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/hooks/useismobile.ts","./src/mocks/api.ts","./src/mocks/data.ts","./src/pages/interactionnew.tsx","./src/pages/interactionnew/constants.ts","./src/pages/interactionnew/types.ts","./src/pages/interactionnew/utils.ts"],"version":"5.9.3"}
