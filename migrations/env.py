@@ -1,5 +1,8 @@
 from logging.config import fileConfig
+import os
+from pathlib import Path
 
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
@@ -55,6 +58,25 @@ import backend.models.calendar.meeting_snapshot
 
 # Alembic Config
 config = context.config
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+load_dotenv(BASE_DIR / ".env")
+
+
+def normalize_database_url(url: str) -> str:
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return url
+
+
+def get_database_url() -> str:
+    url = os.environ.get("DB_URL") or os.environ.get("DATABASE_URL")
+    if not url:
+        raise RuntimeError("DATABASE_URL or DB_URL must be set")
+    return normalize_database_url(url)
+
+
+config.set_main_option("sqlalchemy.url", get_database_url())
 
 # Logging 設定
 if config.config_file_name is not None:

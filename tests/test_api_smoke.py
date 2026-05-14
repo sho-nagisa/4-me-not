@@ -125,7 +125,7 @@ class APISmokeTest(unittest.TestCase):
         temp_community = self.client.post(
             "/api/communities",
             json={
-                "name": "Temporary Community",
+                "name": f"{self.prefix} Temporary Community",
                 "description": f"{self.prefix} temp-community",
             },
         )
@@ -135,7 +135,7 @@ class APISmokeTest(unittest.TestCase):
         temp_person = self.client.post(
             "/api/persons",
             json={
-                "name": "Temporary Person",
+                "name": f"{self.prefix} Temporary Person",
                 "canonical_name": f"{self.prefix}:temp-person",
                 "primary_community_id": temp_community_id,
             },
