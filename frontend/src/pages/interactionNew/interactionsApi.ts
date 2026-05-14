@@ -1,6 +1,7 @@
 import type {
   Community,
   InteractionOverview,
+  InteractionPage,
   InteractionRecord,
   InteractionType,
   Person,
@@ -19,6 +20,7 @@ type HistoryFilters = {
   dateFrom: string;
   dateTo: string;
   limit?: number;
+  offset?: number;
 };
 
 type CreateInteractionPayload = {
@@ -89,6 +91,7 @@ export const listInteractions = (filters?: HistoryFilters) => {
   if (filters?.shareLevel) params.set("share_level", filters.shareLevel);
   if (filters?.search.trim()) params.set("search", filters.search.trim());
   if (filters?.limit) params.set("limit", String(filters.limit));
+  if (filters?.offset) params.set("offset", String(filters.offset));
 
   const fromDate = filters ? buildDateQuery(filters.dateFrom, "from") : null;
   const toDate = filters ? buildDateQuery(filters.dateTo, "to") : null;
@@ -99,6 +102,26 @@ export const listInteractions = (filters?: HistoryFilters) => {
   return fetchJson<InteractionRecord[]>(
     query ? `/api/interactions?${query}` : "/api/interactions"
   );
+};
+
+export const listInteractionPage = (filters: HistoryFilters) => {
+  const params = new URLSearchParams();
+
+  if (filters.personId) params.set("person_id", filters.personId);
+  if (filters.communityId) params.set("community_id", filters.communityId);
+  if (filters.topicId) params.set("topic_id", filters.topicId);
+  if (filters.shareLevel) params.set("share_level", filters.shareLevel);
+  if (filters.search.trim()) params.set("search", filters.search.trim());
+  if (filters.limit) params.set("limit", String(filters.limit));
+  if (filters.offset) params.set("offset", String(filters.offset));
+  params.set("include_total", "true");
+
+  const fromDate = buildDateQuery(filters.dateFrom, "from");
+  const toDate = buildDateQuery(filters.dateTo, "to");
+  if (fromDate) params.set("date_from", fromDate);
+  if (toDate) params.set("date_to", toDate);
+
+  return fetchJson<InteractionPage>(`/api/interactions?${params.toString()}`);
 };
 
 export const getInteractionOverview = () =>

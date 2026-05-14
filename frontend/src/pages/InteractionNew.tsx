@@ -33,6 +33,7 @@ import {
   getInteractionOverview,
   getPersonDashboard,
   listCommunities,
+  listInteractionPage,
   listInteractions,
   listPersons,
   listTopics,
@@ -73,6 +74,8 @@ export default function InteractionNew() {
   const [interactions, setInteractions] = useState<InteractionRecord[]>([]);
   const [interactionsLoaded, setInteractionsLoaded] = useState(false);
   const [historyItems, setHistoryItems] = useState<InteractionRecord[]>([]);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyTotalCount, setHistoryTotalCount] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(false);
@@ -227,10 +230,11 @@ export default function InteractionNew() {
     }
   };
 
-  const loadHistory = async () => {
+  const loadHistory = async (page = historyPage) => {
+    const nextPage = Math.max(1, page);
     setHistoryLoading(true);
     try {
-      const items = await listInteractions({
+      const result = await listInteractionPage({
         personId: historyPersonId,
         communityId: historyCommunityId,
         topicId: historyTopicId,
@@ -239,8 +243,11 @@ export default function InteractionNew() {
         dateFrom: historyDateFrom,
         dateTo: historyDateTo,
         limit: HISTORY_DEFAULT_LIMIT,
+        offset: (nextPage - 1) * HISTORY_DEFAULT_LIMIT,
       });
-      setHistoryItems(items);
+      setHistoryItems(result.items);
+      setHistoryPage(nextPage);
+      setHistoryTotalCount(result.total_count);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "履歴の取得に失敗しました。";
@@ -301,7 +308,8 @@ export default function InteractionNew() {
 
   useEffect(() => {
     if (currentPage === "history") {
-      void loadHistory();
+      setHistoryPage(1);
+      void loadHistory(1);
     }
   }, [
     currentPage,
@@ -340,7 +348,7 @@ export default function InteractionNew() {
       await loadManageData();
     }
     if (currentPage === "history") {
-      await loadHistory();
+      await loadHistory(historyPage);
     }
     if (currentPage === "person" || interactionsLoaded) {
       await loadAllInteractions();
@@ -393,7 +401,7 @@ export default function InteractionNew() {
       setCommunityTouched(false);
       await loadOverviewInteractions();
       if (currentPage === "history") {
-        await loadHistory();
+        await loadHistory(historyPage);
       }
       if (currentPage === "person" || interactionsLoaded) {
         await loadAllInteractions();
@@ -586,6 +594,10 @@ export default function InteractionNew() {
     setHistoryDateTo("");
   };
 
+  const handleHistoryPageChange = (nextPage: number) => {
+    void loadHistory(nextPage);
+  };
+
   const homeRecentInteractions = overview.recent_interactions;
   const personMatchesDetailCommunity = (person: Person) => {
     if (!detailCommunityId) return true;
@@ -703,6 +715,10 @@ export default function InteractionNew() {
             setHistoryDateTo={setHistoryDateTo}
             historyLoading={historyLoading}
             onLoadHistory={loadHistory}
+            historyPage={historyPage}
+            historyTotalCount={historyTotalCount}
+            historyPageSize={HISTORY_DEFAULT_LIMIT}
+            onHistoryPageChange={handleHistoryPageChange}
             onClearHistoryFilters={clearHistoryFilters}
             historyFilterOpen={historyFilterOpen}
             setHistoryFilterOpen={setHistoryFilterOpen}

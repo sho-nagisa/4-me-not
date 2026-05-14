@@ -33,6 +33,8 @@ def list_interactions(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     limit: int | None = Query(default=None, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    include_total: bool = False,
 ):
     interaction_service = InteractionService()
     return interaction_service.list_interactions(
@@ -44,6 +46,8 @@ def list_interactions(
         date_from=date_from,
         date_to=date_to,
         limit=limit,
+        offset=offset,
+        include_total=include_total,
     )
 
 

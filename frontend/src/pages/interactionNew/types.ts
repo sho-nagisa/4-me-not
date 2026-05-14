@@ -79,6 +79,13 @@ export type InteractionRecord = {
   created_at: string;
 };
 
+export type InteractionPage = {
+  items: InteractionRecord[];
+  total_count: number;
+  limit: number | null;
+  offset: number;
+};
+
 export type PersonInteractionCount = {
   person_id: string;
   count: number;

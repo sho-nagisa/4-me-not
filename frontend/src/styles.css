@@ -1266,6 +1266,21 @@ button {
   min-width: 0;
 }
 
+.history-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.history-pagination span {
+  color: #5d7065;
+  font-weight: 800;
+  min-width: 84px;
+  text-align: center;
+}
+
 .filter-panel__summary,
 .mobile-filter-summary {
   display: flex;

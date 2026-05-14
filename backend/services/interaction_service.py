@@ -112,6 +112,8 @@ class InteractionService:
         date_from: datetime | None = None,
         date_to: datetime | None = None,
         limit: int | None = None,
+        offset: int = 0,
+        include_total: bool = False,
     ):
         db: Session = SessionLocal()
         try:
@@ -166,15 +168,30 @@ class InteractionService:
             if date_to:
                 query = query.filter(Interaction.occurred_at <= date_to)
 
+            total_count = query.count() if include_total else None
+
+            if offset:
+                query = query.offset(offset)
+
             if limit:
                 query = query.limit(limit)
 
             interactions = query.all()
             path_cache = {}
-            return [
+            items = [
                 self.serialize_interaction(interaction, path_cache=path_cache)
                 for interaction in interactions
             ]
+
+            if include_total:
+                return {
+                    "items": items,
+                    "total_count": total_count,
+                    "limit": limit,
+                    "offset": offset,
+                }
+
+            return items
         finally:
             db.close()
 
