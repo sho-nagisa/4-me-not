@@ -1,4 +1,6 @@
-from sqlalchemy import String, Text, DateTime
+from uuid import UUID
+
+from sqlalchemy import String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.models.base.base import BaseModel
@@ -12,6 +14,11 @@ class Reminder(BaseModel):
 
     __tablename__ = "reminders"
     __table_args__ = {"schema": "formegot"}
+
+    account_id: Mapped[UUID] = mapped_column(
+        ForeignKey("formegot.accounts.id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
     title: Mapped[str] = mapped_column(
         String(100),

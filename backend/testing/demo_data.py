@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
+from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.base.enums import InteractionType, ShareLevel
 from backend.models.community.community import Community
@@ -24,8 +25,10 @@ class SeedResult:
 def cleanup_demo_data(prefix: str = DEFAULT_PREFIX) -> None:
     db = SessionLocal()
     try:
+        account_id = get_current_account_id()
         interactions = (
             db.query(Interaction)
+            .filter(Interaction.account_id == account_id)
             .filter(Interaction.note.is_not(None))
             .filter(Interaction.note.like(f"{prefix}%"))
             .all()
@@ -36,6 +39,7 @@ def cleanup_demo_data(prefix: str = DEFAULT_PREFIX) -> None:
 
         people = (
             db.query(Person)
+            .filter(Person.account_id == account_id)
             .filter(Person.canonical_name.is_not(None))
             .filter(Person.canonical_name.like(f"{prefix}%"))
             .all()
@@ -46,6 +50,7 @@ def cleanup_demo_data(prefix: str = DEFAULT_PREFIX) -> None:
 
         topics = (
             db.query(Topic)
+            .filter(Topic.account_id == account_id)
             .filter(Topic.description.is_not(None))
             .filter(Topic.description.like(f"{prefix}%"))
             .all()
@@ -56,6 +61,7 @@ def cleanup_demo_data(prefix: str = DEFAULT_PREFIX) -> None:
 
         communities = (
             db.query(Community)
+            .filter(Community.account_id == account_id)
             .filter(Community.description.is_not(None))
             .filter(Community.description.like(f"{prefix}%"))
             .all()
@@ -75,6 +81,7 @@ def seed_demo_data(prefix: str = DEFAULT_PREFIX) -> SeedResult:
     try:
         marker = f"{prefix} generated demo data"
         now = datetime.now(timezone.utc)
+        account_id = get_current_account_id()
 
         communities: dict[str, Community] = {}
         topics: dict[str, Topic] = {}
@@ -84,6 +91,7 @@ def seed_demo_data(prefix: str = DEFAULT_PREFIX) -> SeedResult:
             key: str, name: str, parent_key: str | None = None
         ) -> Community:
             community = Community(
+                account_id=account_id,
                 name=name,
                 description=marker,
                 parent_id=communities[parent_key].id if parent_key else None,
@@ -95,6 +103,7 @@ def seed_demo_data(prefix: str = DEFAULT_PREFIX) -> SeedResult:
 
         def add_topic(key: str, name: str, parent_key: str | None = None) -> Topic:
             topic = Topic(
+                account_id=account_id,
                 title=name,
                 name=name,
                 description=marker,
@@ -109,6 +118,7 @@ def seed_demo_data(prefix: str = DEFAULT_PREFIX) -> SeedResult:
             key: str, name: str, slug: str, primary_community_key: str | None
         ) -> Person:
             person = Person(
+                account_id=account_id,
                 name=name,
                 canonical_name=f"{prefix}:{slug}",
                 description=marker,
@@ -170,6 +180,7 @@ def seed_demo_data(prefix: str = DEFAULT_PREFIX) -> SeedResult:
             note: str,
         ) -> Interaction:
             return Interaction(
+                account_id=account_id,
                 person_id=people[person_key].id,
                 community_id=communities[community_key].id if community_key else None,
                 topic_id=topics[topic_key].id if topic_key else None,

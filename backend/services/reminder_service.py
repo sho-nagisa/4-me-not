@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.reminder.reminder import Reminder
 
@@ -11,6 +12,7 @@ class ReminderService:
         db = SessionLocal()
         try:
             reminder = Reminder(
+                account_id=get_current_account_id(),
                 title=title,
                 remind_at=remind_at_value,
                 message=message,
