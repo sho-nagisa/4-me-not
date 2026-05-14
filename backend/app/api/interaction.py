@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 from backend.services.ai_service import AIService
@@ -32,7 +32,7 @@ def list_interactions(
     search: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
-    limit: int | None = None,
+    limit: int | None = Query(default=None, ge=1, le=200),
 ):
     interaction_service = InteractionService()
     return interaction_service.list_interactions(

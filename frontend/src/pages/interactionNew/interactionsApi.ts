@@ -17,6 +17,7 @@ type HistoryFilters = {
   search: string;
   dateFrom: string;
   dateTo: string;
+  limit?: number;
 };
 
 type CreateInteractionPayload = {
@@ -86,6 +87,7 @@ export const listInteractions = (filters?: HistoryFilters) => {
   if (filters?.topicId) params.set("topic_id", filters.topicId);
   if (filters?.shareLevel) params.set("share_level", filters.shareLevel);
   if (filters?.search.trim()) params.set("search", filters.search.trim());
+  if (filters?.limit) params.set("limit", String(filters.limit));
 
   const fromDate = filters ? buildDateQuery(filters.dateFrom, "from") : null;
   const toDate = filters ? buildDateQuery(filters.dateTo, "to") : null;

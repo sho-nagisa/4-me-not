@@ -219,6 +219,10 @@ class APISmokeTest(unittest.TestCase):
         self.assertTrue(items)
         self.assertTrue(any(item["id"] == self.interaction_id for item in items))
 
+        limited_response = self.client.get("/api/interactions", params={"limit": 1})
+        self.assertEqual(limited_response.status_code, 200, limited_response.text)
+        self.assertLessEqual(len(limited_response.json()), 1)
+
     def test_06_person_dashboard(self) -> None:
         if self.interaction_id is None:
             self.skipTest("interaction is not created")
