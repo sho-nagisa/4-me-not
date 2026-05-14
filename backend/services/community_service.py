@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy import delete as sa_delete
 
+from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.community.community import Community
 
@@ -19,8 +20,10 @@ class CommunityService:
     ):
         db = SessionLocal()
         try:
-            normalized_parent_id = self._validate_parent_id(db, parent_id)
+            account_id = get_current_account_id()
+            normalized_parent_id = self._validate_parent_id(db, parent_id, account_id)
             community = Community(
+                account_id=account_id,
                 name=name,
                 description=description,
                 parent_id=normalized_parent_id,
@@ -35,7 +38,12 @@ class CommunityService:
     def list_communities(self, include_hidden: bool = False):
         db = SessionLocal()
         try:
-            all_communities = db.query(Community).all()
+            account_id = get_current_account_id()
+            all_communities = (
+                db.query(Community)
+                .filter(Community.account_id == account_id)
+                .all()
+            )
             if not include_hidden:
                 communities = [
                     community
@@ -75,14 +83,8 @@ class CommunityService:
     def delete_community(self, community_id: str):
         db = SessionLocal()
         try:
-            normalized_id = self._normalize_community_id(community_id)
-            community = db.get(Community, normalized_id)
-            if community is None:
-                raise HTTPException(status_code=404, detail="Community not found")
-
-            db.execute(
-                sa_delete(Community).where(Community.id == normalized_id)
-            )
+            community = self._get_community(db, community_id)
+            db.execute(sa_delete(Community).where(Community.id == community.id))
             db.commit()
         finally:
             db.close()
@@ -96,7 +98,8 @@ class CommunityService:
         try:
             nodes = []
             current = db.get(Community, community.id)
-            while current is not None:
+            account_id = get_current_account_id()
+            while current is not None and current.account_id == account_id:
                 if current.is_hidden and not include_hidden:
                     current = db.get(Community, current.parent_id) if current.parent_id else None
                     continue
@@ -122,7 +125,7 @@ class CommunityService:
             current = communities_by_id.get(current.parent_id) if current.parent_id else None
         return " / ".join(reversed(nodes))
 
-    def _validate_parent_id(self, db, parent_id: str | None):
+    def _validate_parent_id(self, db, parent_id: str | None, account_id: UUID):
         if not parent_id:
             return None
 
@@ -132,7 +135,7 @@ class CommunityService:
             raise HTTPException(status_code=400, detail="Parent community is invalid") from exc
 
         parent = db.get(Community, normalized_id)
-        if parent is None or parent.is_hidden:
+        if parent is None or parent.account_id != account_id or parent.is_hidden:
             raise HTTPException(status_code=404, detail="Parent community not found")
         return normalized_id
 
@@ -145,6 +148,6 @@ class CommunityService:
     def _get_community(self, db, community_id: str) -> Community:
         normalized_id = self._normalize_community_id(community_id)
         community = db.get(Community, normalized_id)
-        if community is None:
+        if community is None or community.account_id != get_current_account_id():
             raise HTTPException(status_code=404, detail="Community not found")
         return community
