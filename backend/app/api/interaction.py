@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, BackgroundTasks, Query
 from pydantic import BaseModel
 
-from backend.services.ai_service import AIService
-from backend.services.insight_service import InsightService
 from backend.services.interaction_service import InteractionService
-from backend.services.relation_service import RelationService
+from backend.services.interaction_processing_service import (
+    process_interaction_after_save,
+)
 
 
 router = APIRouter(prefix="/interactions", tags=["interaction"])
@@ -60,11 +60,11 @@ def get_interaction_overview(
 
 
 @router.post("")
-def record_interaction(payload: InteractionCreateRequest):
+def record_interaction(
+    payload: InteractionCreateRequest,
+    background_tasks: BackgroundTasks,
+):
     interaction_service = InteractionService()
-    ai_service = AIService()
-    insight_service = InsightService()
-    relation_service = RelationService()
 
     interaction = interaction_service.record_interaction(
         person_id=payload.person_id,
@@ -76,18 +76,15 @@ def record_interaction(payload: InteractionCreateRequest):
         content=payload.content,
         note=payload.note,
     )
+    interaction_id = str(interaction.id)
 
-    parsed = ai_service.analyze_interaction(str(interaction.id))
-    if parsed is not None:
-        insight_service.create_insight_from_ai(str(parsed.id))
-
-    relation_service.update_relation(
-        from_person_id=payload.person_id,
-        to_person_id=payload.person_id,
-        relation_type=1,
+    background_tasks.add_task(
+        process_interaction_after_save,
+        interaction_id=interaction_id,
+        person_id=payload.person_id,
     )
 
     return {
         "status": "ok",
-        "interaction_id": str(interaction.id),
+        "interaction_id": interaction_id,
     }
