@@ -47,6 +47,9 @@ import {
   buildPersonBubblesFromCounts,
   toDateTimeLocalValue,
 } from "./interactionNew/utils";
+
+const HISTORY_DEFAULT_LIMIT = 30;
+
 export default function InteractionNew() {
   const isMobile = useIsMobile(820);
 
@@ -235,6 +238,7 @@ export default function InteractionNew() {
         search: historySearch,
         dateFrom: historyDateFrom,
         dateTo: historyDateTo,
+        limit: HISTORY_DEFAULT_LIMIT,
       });
       setHistoryItems(items);
     } catch (error) {
