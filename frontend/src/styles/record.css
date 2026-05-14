@@ -1,0 +1,61 @@
+.mobile-record-page {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mobile-record-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mobile-record-tab {
+  min-width: 0;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(255, 253, 249, 0.72);
+  border: 1px solid rgba(73, 97, 79, 0.08);
+  color: #5d7065;
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.mobile-record-tab--active {
+  background: rgba(255, 246, 239, 0.96);
+  border-color: rgba(197, 94, 51, 0.24);
+  color: #173126;
+}
+
+.mobile-record-swipe {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(100%, 100%);
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  touch-action: pan-x;
+  scrollbar-width: none;
+}
+
+.mobile-record-swipe::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-record-panel {
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.mobile-record-panel > .page-card {
+  height: 100%;
+  min-width: 0;
+}

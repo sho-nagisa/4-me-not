@@ -1,0 +1,115 @@
+.home-page {
+  min-height: calc(100vh - 72px);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 18px;
+}
+
+.mobile-home-page {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mobile-home-swiper {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(100%, 100%);
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  touch-action: pan-x;
+  scrollbar-width: none;
+}
+
+.mobile-home-swiper::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-home-slide {
+  display: grid;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.mobile-home-slide > .page-card,
+.mobile-home-slide > .mobile-home-recent,
+.mobile-home-recent > .page-card {
+  min-width: 0;
+  height: 100%;
+}
+
+.mobile-home-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mobile-home-pagination span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(93, 112, 101, 0.35);
+}
+
+.mobile-home-pagination span:first-child {
+  width: 18px;
+  background: rgba(197, 94, 51, 0.62);
+}
+
+.home-bubble-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: min(720px, calc(100vh - 310px));
+  padding: 28px;
+}
+
+.mobile-home-bubble-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 20px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.home-bubble-card .page-card__header h2 {
+  font-size: 2rem;
+}
+
+.home-record-button {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(84, 112, 95, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  color: #173126;
+  font-size: 1.28rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 12px 24px rgba(59, 70, 80, 0.1);
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.home-record-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(197, 94, 51, 0.24);
+  box-shadow: 0 16px 30px rgba(197, 94, 51, 0.16);
+}
+
+.home-secondary-grid {
+  display: grid;
+  gap: 24px;
+}
