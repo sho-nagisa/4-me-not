@@ -3,8 +3,10 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import HTTPException
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Session, joinedload
 
+from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.base.enums import InteractionType, ShareLevel
 from backend.models.community.community import Community
@@ -57,7 +59,13 @@ class InteractionService:
     ):
         db: Session = SessionLocal()
         try:
-            person = db.get(Person, person_id)
+            account_id = get_current_account_id()
+            person_uuid = self._normalize_uuid(person_id, "Person is invalid")
+            person = (
+                db.query(Person)
+                .filter(Person.id == person_uuid, Person.account_id == account_id)
+                .first()
+            )
             if person is None or person.is_hidden:
                 raise HTTPException(status_code=404, detail="Person not found")
 
@@ -66,16 +74,19 @@ class InteractionService:
                 model=Community,
                 record_id=community_id,
                 detail="Community not found",
+                account_id=account_id,
             )
             topic_uuid = self._validate_optional_reference(
                 db=db,
                 model=Topic,
                 record_id=topic_id,
                 detail="Topic not found",
+                account_id=account_id,
             )
 
             interaction = Interaction(
-                person_id=person_id,
+                account_id=account_id,
+                person_id=person_uuid,
                 community_id=community_uuid,
                 topic_id=topic_uuid,
                 type=self._normalize_interaction_type(interaction_type),
@@ -104,13 +115,19 @@ class InteractionService:
     ):
         db: Session = SessionLocal()
         try:
-            query = self._base_query(db)
+            account_id = get_current_account_id()
+            query = self._base_query(db, account_id=account_id)
 
             if person_id:
-                person = db.get(Person, person_id)
+                person_uuid = self._normalize_uuid(person_id, "Person is invalid")
+                person = (
+                    db.query(Person)
+                    .filter(Person.id == person_uuid, Person.account_id == account_id)
+                    .first()
+                )
                 if person is None or person.is_hidden:
                     raise HTTPException(status_code=404, detail="Person not found")
-                query = query.filter(Interaction.person_id == person_id)
+                query = query.filter(Interaction.person_id == person_uuid)
 
             if community_id:
                 community_uuid = self._validate_optional_reference(
@@ -118,6 +135,7 @@ class InteractionService:
                     model=Community,
                     record_id=community_id,
                     detail="Community not found",
+                    account_id=account_id,
                 )
                 query = query.filter(Interaction.community_id == community_uuid)
 
@@ -127,6 +145,7 @@ class InteractionService:
                     model=Topic,
                     record_id=topic_id,
                     detail="Topic not found",
+                    account_id=account_id,
                 )
                 query = query.filter(Interaction.topic_id == topic_uuid)
 
@@ -151,28 +170,102 @@ class InteractionService:
                 query = query.limit(limit)
 
             interactions = query.all()
-            return [self.serialize_interaction(interaction) for interaction in interactions]
+            path_cache = {}
+            return [
+                self.serialize_interaction(interaction, path_cache=path_cache)
+                for interaction in interactions
+            ]
+        finally:
+            db.close()
+
+    def get_interaction_overview(self, recent_limit: int = 4, person_limit: int = 7):
+        db: Session = SessionLocal()
+        try:
+            account_id = get_current_account_id()
+            visible_query = (
+                db.query(Interaction)
+                .join(Person, Interaction.person_id == Person.id)
+                .filter(
+                    Interaction.account_id == account_id,
+                    Person.account_id == account_id,
+                    Person.is_hidden.is_(False),
+                )
+            )
+            total_count = visible_query.count()
+
+            recent_interactions = (
+                self._base_query(db, account_id=account_id)
+                .limit(recent_limit)
+                .all()
+            )
+            path_cache = {}
+            serialized_recent = [
+                self.serialize_interaction(interaction, path_cache=path_cache)
+                for interaction in recent_interactions
+            ]
+
+            interaction_count = func.count(Interaction.id)
+            person_counts = (
+                db.query(
+                    Person.id.label("person_id"),
+                    interaction_count.label("interaction_count"),
+                )
+                .outerjoin(
+                    Interaction,
+                    and_(
+                        Interaction.person_id == Person.id,
+                        Interaction.account_id == account_id,
+                    ),
+                )
+                .filter(Person.account_id == account_id, Person.is_hidden.is_(False))
+                .group_by(Person.id, Person.name)
+                .order_by(interaction_count.desc(), Person.name.asc())
+                .limit(person_limit)
+                .all()
+            )
+
+            return {
+                "total_count": total_count,
+                "recent_interactions": serialized_recent,
+                "person_counts": [
+                    {
+                        "person_id": str(row.person_id),
+                        "count": int(row.interaction_count),
+                    }
+                    for row in person_counts
+                ],
+            }
         finally:
             db.close()
 
     def get_person_dashboard(self, person_id: str):
         db: Session = SessionLocal()
         try:
+            account_id = get_current_account_id()
+            person_uuid = self._normalize_uuid(person_id, "Person is invalid")
             person = (
                 db.query(Person)
                 .options(joinedload(Person.primary_community))
-                .filter(Person.id == person_id, Person.is_hidden.is_(False))
+                .filter(
+                    Person.id == person_uuid,
+                    Person.account_id == account_id,
+                    Person.is_hidden.is_(False),
+                )
                 .first()
             )
             if person is None:
                 raise HTTPException(status_code=404, detail="Person not found")
 
             interactions = (
-                self._base_query(db)
+                self._base_query(db, account_id=account_id)
                 .filter(Interaction.person_id == person.id)
                 .all()
             )
-            serialized = [self.serialize_interaction(interaction) for interaction in interactions]
+            path_cache = {}
+            serialized = [
+                self.serialize_interaction(interaction, path_cache=path_cache)
+                for interaction in interactions
+            ]
             share_counts = Counter(item["share_level"] for item in serialized)
 
             return {
@@ -224,7 +317,7 @@ class InteractionService:
         finally:
             db.close()
 
-    def serialize_interaction(self, interaction: Interaction):
+    def serialize_interaction(self, interaction: Interaction, path_cache: dict | None = None):
         interaction_type = InteractionType(interaction.type)
         share_level = ShareLevel(interaction.share_level)
         visible_community = interaction.community if interaction.community and not interaction.community.is_hidden else None
@@ -235,10 +328,10 @@ class InteractionService:
             "person_name": interaction.person.name if interaction.person else "",
             "community_id": str(interaction.community_id) if visible_community else None,
             "community_name": visible_community.name if visible_community else None,
-            "community_path": self._build_path(visible_community) if visible_community else None,
+            "community_path": self._build_path(visible_community, path_cache) if visible_community else None,
             "topic_id": str(interaction.topic_id) if interaction.topic_id else None,
             "topic_name": interaction.topic.name if interaction.topic else None,
-            "topic_path": self._build_path(interaction.topic) if interaction.topic else None,
+            "topic_path": self._build_path(interaction.topic, path_cache) if interaction.topic else None,
             "interaction_type": interaction_type.name,
             "interaction_type_label": self.TYPE_LABELS.get(interaction_type, interaction_type.name),
             "share_level": share_level.name,
@@ -249,11 +342,16 @@ class InteractionService:
             "created_at": interaction.created_at.isoformat(),
         }
 
-    def _base_query(self, db: Session):
+    def _base_query(self, db: Session, account_id: UUID | None = None):
+        scoped_account_id = account_id or get_current_account_id()
         return (
             db.query(Interaction)
             .join(Person, Interaction.person_id == Person.id)
-            .filter(Person.is_hidden.is_(False))
+            .filter(
+                Interaction.account_id == scoped_account_id,
+                Person.account_id == scoped_account_id,
+                Person.is_hidden.is_(False),
+            )
             .options(
                 joinedload(Interaction.person),
                 joinedload(Interaction.community).joinedload(Community.parent),
@@ -265,7 +363,14 @@ class InteractionService:
             )
         )
 
-    def _build_path(self, record):
+    def _build_path(self, record, path_cache: dict | None = None):
+        if record is None:
+            return None
+
+        cache_key = (record.__class__.__name__, str(record.id))
+        if path_cache is not None and cache_key in path_cache:
+            return path_cache[cache_key]
+
         nodes = []
         current = record
         while current is not None:
@@ -274,7 +379,16 @@ class InteractionService:
                 continue
             nodes.append(current.name)
             current = current.parent
-        return " / ".join(reversed(nodes))
+        path = " / ".join(reversed(nodes))
+        if path_cache is not None:
+            path_cache[cache_key] = path
+        return path
+
+    def _normalize_uuid(self, record_id: str, detail: str) -> UUID:
+        try:
+            return UUID(str(record_id))
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=detail) from exc
 
     def _summarize_dimension(self, interactions, id_key: str, label_key: str):
         buckets: dict[str, dict[str, int | str]] = {}
@@ -372,7 +486,14 @@ class InteractionService:
             raise HTTPException(status_code=400, detail="Unsupported share level")
         return self.SHARE_LEVEL_MAP[key]
 
-    def _validate_optional_reference(self, db: Session, model, record_id: str | None, detail: str):
+    def _validate_optional_reference(
+        self,
+        db: Session,
+        model,
+        record_id: str | None,
+        detail: str,
+        account_id: UUID,
+    ):
         if not record_id:
             return None
 
@@ -383,6 +504,8 @@ class InteractionService:
 
         record = db.get(model, normalized_id)
         if record is None:
+            raise HTTPException(status_code=404, detail=detail)
+        if getattr(record, "account_id", None) != account_id:
             raise HTTPException(status_code=404, detail=detail)
         if hasattr(record, "is_hidden") and record.is_hidden:
             raise HTTPException(status_code=404, detail=detail)

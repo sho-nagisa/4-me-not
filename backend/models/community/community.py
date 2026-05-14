@@ -10,6 +10,11 @@ class Community(BaseModel):
     __tablename__ = "communities"
     __table_args__ = {"schema": "formegot"}
 
+    account_id: Mapped[UUID] = mapped_column(
+        ForeignKey("formegot.accounts.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
     name: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
