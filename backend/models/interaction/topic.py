@@ -9,6 +9,11 @@ class Topic(BaseModel):
     __tablename__ = "topics"
     __table_args__ = {"schema": "formegot"}
 
+    account_id: Mapped[UUID] = mapped_column(
+        ForeignKey("formegot.accounts.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
     title: Mapped[str] = mapped_column(
         String(100),
         nullable=False,

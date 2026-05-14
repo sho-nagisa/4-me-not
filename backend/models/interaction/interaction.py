@@ -12,7 +12,12 @@ class Interaction(BaseModel):
     __tablename__ = "interactions"
     __table_args__ = {"schema": "formegot"}
 
-    person_id: Mapped[str] = mapped_column(
+    account_id: Mapped[UUID] = mapped_column(
+        ForeignKey("formegot.accounts.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    person_id: Mapped[UUID] = mapped_column(
         ForeignKey("formegot.persons.id", ondelete="CASCADE"),
         nullable=False
     )

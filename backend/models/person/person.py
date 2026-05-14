@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import Boolean, ForeignKey, String, Text
+from sqlalchemy import Boolean, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.models.base.base import BaseModel
@@ -8,7 +8,19 @@ from backend.models.base.base import BaseModel
 
 class Person(BaseModel):
     __tablename__ = "persons"
-    __table_args__ = {"schema": "formegot"}
+    __table_args__ = (
+        UniqueConstraint(
+            "account_id",
+            "canonical_name",
+            name="uq_persons_account_canonical_name",
+        ),
+        {"schema": "formegot"},
+    )
+
+    account_id: Mapped[UUID] = mapped_column(
+        ForeignKey("formegot.accounts.id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
     name: Mapped[str] = mapped_column(
         String(100),
@@ -19,7 +31,6 @@ class Person(BaseModel):
     canonical_name: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True,
-        unique=True,
         comment="一意に扱うための名前",
     )
 

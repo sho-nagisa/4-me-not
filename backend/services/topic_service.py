@@ -2,6 +2,7 @@ from uuid import UUID
 
 from fastapi import HTTPException
 
+from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.interaction.topic import Topic
 
@@ -18,8 +19,10 @@ class TopicService:
     ):
         db = SessionLocal()
         try:
-            normalized_parent_id = self._validate_parent_id(db, parent_id)
+            account_id = get_current_account_id()
+            normalized_parent_id = self._validate_parent_id(db, parent_id, account_id)
             topic = Topic(
+                account_id=account_id,
                 title=name,
                 name=name,
                 description=description,
@@ -35,7 +38,11 @@ class TopicService:
     def list_topics(self):
         db = SessionLocal()
         try:
-            topics = db.query(Topic).all()
+            topics = (
+                db.query(Topic)
+                .filter(Topic.account_id == get_current_account_id())
+                .all()
+            )
             topics_by_id = {topic.id: topic for topic in topics}
             self._path_cache = {
                 str(topic.id): self._build_path_from_map(
@@ -56,9 +63,10 @@ class TopicService:
 
         db = SessionLocal()
         try:
+            account_id = get_current_account_id()
             nodes = []
             current = db.get(Topic, topic.id)
-            while current is not None:
+            while current is not None and current.account_id == account_id:
                 nodes.append(current.name)
                 current = db.get(Topic, current.parent_id) if current.parent_id else None
             return " / ".join(reversed(nodes))
@@ -77,7 +85,7 @@ class TopicService:
             current = topics_by_id.get(current.parent_id) if current.parent_id else None
         return " / ".join(reversed(nodes))
 
-    def _validate_parent_id(self, db, parent_id: str | None):
+    def _validate_parent_id(self, db, parent_id: str | None, account_id: UUID):
         if not parent_id:
             return None
 
@@ -87,6 +95,6 @@ class TopicService:
             raise HTTPException(status_code=400, detail="Parent topic is invalid") from exc
 
         parent = db.get(Topic, normalized_id)
-        if parent is None:
+        if parent is None or parent.account_id != account_id:
             raise HTTPException(status_code=404, detail="Parent topic not found")
         return normalized_id
