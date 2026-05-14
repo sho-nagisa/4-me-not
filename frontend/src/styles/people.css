@@ -1,0 +1,131 @@
+.person-bubble-cloud {
+  position: relative;
+  min-height: 430px;
+  margin-top: 22px;
+  padding: 22px;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.94), transparent 22%),
+    radial-gradient(circle at 78% 78%, rgba(141, 201, 180, 0.2), transparent 24%),
+    rgba(244, 247, 245, 0.74);
+  border: 1px solid rgba(73, 97, 79, 0.08);
+}
+
+.person-bubble-cloud--home {
+  min-height: 100%;
+  margin-top: 28px;
+}
+
+.person-bubble-cloud--desktop-home {
+  min-height: 100%;
+}
+
+.person-bubble-cloud--mobile-home {
+  min-height: 430px;
+  margin-top: 18px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.person-bubble-cloud--home .person-bubble {
+  min-width: 136px;
+  min-height: 136px;
+}
+
+.person-bubble-cloud--home .person-bubble strong {
+  font-size: 1.18rem;
+}
+
+.person-bubble-cloud--home .person-bubble span {
+  font-size: 0.96rem;
+}
+
+.person-bubble {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  min-width: 76px;
+  min-height: 76px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.28) 34%, transparent 35%),
+    linear-gradient(145deg, rgba(255, 247, 239, 0.98), rgba(220, 239, 229, 0.94));
+  box-shadow:
+    inset 0 -14px 28px rgba(61, 112, 91, 0.08),
+    0 18px 36px rgba(59, 70, 80, 0.13);
+  color: #173126;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  touch-action: none;
+  cursor: grab;
+  transition:
+    left 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    top 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 140ms ease,
+    box-shadow 140ms ease;
+  animation: bubble-float 5.8s ease-in-out infinite;
+}
+
+.person-bubble:hover {
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+.person-bubble--active {
+  border-color: rgba(197, 94, 51, 0.42);
+  box-shadow:
+    inset 0 -14px 28px rgba(197, 94, 51, 0.1),
+    0 20px 42px rgba(197, 94, 51, 0.24);
+}
+
+.person-bubble--quiet {
+  opacity: 0.64;
+}
+
+.person-bubble--dragging {
+  z-index: 3;
+  cursor: grabbing;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease;
+  animation-play-state: paused;
+  box-shadow:
+    inset 0 -14px 28px rgba(197, 94, 51, 0.1),
+    0 28px 52px rgba(59, 70, 80, 0.22);
+}
+
+.person-bubble strong {
+  max-width: 92%;
+  color: #173126;
+  font-size: clamp(0.78rem, 0.92rem, 1rem);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.person-bubble span {
+  color: #5d7065;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.person-map-toolbar {
+  margin-top: 18px;
+}
+
+.metric-grid--home {
+  margin-top: 18px;
+}
+
+@keyframes bubble-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -8px;
+  }
+}

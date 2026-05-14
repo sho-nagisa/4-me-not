@@ -1,0 +1,70 @@
+.banner {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border-radius: 22px;
+}
+
+.banner p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.banner--success {
+  background: rgba(233, 249, 239, 0.92);
+  border-color: rgba(78, 161, 111, 0.18);
+}
+
+.banner--error {
+  background: rgba(255, 237, 232, 0.94);
+  border-color: rgba(201, 83, 52, 0.18);
+}
+
+.banner--info {
+  background: rgba(236, 244, 255, 0.94);
+  border-color: rgba(85, 123, 185, 0.16);
+}
+
+.empty-state {
+  display: grid;
+  gap: 8px;
+  padding: 26px;
+  margin-top: 18px;
+  border-radius: 22px;
+  border: 1px dashed rgba(84, 112, 95, 0.18);
+  background: rgba(247, 250, 248, 0.82);
+}
+
+.empty-state strong {
+  color: #1f3028;
+  font-size: 1.05rem;
+}
+
+.mobile-header {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-radius: 28px;
+  padding: 18px 20px;
+}
+
+.mobile-content {
+  margin-top: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.mobile-dock {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border-radius: 24px;
+}

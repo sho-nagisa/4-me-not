@@ -1,0 +1,260 @@
+:root {
+  font-family: "Avenir Next", "Yu Gothic", "Hiragino Sans", sans-serif;
+  color: #1d2d25;
+  background:
+    radial-gradient(circle at top left, rgba(255, 215, 181, 0.54), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(141, 201, 180, 0.24), transparent 28%),
+    linear-gradient(180deg, #f8f1e8 0%, #eef6f1 54%, #edf0f4 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.app-shell--desktop {
+  padding: 28px;
+}
+
+.app-shell--desktop.app-shell--home {
+  padding: 18px;
+}
+
+.app-shell--mobile {
+  padding: 18px 14px 112px;
+}
+
+.app-shell__glow {
+  position: absolute;
+  z-index: 0;
+  border-radius: 999px;
+  filter: blur(10px);
+  opacity: 0.9;
+}
+
+.app-shell__glow--left {
+  top: -70px;
+  left: -90px;
+  width: 260px;
+  height: 260px;
+  background: rgba(218, 126, 78, 0.18);
+}
+
+.app-shell__glow--right {
+  top: 160px;
+  right: -80px;
+  width: 240px;
+  height: 240px;
+  background: rgba(91, 171, 145, 0.18);
+}
+
+.desktop-frame,
+.mobile-frame {
+  position: relative;
+  z-index: 1;
+}
+
+.desktop-frame {
+  display: grid;
+  grid-template-columns: 296px minmax(0, 1fr);
+  gap: 24px;
+  max-width: 1380px;
+  margin: 0 auto;
+}
+
+.app-shell--home .desktop-frame {
+  max-width: 1720px;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.desktop-sidebar,
+.desktop-content,
+.mobile-header,
+.page-card,
+.banner,
+.mobile-dock {
+  backdrop-filter: blur(18px);
+  background: rgba(255, 253, 249, 0.76);
+  border: 1px solid rgba(73, 97, 79, 0.08);
+  box-shadow: 0 24px 80px rgba(59, 70, 80, 0.1);
+}
+
+.desktop-sidebar {
+  border-radius: 30px;
+  padding: 22px;
+  align-self: start;
+  display: grid;
+  gap: 20px;
+}
+
+.desktop-content {
+  border-radius: 32px;
+  padding: 22px;
+  min-height: calc(100vh - 56px);
+}
+
+.app-shell--home .desktop-content {
+  min-height: calc(100vh - 36px);
+  padding: 18px;
+}
+
+.brand-card {
+  display: grid;
+  gap: 0;
+  padding: 18px 20px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(73, 97, 79, 0.08);
+}
+
+.brand-card h1,
+.mobile-header h1 {
+  margin: 0;
+  font-size: clamp(2.1rem, 3.2vw, 3rem);
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.brand-card p,
+.mobile-header p,
+.page-card__lead,
+.field__hint,
+.action-row__hint,
+.metric-card p,
+.nav-item span,
+.muted,
+.summary-row span,
+.history-card__date,
+.history-card__note,
+.history-card__meta span,
+.notice-row span,
+.sidebar-summary__item span,
+.mobile-filter-summary span,
+.filter-panel__summary span {
+  color: #5d7065;
+}
+
+.eyebrow {
+  display: none;
+}
+
+.nav-list {
+  display: grid;
+  gap: 10px;
+}
+
+.nav-item {
+  display: grid;
+  gap: 0;
+  text-align: left;
+  padding: 15px 16px;
+  border: 1px solid rgba(73, 97, 79, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #223d31;
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.nav-item strong {
+  font-size: 0.98rem;
+}
+
+.nav-item:hover {
+  transform: translateY(-1px);
+}
+
+.nav-item--active {
+  background: rgba(255, 246, 239, 0.96);
+  border-color: rgba(197, 94, 51, 0.24);
+}
+
+.nav-item--compact {
+  padding: 10px 8px;
+  border-radius: 18px;
+  gap: 2px;
+}
+
+.nav-item--compact strong {
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.nav-item--compact span {
+  display: none;
+}
+
+.sidebar-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sidebar-summary__item {
+  padding: 14px 12px;
+  border-radius: 18px;
+  background: rgba(244, 247, 245, 0.95);
+  text-align: center;
+}
+
+.sidebar-summary__item strong {
+  display: block;
+  font-size: 1.24rem;
+  color: #173126;
+}
+
+.page-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.page-stack--compact {
+  gap: 14px;
+}
+
+.page-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.page-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.page-grid--record {
+  grid-template-columns: minmax(0, 1.42fr) minmax(300px, 0.78fr);
+}
+

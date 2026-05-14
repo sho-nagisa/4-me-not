@@ -1,0 +1,30 @@
+.page-grid--history {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.page-grid--history-filter-open {
+  grid-template-columns: 320px minmax(0, 1fr);
+}
+
+.page-card {
+  border-radius: 28px;
+  padding: 24px;
+}
+
+.page-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.page-card__header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  letter-spacing: -0.04em;
+  color: #173126;
+}
+
+.page-card__lead {
+  display: none;
+}
