@@ -243,6 +243,31 @@ class APISmokeTest(unittest.TestCase):
         self.assertEqual(limited_response.status_code, 200, limited_response.text)
         self.assertLessEqual(len(limited_response.json()), 1)
 
+        extra_response = self.client.post(
+            "/api/interactions",
+            json={
+                "person_id": self.person_id,
+                "community_id": self.community_child_id,
+                "topic_id": self.topic_child_id,
+                "interaction_type": "MEETING",
+                "share_level": "SHARED",
+                "content": f"{self.prefix} pagination extra record",
+                "note": f"{self.prefix} pagination extra note",
+            },
+        )
+        self.assertEqual(extra_response.status_code, 200, extra_response.text)
+
+        paged_response = self.client.get(
+            "/api/interactions",
+            params={"limit": 1, "offset": 1, "include_total": "true"},
+        )
+        self.assertEqual(paged_response.status_code, 200, paged_response.text)
+        paged_payload = paged_response.json()
+        self.assertEqual(paged_payload["limit"], 1)
+        self.assertEqual(paged_payload["offset"], 1)
+        self.assertGreaterEqual(paged_payload["total_count"], 2)
+        self.assertLessEqual(len(paged_payload["items"]), 1)
+
     def test_06_person_dashboard(self) -> None:
         if self.interaction_id is None:
             self.skipTest("interaction is not created")

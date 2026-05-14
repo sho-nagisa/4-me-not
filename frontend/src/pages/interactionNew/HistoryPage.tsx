@@ -23,7 +23,11 @@ type HistoryPageProps = {
   historyDateTo: string;
   setHistoryDateTo: Dispatch<SetStateAction<string>>;
   historyLoading: boolean;
-  onLoadHistory: () => void | Promise<void>;
+  onLoadHistory: (page?: number) => void | Promise<void>;
+  historyPage: number;
+  historyTotalCount: number;
+  historyPageSize: number;
+  onHistoryPageChange: (page: number) => void;
   onClearHistoryFilters: () => void;
   historyFilterOpen: boolean;
   setHistoryFilterOpen: Dispatch<SetStateAction<boolean>>;
@@ -52,6 +56,10 @@ export function HistoryPage(props: HistoryPageProps) {
     setHistoryDateTo,
     historyLoading,
     onLoadHistory: loadHistory,
+    historyPage,
+    historyTotalCount,
+    historyPageSize,
+    onHistoryPageChange,
     onClearHistoryFilters: clearHistoryFilters,
     historyFilterOpen,
     setHistoryFilterOpen,
@@ -75,6 +83,19 @@ export function HistoryPage(props: HistoryPageProps) {
     historyDateFrom ? `開始日: ${historyDateFrom}` : null,
     historyDateTo ? `終了日: ${historyDateTo}` : null,
   ].filter((item): item is string => Boolean(item));
+  const historyTotalPages = Math.max(
+    1,
+    Math.ceil(historyTotalCount / historyPageSize)
+  );
+  const historyStartIndex =
+    historyTotalCount === 0 ? 0 : (historyPage - 1) * historyPageSize + 1;
+  const historyEndIndex =
+    historyTotalCount === 0
+      ? 0
+      : Math.min(historyTotalCount, historyStartIndex + historyItems.length - 1);
+  const canMoveToPreviousHistoryPage = historyPage > 1 && !historyLoading;
+  const canMoveToNextHistoryPage =
+    historyPage < historyTotalPages && !historyLoading;
 
   const renderHistoryFilters = () => (
     <div className="page-stack page-stack--compact">
@@ -218,7 +239,12 @@ export function HistoryPage(props: HistoryPageProps) {
 
       <div className="history-main">
         <div className="history-summary history-summary--outside">
-          <span>表示 {historyItems.length}件</span>
+          <span>
+            表示 {historyStartIndex}-{historyEndIndex}件 / 全{historyTotalCount}件
+          </span>
+          <span>
+            {historyPage} / {historyTotalPages}ページ
+          </span>
           <span>
             伏せた {historyItems.filter((item) => item.share_level === "WITHHELD").length}件
           </span>
@@ -262,6 +288,29 @@ export function HistoryPage(props: HistoryPageProps) {
               ))}
             </div>
           )}
+          {historyTotalCount > historyPageSize ? (
+            <div className="history-pagination" aria-label="履歴ページ切り替え">
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={() => onHistoryPageChange(historyPage - 1)}
+                disabled={!canMoveToPreviousHistoryPage}
+              >
+                前へ
+              </button>
+              <span>
+                {historyPage} / {historyTotalPages}
+              </span>
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={() => onHistoryPageChange(historyPage + 1)}
+                disabled={!canMoveToNextHistoryPage}
+              >
+                次へ
+              </button>
+            </div>
+          ) : null}
         </section>
       </div>
     </section>
