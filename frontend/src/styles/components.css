@@ -184,6 +184,44 @@
   gap: 8px;
 }
 
+.community-picker__levels {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(190px, 76%);
+  gap: 12px;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+  scrollbar-width: thin;
+  padding-bottom: 4px;
+}
+
+.community-picker__level {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: 18px;
+  background: rgba(244, 247, 245, 0.78);
+  scroll-snap-align: start;
+}
+
+.community-picker__level-title {
+  min-width: 0;
+  color: #5d7065;
+  font-size: 0.82rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.community-picker__nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .community-picker__level--depth-1,
 .community-picker__level--depth-2 {
   position: relative;
@@ -219,6 +257,11 @@
   background: rgba(255, 246, 239, 0.96);
   border-color: rgba(197, 94, 51, 0.28);
   color: #8f4425;
+}
+
+.community-picker__node--open {
+  border-color: rgba(84, 112, 95, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(84, 112, 95, 0.12);
 }
 
 .community-picker__node--pressing {
