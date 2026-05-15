@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import or_
+
 from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.base.enums import InteractionType, ShareLevel
@@ -26,17 +28,6 @@ def cleanup_demo_data(prefix: str = DEFAULT_PREFIX) -> None:
     db = SessionLocal()
     try:
         account_id = get_current_account_id()
-        interactions = (
-            db.query(Interaction)
-            .filter(Interaction.account_id == account_id)
-            .filter(Interaction.note.is_not(None))
-            .filter(Interaction.note.like(f"{prefix}%"))
-            .all()
-        )
-        for interaction in interactions:
-            db.delete(interaction)
-        db.flush()
-
         people = (
             db.query(Person)
             .filter(Person.account_id == account_id)
@@ -44,10 +35,6 @@ def cleanup_demo_data(prefix: str = DEFAULT_PREFIX) -> None:
             .filter(Person.canonical_name.like(f"{prefix}%"))
             .all()
         )
-        for person in people:
-            db.delete(person)
-        db.flush()
-
         topics = (
             db.query(Topic)
             .filter(Topic.account_id == account_id)
@@ -55,10 +42,6 @@ def cleanup_demo_data(prefix: str = DEFAULT_PREFIX) -> None:
             .filter(Topic.description.like(f"{prefix}%"))
             .all()
         )
-        for topic in topics:
-            db.delete(topic)
-        db.flush()
-
         communities = (
             db.query(Community)
             .filter(Community.account_id == account_id)
@@ -66,6 +49,41 @@ def cleanup_demo_data(prefix: str = DEFAULT_PREFIX) -> None:
             .filter(Community.description.like(f"{prefix}%"))
             .all()
         )
+
+        person_ids = [person.id for person in people]
+        topic_ids = [topic.id for topic in topics]
+        community_ids = [community.id for community in communities]
+
+        related_filters = []
+        if person_ids:
+            related_filters.append(Interaction.person_id.in_(person_ids))
+        if topic_ids:
+            related_filters.append(Interaction.topic_id.in_(topic_ids))
+        if community_ids:
+            related_filters.append(Interaction.community_id.in_(community_ids))
+
+        interaction_filter = or_(
+            Interaction.note.like(f"{prefix}%"),
+            *related_filters,
+        )
+        interactions = (
+            db.query(Interaction)
+            .filter(Interaction.account_id == account_id)
+            .filter(interaction_filter)
+            .all()
+        )
+        for interaction in interactions:
+            db.delete(interaction)
+        db.flush()
+
+        for person in people:
+            db.delete(person)
+        db.flush()
+
+        for topic in topics:
+            db.delete(topic)
+        db.flush()
+
         for community in communities:
             db.delete(community)
 

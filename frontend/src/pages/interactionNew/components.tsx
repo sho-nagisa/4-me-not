@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent } from "react";
 
 import type {
@@ -144,6 +144,195 @@ export function TopicTree({
 }
 
 export function CommunityCascadeSelector({
+  communities,
+  selectedId,
+  disabled,
+  onSelect,
+}: {
+  communities: Community[];
+  selectedId: string;
+  disabled: boolean;
+  onSelect: (communityId: string) => void;
+}) {
+  const [openPath, setOpenPath] = useState<string[]>([]);
+  const [pressingId, setPressingId] = useState<string | null>(null);
+  const levelsRef = useRef<HTMLDivElement | null>(null);
+  const gestureRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
+  const communityTree = useMemo(() => buildCommunityTree(communities), [communities]);
+  const nodeById = useMemo(() => {
+    const nodes = new Map<string, CommunityTreeNode>();
+    const visit = (items: CommunityTreeNode[]) => {
+      items.forEach((item) => {
+        nodes.set(item.id, item);
+        visit(item.children);
+      });
+    };
+
+    visit(communityTree);
+    return nodes;
+  }, [communityTree]);
+  const selectedCommunity = communities.find((community) => community.id === selectedId);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setOpenPath([]);
+      return;
+    }
+
+    const nextPath: string[] = [];
+    let current = communities.find((community) => community.id === selectedId);
+    while (current) {
+      nextPath.unshift(current.id);
+      current = current.parent_id
+        ? communities.find((community) => community.id === current?.parent_id)
+        : undefined;
+    }
+
+    setOpenPath(nextPath);
+  }, [communities, selectedId]);
+
+  useEffect(() => {
+    levelsRef.current?.scrollTo({
+      left: levelsRef.current.scrollWidth,
+      behavior: "smooth",
+    });
+  }, [openPath.length]);
+
+  const levels = useMemo(() => {
+    const nextLevels: { id: string; title: string; nodes: CommunityTreeNode[] }[] = [
+      { id: "root", title: "Root", nodes: communityTree },
+    ];
+
+    openPath.forEach((communityId) => {
+      const node = nodeById.get(communityId);
+      if (node && node.children.length > 0) {
+        nextLevels.push({
+          id: node.id,
+          title: node.name,
+          nodes: node.children,
+        });
+      }
+    });
+
+    return nextLevels;
+  }, [communityTree, nodeById, openPath]);
+
+  const setPathAtDepth = (community: CommunityTreeNode, depth: number) => {
+    setOpenPath((currentPath) => [...currentPath.slice(0, depth), community.id]);
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    gestureRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+    };
+  };
+
+  const handlePointerEnd = (
+    event: PointerEvent<HTMLButtonElement>,
+    community: CommunityTreeNode,
+    depth: number
+  ) => {
+    if (disabled) return;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setPressingId(null);
+
+    const gesture = gestureRef.current;
+    gestureRef.current = null;
+    if (!gesture || gesture.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const deltaX = event.clientX - gesture.startX;
+    const deltaY = event.clientY - gesture.startY;
+    const isHorizontalFlick = Math.abs(deltaX) > 42 && Math.abs(deltaY) < 56;
+
+    if (isHorizontalFlick && deltaX < 0 && community.children.length > 0) {
+      onSelect(community.id);
+      setPathAtDepth(community, depth + 1);
+      return;
+    }
+
+    if (isHorizontalFlick && deltaX > 0 && depth > 0) {
+      setOpenPath((currentPath) => currentPath.slice(0, depth - 1));
+      return;
+    }
+
+    onSelect(selectedId === community.id ? "" : community.id);
+    setPathAtDepth(community, depth + 1);
+  };
+
+  const handlePointerCancel = (event: PointerEvent<HTMLButtonElement>) => {
+    setPressingId(null);
+    gestureRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  return (
+    <div className="community-picker">
+      <div className="community-picker__summary">
+        <span>{selectedCommunity?.path ?? "---"}</span>
+      </div>
+      {communityTree.length === 0 ? (
+        <p className="muted">No communities yet.</p>
+      ) : (
+        <div className="community-picker__levels" ref={levelsRef}>
+          {levels.map((level, depth) => (
+            <div className="community-picker__level" key={level.id}>
+              {depth > 0 ? (
+                <span className="community-picker__level-title">{level.title}</span>
+              ) : null}
+              <div className="community-picker__nodes">
+                {level.nodes.map((community) => {
+                  const isSelected = selectedId === community.id;
+                  const isOpen = openPath[depth] === community.id;
+                  const hasChildren = community.children.length > 0;
+
+                  return (
+                    <button
+                      key={community.id}
+                      type="button"
+                      className={`community-picker__node ${
+                        isSelected ? "community-picker__node--selected" : ""
+                      } ${isOpen ? "community-picker__node--open" : ""} ${
+                        pressingId === community.id ? "community-picker__node--pressing" : ""
+                      }`}
+                      onPointerDown={(event) => {
+                        setPressingId(community.id);
+                        handlePointerDown(event);
+                      }}
+                      onPointerUp={(event) => handlePointerEnd(event, community, depth)}
+                      onPointerCancel={handlePointerCancel}
+                      disabled={disabled}
+                    >
+                      <span>{community.name}</span>
+                      {hasChildren ? <strong>{community.children.length}</strong> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LegacyCommunityCascadeSelector({
   communities,
   selectedId,
   disabled,

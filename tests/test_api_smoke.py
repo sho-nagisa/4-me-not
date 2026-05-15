@@ -13,6 +13,7 @@ class APISmokeTest(unittest.TestCase):
         cls.client = TestClient(app)
         cls.prefix = f"[SMOKE:{uuid4().hex[:8]}]"
 
+        cleanup_demo_data("[SMOKE:")
         cleanup_demo_data(cls.prefix)
 
         community_root = cls.client.post(
@@ -72,6 +73,7 @@ class APISmokeTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         cleanup_demo_data(cls.prefix)
+        cleanup_demo_data("[SMOKE:")
         cls.client.close()
 
     def test_01_health(self) -> None:
