@@ -18,6 +18,8 @@ import type {
   Person,
   PersonDashboard,
   PersonPanelId,
+  SearchResponse,
+  SearchTargetType,
   ShareLevel,
   Topic,
 } from "./interactionNew/types";
@@ -37,12 +39,14 @@ import {
   listInteractions,
   listPersons,
   listTopics,
+  searchMemory,
   updateCommunityHidden,
   updatePersonHidden,
 } from "./interactionNew/interactionsApi";
 import { ManagePage } from "./interactionNew/ManagePage";
 import { PersonPage } from "./interactionNew/PersonPage";
 import { RecordPage } from "./interactionNew/RecordPage";
+import { SearchPage, type SearchScope } from "./interactionNew/SearchPage";
 import {
   buildPersonBubbles,
   buildPersonBubblesFromCounts,
@@ -80,6 +84,7 @@ export default function InteractionNew() {
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [recordDashboardLoading, setRecordDashboardLoading] = useState(false);
   const [detailDashboardLoading, setDetailDashboardLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -119,6 +124,11 @@ export default function InteractionNew() {
   const [historySearch, setHistorySearch] = useState<string>("");
   const [historyDateFrom, setHistoryDateFrom] = useState<string>("");
   const [historyDateTo, setHistoryDateTo] = useState<string>("");
+
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchScope, setSearchScope] = useState<SearchScope>("all");
+  const [searchResult, setSearchResult] = useState<SearchResponse | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   const [detailPersonId, setDetailPersonId] = useState<string>("");
   const [detailCommunityId, setDetailCommunityId] = useState<string>("");
@@ -295,6 +305,34 @@ export default function InteractionNew() {
     }
   };
 
+  const runSearch = async (
+    nextQuery = searchQuery,
+    nextScope = searchScope
+  ) => {
+    const trimmedQuery = nextQuery.trim();
+    if (!trimmedQuery) {
+      setSearchResult(null);
+      setSearchError(null);
+      return;
+    }
+
+    const targetTypes: SearchTargetType[] =
+      nextScope === "all" ? [] : [nextScope];
+
+    setSearchLoading(true);
+    setSearchError(null);
+    try {
+      const result = await searchMemory(trimmedQuery, targetTypes);
+      setSearchResult(result);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "検索に失敗しました。";
+      setSearchError(message);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   useEffect(() => {
     void loadOptions();
     void loadOverviewInteractions();
@@ -371,6 +409,12 @@ export default function InteractionNew() {
   const openRecordForPerson = (nextPersonId: string) => {
     handlePersonChange(nextPersonId);
     setCurrentPage("record");
+  };
+
+  const openPersonFromSearch = (nextPersonId: string) => {
+    setDetailPersonId(nextPersonId);
+    setPersonPanel("summary");
+    setCurrentPage("person");
   };
 
   const handleSubmit = async () => {
@@ -691,6 +735,21 @@ export default function InteractionNew() {
             selectedPerson={selectedPerson}
             recordDashboardLoading={recordDashboardLoading}
             recordDashboard={recordDashboard}
+          />
+        );
+      case "search":
+        return (
+          <SearchPage
+            query={searchQuery}
+            setQuery={setSearchQuery}
+            scope={searchScope}
+            setScope={setSearchScope}
+            loading={searchLoading}
+            result={searchResult}
+            error={searchError}
+            onSearch={runSearch}
+            onOpenPerson={openPersonFromSearch}
+            onOpenRecordForPerson={openRecordForPerson}
           />
         );
       case "history":
