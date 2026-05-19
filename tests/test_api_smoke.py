@@ -300,6 +300,8 @@ class APISmokeTest(unittest.TestCase):
         self.assertEqual(payload["query"], "pagination extra")
         self.assertIn("results", payload)
         self.assertIn("groups", payload)
+        self.assertIn("answer", payload)
+        self.assertIn("summary", payload["answer"])
         self.assertTrue(
             any(item["target_type"] == "interaction" for item in payload["results"])
         )
