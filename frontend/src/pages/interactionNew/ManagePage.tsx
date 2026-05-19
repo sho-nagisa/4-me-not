@@ -388,10 +388,10 @@ export function ManagePage(props: ManagePageProps) {
     <section className="page-stack">
       <section className="page-card">
         <div className="page-card__header">
-          <div>
+          {/* <div>
             <p className="eyebrow">Manage</p>
             <h2>管理画面</h2>
-          </div>
+          </div> */}
           <p className="page-card__lead">
             管理画面の中も、人・コミュニティ・話題で分けてあります。
           </p>
