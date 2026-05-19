@@ -53,6 +53,9 @@ class InteractionBackgroundProcessingTest(unittest.TestCase):
             patch(
                 "backend.services.interaction_processing_service.RelationService"
             ) as relation_service_cls,
+            patch(
+                "backend.services.interaction_processing_service.SearchService"
+            ) as search_service_cls,
         ):
             ai_service_cls.return_value.analyze_interaction.return_value = SimpleNamespace(
                 id=parsed_note_id
@@ -68,6 +71,9 @@ class InteractionBackgroundProcessingTest(unittest.TestCase):
         )
         insight_service_cls.return_value.create_insight_from_ai.assert_called_once_with(
             str(parsed_note_id)
+        )
+        search_service_cls.return_value.index_interaction.assert_called_once_with(
+            "interaction-1"
         )
         relation_service_cls.return_value.update_relation.assert_called_once_with(
             from_person_id="person-1",

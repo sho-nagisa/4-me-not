@@ -16,6 +16,7 @@ import backend.models.person.person_profile  # noqa: F401
 import backend.models.person.person_tag  # noqa: F401
 import backend.models.reminder.reminder  # noqa: F401
 import backend.models.reminder.trigger  # noqa: F401
+import backend.models.search.search_document  # noqa: F401
 import backend.models.tag.tag  # noqa: F401
 import backend.models.task.relationship_task  # noqa: F401
 import backend.models.task.task_history  # noqa: F401
