@@ -55,9 +55,10 @@ export type InteractionType =
   | "OBSERVATION";
 
 export type ShareLevel = "SHARED" | "PARTIAL" | "WITHHELD";
-export type PageId = "home" | "record" | "history" | "person" | "manage";
+export type PageId = "home" | "record" | "search" | "history" | "person" | "manage";
 export type PersonPanelId = "summary" | "topics" | "notes" | "recent";
 export type ManagePanelId = "people" | "communities" | "topics";
+export type SearchTargetType = "interaction" | "person" | "community" | "topic";
 
 export type InteractionRecord = {
   id: string;
@@ -144,5 +145,38 @@ export type PersonDashboard = {
     partial_topics: PrepTopic[];
     withheld_topics: PrepTopic[];
     recent_notes: PrepNote[];
+  };
+};
+
+export type SearchResultItem = {
+  id: string;
+  target_type: SearchTargetType;
+  target_id: string;
+  title: string;
+  summary: string | null;
+  snippet: string;
+  score: number;
+  semantic_score: number;
+  keyword_score: number;
+  recency_score: number;
+  person_id: string | null;
+  person_name: string | null;
+  community_id: string | null;
+  community_path: string | null;
+  topic_id: string | null;
+  topic_path: string | null;
+  occurred_at: string | null;
+  indexed_at: string;
+};
+
+export type SearchResponse = {
+  query: string;
+  embedding_model: string | null;
+  results: SearchResultItem[];
+  groups: {
+    people: SearchResultItem[];
+    interactions: SearchResultItem[];
+    communities: SearchResultItem[];
+    topics: SearchResultItem[];
   };
 };

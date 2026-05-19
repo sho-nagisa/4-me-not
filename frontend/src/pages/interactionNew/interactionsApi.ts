@@ -6,6 +6,8 @@ import type {
   InteractionType,
   Person,
   PersonDashboard,
+  SearchResponse,
+  SearchTargetType,
   ShareLevel,
   Topic,
 } from "./types";
@@ -129,6 +131,18 @@ export const getInteractionOverview = () =>
 
 export const getPersonDashboard = (personId: string) =>
   fetchJson<PersonDashboard>(`/api/persons/${personId}/dashboard`);
+
+export const searchMemory = (
+  queryText: string,
+  targetTypes: SearchTargetType[] = [],
+  limit = 24
+) => {
+  const params = new URLSearchParams();
+  params.set("q", queryText.trim());
+  params.set("limit", String(limit));
+  targetTypes.forEach((targetType) => params.append("target_type", targetType));
+  return fetchJson<SearchResponse>(`/api/search?${params.toString()}`);
+};
 
 export const createInteraction = (payload: CreateInteractionPayload) =>
   fetchJson<void>(

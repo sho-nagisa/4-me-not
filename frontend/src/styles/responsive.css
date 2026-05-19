@@ -2,8 +2,13 @@
   .page-grid--record,
   .page-grid--history,
   .page-grid--two,
+  .search-results-grid,
   .metric-grid {
     grid-template-columns: 1fr;
+  }
+
+  .search-results-grid .search-group:nth-child(3) {
+    grid-column: auto;
   }
 }
 
@@ -50,6 +55,7 @@
 
   .form-grid,
   .filter-grid,
+  .search-result-list--compact,
   .metric-grid--compact {
     grid-template-columns: 1fr;
   }
