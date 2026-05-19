@@ -860,13 +860,15 @@ export default function InteractionNew() {
       {!isMobile ? (
         <div className="desktop-frame">
           <aside className="desktop-sidebar">
-            <div className="brand-card">
-              <p className="eyebrow">勿忘草</p>
-              <h1>勿忘草</h1>
-              <p>
-                PC では左ナビでページを切り替え、右側はその目的だけに集中できる構成です。
-              </p>
-            </div>
+            {currentPage !== "manage" ? (
+              <div className="brand-card">
+                <p className="eyebrow">勿忘草</p>
+                <h1>勿忘草</h1>
+                <p>
+                  PC では左ナビでページを切り替え、右側はその目的だけに集中できる構成です。
+                </p>
+              </div>
+            ) : null}
 
             <nav className="nav-list">
               {pageOptions.map((page) => (
@@ -907,13 +909,15 @@ export default function InteractionNew() {
         </div>
       ) : (
         <div className="mobile-frame">
-          <header className="mobile-header">
-            <div>
-              <p className="eyebrow">勿忘草</p>
-              <h1>勿忘草</h1>
-            </div>
-            <p>スマホでは 1 画面 1 目的に寄せて、下タブで切り替える構成です。</p>
-          </header>
+          {currentPage !== "manage" ? (
+            <header className="mobile-header">
+              <div>
+                <p className="eyebrow">勿忘草</p>
+                <h1>勿忘草</h1>
+              </div>
+              <p>スマホでは 1 画面 1 目的に寄せて、下タブで切り替える構成です。</p>
+            </header>
+          ) : null}
 
           {feedback ? (
             <section className={`banner banner--${feedback.tone}`}>
