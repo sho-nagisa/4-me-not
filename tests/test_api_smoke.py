@@ -6,7 +6,23 @@ from fastapi.testclient import TestClient
 from backend.app.main import app
 from backend.testing.demo_data import cleanup_demo_data
 
-
+'''
+テスト内容
+1,ヘルスチェックエンドポイントの確認
+2,基本的なCRUDエンドポイントの確認
+    - 人物、コミュニティ、トピックの作成と取得
+3,重複コミュニティの作成が拒否されることの確認
+4,可視性の管理と削除の確認
+    - 一時的なコミュニティと人物を作成し、非表示にしてから削除する
+5,インタラクションの記録と検索の確認
+    - インタラクションを作成し、検索クエリで取得できる
+6,メモリ検索エンドポイントの確認
+    - インタラクションを検索クエリで取得できる
+7,人物ダッシュボードの確認
+    - 人物のダッシュボード情報が正しく取得できる
+8,インタラクション概要の確認
+    - インタラクションの概要情報が正しく取得できる
+'''
 class APISmokeTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
