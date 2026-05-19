@@ -41,6 +41,12 @@
     justify-content: space-between;
   }
 
+  .manage-community-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   .history-summary--outside {
     flex-direction: row;
     justify-content: flex-start;

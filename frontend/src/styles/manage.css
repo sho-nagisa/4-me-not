@@ -4,6 +4,24 @@
   margin-top: 18px;
 }
 
+.manage-inline-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(244, 247, 245, 0.72);
+  border: 1px solid rgba(73, 97, 79, 0.08);
+}
+
+.manage-community-header {
+  align-items: center;
+}
+
+.manage-inline-form__actions {
+  margin-top: 4px;
+}
+
 .manage-entry {
   display: flex;
   justify-content: space-between;

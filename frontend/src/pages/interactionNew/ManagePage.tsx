@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import { EmptyState, SectionTabs, TopicTree } from "./components";
@@ -71,6 +72,7 @@ export function ManagePage(props: ManagePageProps) {
     onToggleCommunityHidden: handleToggleCommunityHidden,
     onDeleteCommunity: handleDeleteCommunity,
   } = props;
+  const [communityAddOpen, setCommunityAddOpen] = useState(false);
 
   const renderPeoplePanel = () => {
     const sortedPeople = [...managedPersons].sort((left, right) =>
@@ -189,54 +191,72 @@ export function ManagePage(props: ManagePageProps) {
     );
 
     return (
-      <section className="page-grid page-grid--two">
+      <section className="page-grid">
         <article className="page-card">
-          <div className="page-card__header">
-            <div>
-              <p className="eyebrow">Community</p>
-              <h2>コミュニティを追加</h2>
-            </div>
-          </div>
-
-          <label className="field">
-            <span className="field__label">コミュニティ名</span>
-            <input
-              value={newCommunityName}
-              onChange={(event) => setNewCommunityName(event.target.value)}
-              placeholder="例: 飲み会"
-            />
-          </label>
-          <label className="field">
-            <span className="field__label">親コミュニティ</span>
-            <select
-              value={newCommunityParentId}
-              onChange={(event) => setNewCommunityParentId(event.target.value)}
-            >
-              <option value="">-- なし --</option>
-              {communities.map((community) => (
-                <option key={community.id} value={community.id}>
-                  {community.path}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            className="button button--secondary"
-            onClick={handleCreateCommunity}
-            disabled={isCreatingCommunity}
-          >
-            {isCreatingCommunity ? "追加中..." : "コミュニティを追加"}
-          </button>
-        </article>
-
-        <article className="page-card">
-          <div className="page-card__header">
+          <div className="page-card__header manage-community-header">
             <div>
               <p className="eyebrow">Community Tree</p>
               <h2>コミュニティの管理</h2>
             </div>
+            <button
+              type="button"
+              className="home-record-button"
+              onClick={() => setCommunityAddOpen((isOpen) => !isOpen)}
+              aria-controls="community-add-form"
+              aria-expanded={communityAddOpen}
+              aria-label={
+                communityAddOpen ? "コミュニティ追加を閉じる" : "コミュニティを追加"
+              }
+              title={communityAddOpen ? "Close" : "Add community"}
+            >
+              {communityAddOpen ? "×" : "+"}
+            </button>
           </div>
+
+          {communityAddOpen ? (
+            <div className="manage-inline-form" id="community-add-form">
+              <label className="field">
+                <span className="field__label">コミュニティ名</span>
+                <input
+                  value={newCommunityName}
+                  onChange={(event) => setNewCommunityName(event.target.value)}
+                  placeholder="例: 飲み会"
+                />
+              </label>
+              <label className="field">
+                <span className="field__label">親コミュニティ</span>
+                <select
+                  value={newCommunityParentId}
+                  onChange={(event) => setNewCommunityParentId(event.target.value)}
+                >
+                  <option value="">-- なし --</option>
+                  {communities.map((community) => (
+                    <option key={community.id} value={community.id}>
+                      {community.path}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="button-row manage-inline-form__actions">
+                <button
+                  type="button"
+                  className="button button--secondary"
+                  onClick={handleCreateCommunity}
+                  disabled={isCreatingCommunity}
+                >
+                  {isCreatingCommunity ? "追加中..." : "コミュニティを追加"}
+                </button>
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={() => setCommunityAddOpen(false)}
+                  disabled={isCreatingCommunity}
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           {sortedCommunities.length === 0 ? (
             <EmptyState
