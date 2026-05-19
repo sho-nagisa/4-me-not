@@ -1,7 +1,12 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 
 import { EmptyState } from "./components";
-import type { SearchResponse, SearchResultItem, SearchTargetType } from "./types";
+import type {
+  SearchAnswer,
+  SearchResponse,
+  SearchResultItem,
+  SearchTargetType,
+} from "./types";
 import { formatDateTime } from "./utils";
 
 export type SearchScope = "all" | SearchTargetType;
@@ -133,6 +138,15 @@ export function SearchPage({
         {error ? <p className="search-error">{error}</p> : null}
       </section>
 
+      {result?.answer ? (
+        <SearchAnswerCard
+          answer={result.answer}
+          setQuery={setQuery}
+          onOpenPerson={onOpenPerson}
+          onSearch={onSearch}
+        />
+      ) : null}
+
       {!result ? (
         <section className="page-card">
           <EmptyState
@@ -173,6 +187,104 @@ export function SearchPage({
           />
         </section>
       )}
+    </section>
+  );
+}
+
+function SearchAnswerCard({
+  answer,
+  setQuery,
+  onOpenPerson,
+  onSearch,
+}: {
+  answer: SearchAnswer;
+  setQuery: Dispatch<SetStateAction<string>>;
+  onOpenPerson: (personId: string) => void;
+  onSearch: (query?: string, scope?: SearchScope) => void | Promise<void>;
+}) {
+  const confidenceLabel =
+    answer.confidence === "high"
+      ? "高"
+      : answer.confidence === "medium"
+        ? "中"
+        : answer.confidence === "low"
+          ? "低"
+          : "-";
+
+  return (
+    <section className="page-card search-answer-card">
+      <div className="page-card__header search-answer-card__header">
+        <div>
+          <p className="eyebrow">Answer</p>
+          <h2>検索からの整理</h2>
+        </div>
+        <span className={`search-answer-card__confidence search-answer-card__confidence--${answer.confidence}`}>
+          確度 {confidenceLabel}
+        </span>
+      </div>
+
+      <p className="search-answer-card__summary">{answer.summary}</p>
+
+      {answer.primary_person ? (
+        <div className="search-answer-card__primary">
+          <div>
+            <strong>{answer.primary_person.person_name}</strong>
+            <span>{answer.primary_person.community_path ?? "主な所属なし"}</span>
+          </div>
+          <button
+            type="button"
+            className="button button--secondary button--small"
+            onClick={() => onOpenPerson(answer.primary_person!.person_id)}
+          >
+            人物を見る
+          </button>
+        </div>
+      ) : null}
+
+      {answer.people.length > 0 ? (
+        <div className="search-answer-card__people">
+          {answer.people.map((person) => (
+            <article key={person.person_id} className="search-answer-person">
+              <div>
+                <strong>{person.person_name}</strong>
+                <span>{person.community_path ?? "所属情報なし"}</span>
+              </div>
+              <ul>
+                {person.reasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+      ) : null}
+
+      {answer.evidence.length > 0 ? (
+        <div className="search-answer-card__evidence">
+          <span>根拠</span>
+          {answer.evidence.slice(0, 3).map((item) => (
+            <p key={item.id}>{item.title}: {item.snippet}</p>
+          ))}
+        </div>
+      ) : null}
+
+      {answer.follow_up_queries.length > 0 ? (
+        <div className="search-answer-card__followups">
+          {answer.follow_up_queries.map((queryText) => (
+            <button
+              key={queryText}
+              type="button"
+              className="button button--ghost button--small"
+              onClick={() => {
+                setQuery(queryText);
+                void onSearch(queryText);
+              }}
+            >
+              {queryText}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

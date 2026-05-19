@@ -173,10 +173,36 @@ export type SearchResponse = {
   query: string;
   embedding_model: string | null;
   results: SearchResultItem[];
+  answer: SearchAnswer;
   groups: {
     people: SearchResultItem[];
     interactions: SearchResultItem[];
     communities: SearchResultItem[];
     topics: SearchResultItem[];
   };
+};
+
+export type SearchAnswerPerson = {
+  person_id: string;
+  person_name: string;
+  community_path: string | null;
+  score: number;
+  reasons: string[];
+};
+
+export type SearchAnswerPrimaryPerson = {
+  person_id: string;
+  person_name: string;
+  community_path: string | null;
+  score: number;
+};
+
+export type SearchAnswer = {
+  answer_model: string;
+  summary: string;
+  confidence: "none" | "low" | "medium" | "high";
+  primary_person: SearchAnswerPrimaryPerson | null;
+  people: SearchAnswerPerson[];
+  evidence: SearchResultItem[];
+  follow_up_queries: string[];
 };
