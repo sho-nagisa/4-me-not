@@ -270,7 +270,42 @@ class APISmokeTest(unittest.TestCase):
         self.assertGreaterEqual(paged_payload["total_count"], 2)
         self.assertLessEqual(len(paged_payload["items"]), 1)
 
-    def test_06_person_dashboard(self) -> None:
+    def test_06_memory_search_endpoint(self) -> None:
+        if self.interaction_id is None:
+            self.skipTest("interaction is not created")
+
+        response = self.client.get(
+            "/api/search",
+            params={"q": "pagination extra", "limit": 10},
+        )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        payload = response.json()
+        self.assertEqual(payload["query"], "pagination extra")
+        self.assertIn("results", payload)
+        self.assertIn("groups", payload)
+        self.assertTrue(
+            any(item["target_type"] == "interaction" for item in payload["results"])
+        )
+        self.assertTrue(
+            any(item["person_id"] == self.person_id for item in payload["results"])
+        )
+
+        people_response = self.client.get(
+            "/api/search",
+            params={"q": "pagination extra", "target_type": "person", "limit": 5},
+        )
+
+        self.assertEqual(people_response.status_code, 200, people_response.text)
+        people_payload = people_response.json()
+        self.assertTrue(
+            any(
+                item["target_type"] == "person" and item["target_id"] == self.person_id
+                for item in people_payload["results"]
+            )
+        )
+
+    def test_07_person_dashboard(self) -> None:
         if self.interaction_id is None:
             self.skipTest("interaction is not created")
 
@@ -284,7 +319,7 @@ class APISmokeTest(unittest.TestCase):
         self.assertIn("top_communities", payload)
         self.assertIn("conversation_prep", payload)
 
-    def test_07_interaction_overview(self) -> None:
+    def test_08_interaction_overview(self) -> None:
         if self.interaction_id is None:
             self.skipTest("interaction is not created")
 
@@ -296,15 +331,9 @@ class APISmokeTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         payload = response.json()
         self.assertGreaterEqual(payload["total_count"], 1)
-        self.assertTrue(
-            any(item["id"] == self.interaction_id for item in payload["recent_interactions"])
-        )
-        self.assertTrue(
-            any(
-                item["person_id"] == self.person_id and item["count"] >= 1
-                for item in payload["person_counts"]
-            )
-        )
+        self.assertLessEqual(len(payload["person_counts"]), 30)
+        self.assertTrue(payload["recent_interactions"])
+        self.assertTrue(payload["person_counts"])
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ import logging
 from backend.services.ai_service import AIService
 from backend.services.insight_service import InsightService
 from backend.services.relation_service import RelationService
+from backend.services.search_service import SearchService
 
 
 logger = logging.getLogger(__name__)
@@ -13,10 +14,13 @@ def process_interaction_after_save(interaction_id: str, person_id: str) -> None:
         ai_service = AIService()
         insight_service = InsightService()
         relation_service = RelationService()
+        search_service = SearchService()
 
         parsed = ai_service.analyze_interaction(interaction_id)
         if parsed is not None:
             insight_service.create_insight_from_ai(str(parsed.id))
+
+        search_service.index_interaction(interaction_id)
 
         relation_service.update_relation(
             from_person_id=person_id,
