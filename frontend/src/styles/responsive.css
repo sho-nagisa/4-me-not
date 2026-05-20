@@ -47,6 +47,40 @@
     justify-content: space-between;
   }
 
+  .community-view-switch {
+    width: 100%;
+  }
+
+  .community-view-switch__button {
+    flex: 1 1 0;
+  }
+
+  .community-explorer__stage {
+    min-height: 460px;
+  }
+
+  .community-explorer-bubble {
+    width: 112px !important;
+    height: 112px !important;
+  }
+
+  .community-explorer-bubble--active {
+    width: 142px !important;
+    height: 142px !important;
+  }
+
+  .community-explorer__return {
+    width: 58px;
+    height: 58px;
+    font-size: 1.7rem;
+  }
+
+  .community-explorer__nav {
+    top: auto;
+    bottom: 14px;
+    transform: none;
+  }
+
   .history-summary--outside {
     flex-direction: row;
     justify-content: flex-start;
