@@ -140,7 +140,7 @@ const buildPersonBubblesFromCountMap = (
     .map((person) => {
       const count = counts.get(person.id) ?? 0;
       const ratio = count / maxCount;
-      const size = Math.round(78 + ratio * 58);
+      const size = Math.round(40 + ratio * 58);
       return {
         person,
         count,
