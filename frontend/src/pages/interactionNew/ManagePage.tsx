@@ -536,7 +536,7 @@ export function ManagePage(props: ManagePageProps) {
                   visualOffset,
                   Boolean(communityExplorerParent)
                 ),
-                opacity: !isVisible ? 0 : distance === 0 ? 1 : distance === 1 ? 0.78 : 0.42,
+                opacity: !isVisible ? 0 : distance === 0 ? 1 : distance === 1 ? 0.40 : 0.42,
                 pointerEvents: isVisible ? "auto" : "none",
                 transitionDelay: `${Math.min(distance, 2) * 24}ms`,
                 zIndex: isVisible ? 10 - distance : 0,
