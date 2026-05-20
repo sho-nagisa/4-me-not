@@ -124,16 +124,6 @@ const buildPersonBubblesFromCountMap = (
   counts: Map<string, number>,
   maxVisible = 7
 ): PersonBubble[] => {
-  const layoutSlots = [
-    { x: 50, y: 50 },
-    { x: 31, y: 43 },
-    { x: 69, y: 43 },
-    { x: 39, y: 73 },
-    { x: 61, y: 73 },
-    { x: 18, y: 62 },
-    { x: 82, y: 62 },
-  ];
-
   const maxCount = Math.max(1, ...people.map((person) => counts.get(person.id) ?? 0));
 
   const sortedBubbles = people
@@ -156,25 +146,103 @@ const buildPersonBubblesFromCountMap = (
     })
     .slice(0, maxVisible);
 
-  return sortedBubbles.map((bubble, index) => {
+  const positionedBubbles = sortedBubbles.map((bubble, index) => {
+    const noiseA = getStableNoise(bubble.person.id, "angle");
+    const noiseB = getStableNoise(bubble.person.id, "radius");
+
     if (index === 0) {
+      const angle = noiseA * Math.PI * 2;
+      const radius = 2 + noiseB * 4;
+
       return {
         ...bubble,
         distance: 0,
-        ...layoutSlots[index],
+        x: 50 + Math.cos(angle) * radius,
+        y: 51 + Math.sin(angle) * radius * 0.72,
       };
     }
 
-    const sizePressure = bubble.size / sortedBubbles[0].size;
     const ringPressure = Math.min(1, index / Math.max(1, sortedBubbles.length - 1));
-    const distance = 1 + sizePressure * 0.4 + ringPressure * 0.28;
-    const slot = layoutSlots[index];
+    const countPressure = 1 - bubble.count / maxCount;
+    const angle = index * 2.399963229728653 + (noiseA - 0.5) * 1.2;
+    const radius = 14 + ringPressure * 26 + countPressure * 5 + (noiseB - 0.5) * 8;
+    const x = 50 + Math.cos(angle) * radius;
+    const y = 52 + Math.sin(angle) * radius * 0.76;
 
     return {
       ...bubble,
-      distance,
-      x: 50 + (slot.x - 50) * distance,
-      y: 50 + (slot.y - 50) * distance,
+      distance: radius / 30,
+      x: Math.min(85, Math.max(15, x)),
+      y: Math.min(82, Math.max(20, y)),
     };
   });
+
+  return resolveBubbleCollisions(positionedBubbles);
+};
+
+const resolveBubbleCollisions = (bubbles: PersonBubble[]) => {
+  const resolved = bubbles.map((bubble) => ({ ...bubble }));
+
+  for (let iteration = 0; iteration < 12; iteration += 1) {
+    for (let leftIndex = 0; leftIndex < resolved.length; leftIndex += 1) {
+      for (
+        let rightIndex = leftIndex + 1;
+        rightIndex < resolved.length;
+        rightIndex += 1
+      ) {
+        const left = resolved[leftIndex];
+        const right = resolved[rightIndex];
+        const rawDx = right.x - left.x;
+        const rawDy = right.y - left.y;
+        const distance = Math.hypot(rawDx, rawDy) || 0.001;
+        const minimumDistance =
+          getBubbleCollisionRadius(left) + getBubbleCollisionRadius(right);
+
+        if (distance >= minimumDistance) continue;
+
+        const fallbackAngle =
+          (getStableNoise(`${left.person.id}:${right.person.id}`, "collision") *
+            Math.PI *
+            2);
+        const directionX = distance > 0.01 ? rawDx / distance : Math.cos(fallbackAngle);
+        const directionY = distance > 0.01 ? rawDy / distance : Math.sin(fallbackAngle);
+        const push = (minimumDistance - distance) / 2;
+
+        resolved[leftIndex] = {
+          ...left,
+          x: left.x - directionX * push,
+          y: left.y - directionY * push,
+        };
+        resolved[rightIndex] = {
+          ...right,
+          x: right.x + directionX * push,
+          y: right.y + directionY * push,
+        };
+      }
+    }
+
+    resolved.forEach((bubble) => {
+      bubble.x = Math.min(86, Math.max(14, bubble.x));
+      bubble.y = Math.min(83, Math.max(18, bubble.y));
+    });
+  }
+
+  return resolved;
+};
+
+const getBubbleCollisionRadius = (bubble: PersonBubble) => {
+  const sizeRatio = (bubble.size - 40) / 58;
+  return 9.5 + Math.max(0, Math.min(1, sizeRatio)) * 4.2;
+};
+
+const getStableNoise = (value: string, salt: string) => {
+  let hash = 2166136261;
+  const text = `${value}:${salt}`;
+
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0) / 4294967295;
 };
