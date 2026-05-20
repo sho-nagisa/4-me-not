@@ -152,6 +152,17 @@ export default function InteractionNew() {
     setFeedback({ tone: "success", message });
   };
 
+  useEffect(() => {
+    if (!feedback || feedback.tone === "info") return;
+
+    const timer = window.setTimeout(
+      () => setFeedback(null),
+      feedback.tone === "error" ? 6000 : 3600
+    );
+
+    return () => window.clearTimeout(timer);
+  }, [feedback]);
+
   const loadOptions = async () => {
     setLoading(true);
     try {
@@ -902,6 +913,14 @@ export default function InteractionNew() {
             {feedback ? (
               <section className={`banner banner--${feedback.tone}`}>
                 <p>{feedback.message}</p>
+                <button
+                  type="button"
+                  className="banner__close"
+                  onClick={() => setFeedback(null)}
+                  aria-label="通知を閉じる"
+                >
+                  ×
+                </button>
               </section>
             ) : null}
             {renderPage()}
@@ -922,6 +941,14 @@ export default function InteractionNew() {
           {feedback ? (
             <section className={`banner banner--${feedback.tone}`}>
               <p>{feedback.message}</p>
+              <button
+                type="button"
+                className="banner__close"
+                onClick={() => setFeedback(null)}
+                aria-label="通知を閉じる"
+              >
+                ×
+              </button>
             </section>
           ) : null}
 

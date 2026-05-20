@@ -1,14 +1,31 @@
 .banner {
   display: flex;
   align-items: center;
+  gap: 12px;
   margin-bottom: 18px;
   padding: 16px 18px;
   border-radius: 22px;
 }
 
 .banner p {
+  flex: 1 1 auto;
   margin: 0;
   font-weight: 600;
+}
+
+.banner__close {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(84, 112, 95, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  color: #173126;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .banner--success {

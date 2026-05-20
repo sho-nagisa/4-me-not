@@ -840,7 +840,7 @@ export function ManagePage(props: ManagePageProps) {
 
   const renderManagePage = () => (
     <section className="page-stack">
-      <section className="page-card">
+      <section className="page-card manage-tabs-card">
         <div className="page-card__header">
           {/* <div>
             <p className="eyebrow">Manage</p>
