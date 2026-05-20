@@ -657,19 +657,42 @@ export function ManagePage(props: ManagePageProps) {
               <p className="eyebrow">Community Tree</p>
               <h2>コミュニティの管理</h2>
             </div>
-            <button
-              type="button"
-              className="home-record-button"
-              onClick={() => setCommunityAddOpen((isOpen) => !isOpen)}
-              aria-controls="community-add-form"
-              aria-expanded={communityAddOpen}
-              aria-label={
-                communityAddOpen ? "コミュニティ追加を閉じる" : "コミュニティを追加"
-              }
-              title={communityAddOpen ? "Close" : "Add community"}
-            >
-              {communityAddOpen ? "×" : "+"}
-            </button>
+            <div className="manage-header-actions">
+              <button
+                type="button"
+                className="community-view-toggle"
+                onClick={() =>
+                  setCommunityViewMode((mode) =>
+                    mode === "explore" ? "list" : "explore"
+                  )
+                }
+                aria-label={
+                  communityViewMode === "explore"
+                    ? "一覧表示に切り替える"
+                    : "探索表示に切り替える"
+                }
+                title={
+                  communityViewMode === "explore"
+                    ? "Switch to list"
+                    : "Switch to explore"
+                }
+              >
+                {communityViewMode === "explore" ? "◎" : "☰"}
+              </button>
+              <button
+                type="button"
+                className="home-record-button"
+                onClick={() => setCommunityAddOpen((isOpen) => !isOpen)}
+                aria-controls="community-add-form"
+                aria-expanded={communityAddOpen}
+                aria-label={
+                  communityAddOpen ? "コミュニティ追加を閉じる" : "コミュニティを追加"
+                }
+                title={communityAddOpen ? "Close" : "Add community"}
+              >
+                {communityAddOpen ? "×" : "+"}
+              </button>
+            </div>
           </div>
 
           {communityAddOpen ? (
@@ -716,31 +739,6 @@ export function ManagePage(props: ManagePageProps) {
               </div>
             </div>
           ) : null}
-
-          <div className="community-view-switch" aria-label="コミュニティ表示形式">
-            <button
-              type="button"
-              className={`community-view-switch__button ${
-                communityViewMode === "explore"
-                  ? "community-view-switch__button--active"
-                  : ""
-              }`}
-              onClick={() => setCommunityViewMode("explore")}
-            >
-              探索
-            </button>
-            <button
-              type="button"
-              className={`community-view-switch__button ${
-                communityViewMode === "list"
-                  ? "community-view-switch__button--active"
-                  : ""
-              }`}
-              onClick={() => setCommunityViewMode("list")}
-            >
-              一覧
-            </button>
-          </div>
 
           {communityViewMode === "explore"
             ? renderCommunityExplorer()

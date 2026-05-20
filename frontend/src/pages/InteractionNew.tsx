@@ -859,6 +859,8 @@ export default function InteractionNew() {
     }
   };
 
+  const showBrandHeader = currentPage !== "manage" && currentPage !== "person";
+
   return (
     <main
       className={`app-shell ${isMobile ? "app-shell--mobile" : "app-shell--desktop"} ${
@@ -871,7 +873,7 @@ export default function InteractionNew() {
       {!isMobile ? (
         <div className="desktop-frame">
           <aside className="desktop-sidebar">
-            {currentPage !== "manage" ? (
+            {showBrandHeader ? (
               <div className="brand-card">
                 <p className="eyebrow">勿忘草</p>
                 <h1>勿忘草</h1>
@@ -928,7 +930,7 @@ export default function InteractionNew() {
         </div>
       ) : (
         <div className="mobile-frame">
-          {currentPage !== "manage" ? (
+          {showBrandHeader ? (
             <header className="mobile-header">
               <div>
                 <p className="eyebrow">勿忘草</p>
