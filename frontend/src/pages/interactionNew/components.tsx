@@ -451,13 +451,33 @@ export function PersonBubbleCloud({
   className?: string;
   bubbleScale?: number;
 }) {
+  const releaseTimers = useRef<Record<string, number>>({});
+  const suppressClick = useRef(false);
+  const [temporaryOffsets, setTemporaryOffsets] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
   const [dragging, setDragging] = useState<{
     personId: string;
     originX: number;
     originY: number;
-    pointerX: number;
-    pointerY: number;
+    currentX: number;
+    currentY: number;
+    pointerStartX: number;
+    pointerStartY: number;
+    lastPointerX: number;
+    lastPointerY: number;
+    lastPointerAt: number;
+    velocityX: number;
+    velocityY: number;
   } | null>(null);
+
+  useEffect(() => {
+    return () => {
+      Object.values(releaseTimers.current).forEach((timer) =>
+        window.clearTimeout(timer)
+      );
+    };
+  }, []);
 
   if (bubbles.length === 0) {
     return (
@@ -472,13 +492,30 @@ export function PersonBubbleCloud({
     event: PointerEvent<HTMLButtonElement>,
     bubble: PersonBubble
   ) => {
+    const temporaryOffset = temporaryOffsets[bubble.person.id] ?? { x: 0, y: 0 };
+    const originX = clampPercent(bubble.x + temporaryOffset.x, 12, 88);
+    const originY = clampPercent(bubble.y + temporaryOffset.y, 16, 84);
+
+    if (releaseTimers.current[bubble.person.id]) {
+      window.clearTimeout(releaseTimers.current[bubble.person.id]);
+      delete releaseTimers.current[bubble.person.id];
+    }
+
     event.currentTarget.setPointerCapture(event.pointerId);
+    suppressClick.current = false;
     setDragging({
       personId: bubble.person.id,
-      originX: bubble.x,
-      originY: bubble.y,
-      pointerX: event.clientX,
-      pointerY: event.clientY,
+      originX,
+      originY,
+      currentX: originX,
+      currentY: originY,
+      pointerStartX: event.clientX,
+      pointerStartY: event.clientY,
+      lastPointerX: event.clientX,
+      lastPointerY: event.clientY,
+      lastPointerAt: performance.now(),
+      velocityX: 0,
+      velocityY: 0,
     });
   };
 
@@ -489,22 +526,65 @@ export function PersonBubbleCloud({
     if (!parent) return;
 
     const bounds = parent.getBoundingClientRect();
+    const now = performance.now();
+    const elapsed = Math.max(16, now - dragging.lastPointerAt);
     const nextX =
-      dragging.originX + ((event.clientX - dragging.pointerX) / bounds.width) * 100;
+      dragging.originX +
+      ((event.clientX - dragging.pointerStartX) / bounds.width) * 100;
     const nextY =
-      dragging.originY + ((event.clientY - dragging.pointerY) / bounds.height) * 100;
+      dragging.originY +
+      ((event.clientY - dragging.pointerStartY) / bounds.height) * 100;
+    const movedDistance = Math.hypot(
+      event.clientX - dragging.pointerStartX,
+      event.clientY - dragging.pointerStartY
+    );
+
+    if (movedDistance > 6) {
+      suppressClick.current = true;
+    }
 
     setDragging({
       ...dragging,
-      originX: Math.min(90, Math.max(10, nextX)),
-      originY: Math.min(86, Math.max(14, nextY)),
-      pointerX: event.clientX,
-      pointerY: event.clientY,
+      currentX: clampPercent(nextX, 12, 88),
+      currentY: clampPercent(nextY, 16, 84),
+      lastPointerX: event.clientX,
+      lastPointerY: event.clientY,
+      lastPointerAt: now,
+      velocityX: (((event.clientX - dragging.lastPointerX) / bounds.width) * 100) / elapsed,
+      velocityY: (((event.clientY - dragging.lastPointerY) / bounds.height) * 100) / elapsed,
     });
   };
 
-  const handlePointerEnd = (event: PointerEvent<HTMLButtonElement>) => {
-    event.currentTarget.releasePointerCapture(event.pointerId);
+  const handlePointerEnd = (
+    event: PointerEvent<HTMLButtonElement>,
+    bubble: PersonBubble
+  ) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    if (dragging?.personId === bubble.person.id) {
+      const projectedX = clampPercent(dragging.currentX + dragging.velocityX * 220, 12, 88);
+      const projectedY = clampPercent(dragging.currentY + dragging.velocityY * 220, 16, 84);
+
+      setTemporaryOffsets((offsets) => ({
+        ...offsets,
+        [bubble.person.id]: {
+          x: projectedX - bubble.x,
+          y: projectedY - bubble.y,
+        },
+      }));
+
+      releaseTimers.current[bubble.person.id] = window.setTimeout(() => {
+        setTemporaryOffsets((offsets) => {
+          const nextOffsets = { ...offsets };
+          delete nextOffsets[bubble.person.id];
+          return nextOffsets;
+        });
+        delete releaseTimers.current[bubble.person.id];
+      }, 720);
+    }
+
     setDragging(null);
   };
 
@@ -512,8 +592,13 @@ export function PersonBubbleCloud({
     <div className={`person-bubble-cloud ${className}`}>
       {bubbles.map((bubble, index) => {
         const isDragging = dragging?.personId === bubble.person.id;
-        const left = isDragging ? dragging.originX : bubble.x;
-        const top = isDragging ? dragging.originY : bubble.y;
+        const temporaryOffset = temporaryOffsets[bubble.person.id] ?? { x: 0, y: 0 };
+        const left = isDragging
+          ? dragging.currentX
+          : bubble.x + temporaryOffset.x;
+        const top = isDragging
+          ? dragging.currentY
+          : bubble.y + temporaryOffset.y;
 
         return (
           <button
@@ -524,19 +609,23 @@ export function PersonBubbleCloud({
             } ${bubble.count === 0 ? "person-bubble--quiet" : ""} ${
               isDragging ? "person-bubble--dragging" : ""
             }`}
-          style={{
-            width: `${Math.round(bubble.size * bubbleScale)}px`,
-            height: `${Math.round(bubble.size * bubbleScale)}px`,
-            left: `${Math.min(88, Math.max(12, left))}%`,
-            top: `${Math.min(84, Math.max(16, top))}%`,
-            animationDelay: `${(index % 6) * -0.7}s`,
-          }}
+            style={{
+              width: `${Math.round(bubble.size * bubbleScale)}px`,
+              height: `${Math.round(bubble.size * bubbleScale)}px`,
+              left: `${clampPercent(left, 12, 88)}%`,
+              top: `${clampPercent(top, 16, 84)}%`,
+              animationDelay: `${(index % 6) * -0.7}s`,
+            }}
             onPointerDown={(event) => handlePointerDown(event, bubble)}
             onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerEnd}
-            onPointerCancel={handlePointerEnd}
+            onPointerUp={(event) => handlePointerEnd(event, bubble)}
+            onPointerCancel={(event) => handlePointerEnd(event, bubble)}
             onClick={() => {
-              if (!isDragging) onSelect(bubble.person.id);
+              if (suppressClick.current) {
+                suppressClick.current = false;
+                return;
+              }
+              onSelect(bubble.person.id);
             }}
             aria-label={`${bubble.person.name}、記録 ${bubble.count}件`}
           >
@@ -548,6 +637,9 @@ export function PersonBubbleCloud({
     </div>
   );
 }
+
+const clampPercent = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 export function HistoryCard({ item }: { item: InteractionRecord }) {
   return (
