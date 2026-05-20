@@ -4,6 +4,14 @@
   margin-top: 18px;
 }
 
+.manage-tabs-card {
+  padding-block: 14px;
+}
+
+.manage-tabs-card .section-tabs {
+  margin-top: 0;
+}
+
 .manage-inline-form {
   display: grid;
   gap: 14px;
