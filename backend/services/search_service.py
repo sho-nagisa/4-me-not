@@ -1,19 +1,12 @@
 from __future__ import annotations
 
-from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
-import logging
-import math
-import os
-import re
 from threading import RLock
-import unicodedata
 from uuid import UUID
 
-import httpx
 from fastapi import HTTPException
 from sqlalchemy import delete as sa_delete
 from sqlalchemy.orm import Session, joinedload
@@ -29,33 +22,30 @@ from backend.models.calendar.event_participant import EventParticipant
 from backend.models.person.person import Person
 from backend.models.search.search_document import SearchDocument
 from backend.models.task.task import Task
-
-
-logger = logging.getLogger(__name__)
-
-
-TARGET_INTERACTION = "interaction"
-TARGET_PERSON = "person"
-TARGET_COMMUNITY = "community"
-TARGET_TOPIC = "topic"
-TARGET_TASK = "task"
-TARGET_CALENDAR_EVENT = "calendar_event"
-ALLOWED_TARGET_TYPES = {
+from backend.services.search_answer import build_rag_answer, empty_rag_answer
+from backend.services.search_constants import (
     TARGET_INTERACTION,
     TARGET_PERSON,
     TARGET_COMMUNITY,
     TARGET_TOPIC,
     TARGET_TASK,
     TARGET_CALENDAR_EVENT,
-}
-GROUP_KEYS = {
-    TARGET_INTERACTION: "interactions",
-    TARGET_PERSON: "people",
-    TARGET_COMMUNITY: "communities",
-    TARGET_TOPIC: "topics",
-    TARGET_TASK: "tasks",
-    TARGET_CALENDAR_EVENT: "calendar_events",
-}
+    ALLOWED_TARGET_TYPES,
+    GROUP_KEYS,
+)
+from backend.services.search_embedding import SearchEmbeddingProvider
+from backend.services.search_utils import (
+    calculate_keyword_score,
+    calculate_recency_score,
+    compact_text,
+    cosine_similarity,
+    extract_snippet,
+    first_non_empty,
+    join_search_parts,
+    normalize_uuid,
+    parse_embedding,
+    task_status_label,
+)
 
 
 @dataclass(frozen=True)
@@ -86,72 +76,6 @@ class CachedSearchDocument:
     end_at: datetime | None
     location: str | None
     target_label: str | None
-
-
-class SearchEmbeddingProvider:
-    fallback_model = "local-hash-v1"
-
-    def __init__(self) -> None:
-        self.api_key = os.environ.get("OPENAI_API_KEY")
-        self.openai_model = os.environ.get(
-            "OPENAI_EMBEDDING_MODEL",
-            "text-embedding-3-small",
-        )
-        self.dimension = int(os.environ.get("SEARCH_FALLBACK_EMBEDDING_DIM", "384"))
-
-    @property
-    def preferred_model(self) -> str:
-        return self.openai_model if self.api_key else self.fallback_model
-
-    def embed(self, text: str) -> tuple[list[float], str]:
-        if self.api_key:
-            try:
-                return self._embed_with_openai(text), self.openai_model
-            except Exception:
-                logger.exception("OpenAI embedding failed; using local fallback")
-
-        return self._embed_locally(text), self.fallback_model
-
-    def _embed_with_openai(self, text: str) -> list[float]:
-        response = httpx.post(
-            "https://api.openai.com/v1/embeddings",
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": self.openai_model,
-                "input": text[:12000],
-            },
-            timeout=30,
-        )
-        response.raise_for_status()
-        payload = response.json()
-        embedding = payload["data"][0]["embedding"]
-        return [float(value) for value in embedding]
-
-    def _embed_locally(self, text: str) -> list[float]:
-        normalized = normalize_text(text)
-        features: Counter[str] = Counter()
-
-        for token in re.findall(r"[\w]+", normalized):
-            if len(token) > 1:
-                features[token] += 2
-
-        compact = re.sub(r"\s+", "", normalized)
-        for width, weight in ((2, 1), (3, 2), (4, 1)):
-            if len(compact) < width:
-                continue
-            for index in range(len(compact) - width + 1):
-                features[compact[index : index + width]] += weight
-
-        vector = [0.0] * self.dimension
-        for feature, weight in features.items():
-            digest = hashlib.sha256(feature.encode("utf-8")).digest()
-            bucket = int.from_bytes(digest[:4], "big") % self.dimension
-            vector[bucket] += float(weight)
-
-        return normalize_vector(vector)
 
 
 class SearchService:
@@ -1399,377 +1323,3 @@ class SearchService:
             },
             "answer": empty_rag_answer(),
         }
-
-
-def normalize_uuid(value: str, detail: str) -> UUID:
-    try:
-        return UUID(str(value))
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=detail) from exc
-
-
-def task_status_label(status: TaskStatus | int) -> str:
-    normalized = TaskStatus(status)
-    labels = {
-        TaskStatus.TODO: "未完了",
-        TaskStatus.DONE: "完了",
-        TaskStatus.SKIPPED: "スキップ",
-    }
-    return labels.get(normalized, normalized.name)
-
-
-def normalize_text(value: str | None) -> str:
-    return unicodedata.normalize("NFKC", value or "").casefold()
-
-
-def normalize_vector(vector: list[float]) -> list[float]:
-    norm = math.sqrt(sum(value * value for value in vector))
-    if norm == 0:
-        return vector
-    return [value / norm for value in vector]
-
-
-def parse_embedding(value: str | None) -> list[float]:
-    if not value:
-        return []
-    try:
-        parsed = json.loads(value)
-    except json.JSONDecodeError:
-        return []
-    if not isinstance(parsed, list):
-        return []
-    return [float(item) for item in parsed if isinstance(item, int | float)]
-
-
-def cosine_similarity(left: list[float], right: list[float]) -> float:
-    if not left or not right or len(left) != len(right):
-        return 0.0
-    left_norm = math.sqrt(sum(value * value for value in left))
-    right_norm = math.sqrt(sum(value * value for value in right))
-    if left_norm == 0 or right_norm == 0:
-        return 0.0
-    score = sum(a * b for a, b in zip(left, right)) / (left_norm * right_norm)
-    return max(0.0, min(1.0, score))
-
-
-def calculate_keyword_score(query: str, document: SearchDocument) -> float:
-    normalized_query = normalize_text(query)
-    if not normalized_query:
-        return 0.0
-
-    title = normalize_text(document.title)
-    summary = normalize_text(document.summary)
-    body = normalize_text(document.search_text)
-    combined = "\n".join([title, summary, body])
-    terms = build_query_terms(normalized_query)
-    if not terms:
-        return 0.0
-
-    matched_terms = sum(1 for term in terms if term in combined)
-    coverage = matched_terms / len(terms)
-    exact_boost = 0.35 if normalized_query in combined else 0.0
-    title_boost = 0.20 if normalized_query in title else 0.0
-    if not title_boost and any(term in title for term in terms):
-        title_boost = 0.10
-
-    return min(1.0, exact_boost + title_boost + 0.55 * coverage)
-
-
-def build_query_terms(query: str) -> set[str]:
-    terms = {token for token in re.findall(r"[\w]+", query) if len(token) > 1}
-    compact = re.sub(r"\s+", "", query)
-    for width in (2, 3):
-        if len(compact) < width:
-            continue
-        for index in range(len(compact) - width + 1):
-            terms.add(compact[index : index + width])
-            if len(terms) >= 80:
-                return terms
-    return terms
-
-
-def calculate_recency_score(occurred_at: datetime | None) -> float:
-    if occurred_at is None:
-        return 0.0
-    if occurred_at.tzinfo is None:
-        occurred_at = occurred_at.replace(tzinfo=timezone.utc)
-    days = max(0, (datetime.now(timezone.utc) - occurred_at).days)
-    return 1 / (1 + days / 180)
-
-
-def extract_snippet(query: str, document: SearchDocument, length: int = 180) -> str:
-    source = document.summary or document.search_text
-    compact_source = compact_text(source, 1000)
-    folded_source = normalize_text(compact_source)
-    folded_query = normalize_text(query)
-    index = folded_source.find(folded_query) if folded_query else -1
-    if index < 0:
-        return compact_text(compact_source, length)
-
-    start = max(0, index - 50)
-    end = min(len(compact_source), index + len(query) + 100)
-    prefix = "..." if start > 0 else ""
-    suffix = "..." if end < len(compact_source) else ""
-    return f"{prefix}{compact_source[start:end]}{suffix}"
-
-
-def compact_text(value: str | None, max_length: int = 200) -> str | None:
-    if not value:
-        return None
-    compacted = re.sub(r"\s+", " ", value).strip()
-    if len(compacted) <= max_length:
-        return compacted
-    return compacted[: max_length - 1].rstrip() + "..."
-
-
-def first_non_empty(*values: str | None) -> str | None:
-    for value in values:
-        if value and value.strip():
-            return value.strip()
-    return None
-
-
-def join_search_parts(parts: list[str | None]) -> str:
-    return "\n".join(part.strip() for part in parts if part and part.strip())
-
-
-def add_unique_reason(candidate: dict, reason: str) -> None:
-    if reason and reason not in candidate["reasons"]:
-        candidate["reasons"].append(reason)
-
-
-def classify_answer_confidence(primary: dict, others: list[dict]) -> str:
-    score = float(primary["score"])
-    interaction_count = int(primary["interaction_count"])
-    runner_up_score = float(others[0]["score"]) if others else 0.0
-    margin = score - runner_up_score
-
-    if score >= 0.75 and (interaction_count >= 2 or margin >= 0.25):
-        return "high"
-    if score >= 0.42:
-        return "medium"
-    return "low"
-
-
-def empty_rag_answer() -> dict:
-    return {
-        "answer_model": "deterministic-rag-v1",
-        "summary": "検索語を入力すると、人物・会話・タスク・予定の近い候補を整理します。",
-        "confidence": "none",
-        "primary_person": None,
-        "people": [],
-        "evidence": [],
-        "follow_up_queries": [],
-    }
-
-
-def build_rag_answer(
-    query: str,
-    results: list[dict],
-    groups: dict[str, list[dict]],
-) -> dict:
-    if not results:
-        return {
-            **empty_rag_answer(),
-            "summary": "該当しそうな記録は見つかりませんでした。",
-        }
-
-    person_candidates = aggregate_person_candidates(results)
-    if not person_candidates:
-        return build_non_person_answer(query, results, groups)
-
-    primary = person_candidates[0]
-    other_people = person_candidates[1:3]
-    confidence = classify_answer_confidence(primary, other_people)
-    evidence = primary["evidence"][:3]
-    reason_text = "、".join(primary["reasons"][:3])
-
-    if confidence == "high":
-        prefix = "可能性が高いのは"
-    elif confidence == "medium":
-        prefix = "可能性がありそうなのは"
-    else:
-        prefix = "まだ断定は弱いですが、近い候補は"
-
-    summary_parts = [
-        f"{prefix}{primary['person_name']}さんです。",
-        f"理由は{reason_text}ことです。" if reason_text else "",
-    ]
-    if evidence:
-        summary_parts.append(
-            f"根拠として「{evidence[0]['title']}」の記録が近く出ています。"
-        )
-    if other_people:
-        names = "、".join(item["person_name"] for item in other_people)
-        summary_parts.append(f"次点では{names}さんも候補です。")
-
-    return {
-        "answer_model": "deterministic-rag-v1",
-        "summary": "".join(summary_parts),
-        "confidence": confidence,
-        "primary_person": {
-            "person_id": primary["person_id"],
-            "person_name": primary["person_name"],
-            "community_path": primary["community_path"],
-            "score": round(primary["score"], 6),
-        },
-        "people": [
-            {
-                "person_id": item["person_id"],
-                "person_name": item["person_name"],
-                "community_path": item["community_path"],
-                "score": round(item["score"], 6),
-                "reasons": item["reasons"][:3],
-            }
-            for item in person_candidates[:3]
-        ],
-        "evidence": evidence,
-        "follow_up_queries": build_follow_up_queries(query, person_candidates, groups),
-    }
-
-
-def aggregate_person_candidates(results: list[dict]) -> list[dict]:
-    candidates: dict[str, dict] = {}
-
-    for result in results:
-        person_id = result.get("person_id")
-        person_name = result.get("person_name")
-        if not person_id or not person_name:
-            continue
-
-        candidate = candidates.setdefault(
-            person_id,
-            {
-                "person_id": person_id,
-                "person_name": person_name,
-                "community_path": result.get("community_path"),
-                "score": 0.0,
-                "direct_person_score": 0.0,
-                "interaction_count": 0,
-                "task_count": 0,
-                "event_count": 0,
-                "reasons": [],
-                "evidence": [],
-            },
-        )
-        candidate["community_path"] = (
-            candidate["community_path"] or result.get("community_path")
-        )
-
-        target_type = result.get("target_type")
-        score = float(result.get("score") or 0)
-        if target_type == TARGET_PERSON:
-            candidate["score"] += score * 1.25
-            candidate["direct_person_score"] = max(
-                candidate["direct_person_score"],
-                score,
-            )
-            add_unique_reason(candidate, "人物情報そのものが検索語に近い")
-        elif target_type == TARGET_INTERACTION:
-            candidate["score"] += score
-            candidate["interaction_count"] += 1
-            candidate["evidence"].append(result)
-            add_unique_reason(candidate, "過去の会話内容が検索語に近い")
-        elif target_type == TARGET_TASK:
-            candidate["score"] += score * 0.9
-            candidate["task_count"] += 1
-            candidate["evidence"].append(result)
-            add_unique_reason(candidate, "関連タスクが検索語に近い")
-        elif target_type == TARGET_CALENDAR_EVENT:
-            candidate["score"] += score * 0.8
-            candidate["event_count"] += 1
-            candidate["evidence"].append(result)
-            add_unique_reason(candidate, "予定の内容が検索語に近い")
-        else:
-            candidate["score"] += score * 0.45
-
-        if result.get("topic_path"):
-            add_unique_reason(candidate, f"話題が「{result['topic_path']}」に近い")
-        if result.get("community_path"):
-            add_unique_reason(candidate, f"所属が「{result['community_path']}」に近い")
-
-    for candidate in candidates.values():
-        candidate["score"] += min(candidate["interaction_count"], 4) * 0.08
-        candidate["score"] += min(candidate["task_count"], 3) * 0.06
-        candidate["score"] += min(candidate["event_count"], 3) * 0.04
-        candidate["evidence"].sort(key=lambda item: -float(item.get("score") or 0))
-
-    return sorted(
-        candidates.values(),
-        key=lambda item: (
-            -float(item["score"]),
-            -int(item["interaction_count"]),
-            -int(item["task_count"]),
-            -int(item["event_count"]),
-            item["person_name"],
-        ),
-    )
-
-
-def build_non_person_answer(
-    query: str,
-    results: list[dict],
-    groups: dict[str, list[dict]],
-) -> dict:
-    top_result = results[0]
-    type_label = {
-        TARGET_TASK: "タスク",
-        TARGET_CALENDAR_EVENT: "予定",
-        TARGET_INTERACTION: "会話",
-        TARGET_COMMUNITY: "団体",
-        TARGET_TOPIC: "話題",
-    }.get(top_result.get("target_type"), "記録")
-
-    related_labels = [
-        item["title"]
-        for item in [
-            *groups.get("tasks", []),
-            *groups.get("calendar_events", []),
-            *groups.get("communities", []),
-            *groups.get("topics", []),
-        ][:3]
-    ]
-    if related_labels:
-        summary = f"人物までは絞り込めませんでしたが、{type_label}「{top_result['title']}」が近い候補です。関連候補は{ '、'.join(related_labels) }です。"
-    else:
-        summary = f"人物までは絞り込めませんでしたが、{type_label}「{top_result['title']}」が近い候補です。"
-
-    return {
-        "answer_model": "deterministic-rag-v1",
-        "summary": summary,
-        "confidence": "low",
-        "primary_person": None,
-        "people": [],
-        "evidence": results[:3],
-        "follow_up_queries": build_follow_up_queries(query, [], groups),
-    }
-
-
-def build_follow_up_queries(
-    query: str,
-    person_candidates: list[dict],
-    groups: dict[str, list[dict]],
-) -> list[str]:
-    suggestions = []
-    if person_candidates:
-        top_person = person_candidates[0]
-        suggestions.append(f"{top_person['person_name']} {query}")
-        if top_person.get("community_path"):
-            suggestions.append(f"{top_person['community_path']} {query}")
-
-    for item in groups.get("tasks", [])[:1]:
-        suggestions.append(f"{item['title']} {query}")
-    for item in groups.get("calendar_events", [])[:1]:
-        suggestions.append(f"{item['title']} {query}")
-    for item in groups.get("topics", [])[:1]:
-        suggestions.append(f"{item['title']} {query}")
-    for item in groups.get("communities", [])[:1]:
-        suggestions.append(f"{item['title']} {query}")
-
-    deduped = []
-    for suggestion in suggestions:
-        if suggestion and suggestion not in deduped:
-            deduped.append(suggestion)
-        if len(deduped) >= 3:
-            break
-    return deduped

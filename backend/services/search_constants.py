@@ -1,0 +1,24 @@
+TARGET_INTERACTION = "interaction"
+TARGET_PERSON = "person"
+TARGET_COMMUNITY = "community"
+TARGET_TOPIC = "topic"
+TARGET_TASK = "task"
+TARGET_CALENDAR_EVENT = "calendar_event"
+
+ALLOWED_TARGET_TYPES = {
+    TARGET_INTERACTION,
+    TARGET_PERSON,
+    TARGET_COMMUNITY,
+    TARGET_TOPIC,
+    TARGET_TASK,
+    TARGET_CALENDAR_EVENT,
+}
+
+GROUP_KEYS = {
+    TARGET_INTERACTION: "interactions",
+    TARGET_PERSON: "people",
+    TARGET_COMMUNITY: "communities",
+    TARGET_TOPIC: "topics",
+    TARGET_TASK: "tasks",
+    TARGET_CALENDAR_EVENT: "calendar_events",
+}
