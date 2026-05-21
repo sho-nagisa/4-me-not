@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -8,6 +9,7 @@ import logging
 import math
 import os
 import re
+from threading import RLock
 import unicodedata
 from uuid import UUID
 
@@ -44,6 +46,26 @@ GROUP_KEYS = {
     TARGET_COMMUNITY: "communities",
     TARGET_TOPIC: "topics",
 }
+
+
+@dataclass(frozen=True)
+class CachedSearchDocument:
+    id: UUID
+    target_type: str
+    target_id: UUID
+    title: str
+    summary: str | None
+    search_text: str
+    embedding: tuple[float, ...]
+    occurred_at: datetime | None
+    indexed_at: datetime
+    created_at: datetime
+    person_id: UUID | None
+    person_name: str | None
+    community_id: UUID | None
+    community_path: str | None
+    topic_id: UUID | None
+    topic_path: str | None
 
 
 class SearchEmbeddingProvider:
@@ -113,8 +135,19 @@ class SearchEmbeddingProvider:
 
 
 class SearchService:
+    _cache_lock = RLock()
+    _document_cache: dict[UUID, tuple[CachedSearchDocument, ...]] = {}
+
     def __init__(self, embedding_provider: SearchEmbeddingProvider | None = None) -> None:
         self.embedding_provider = embedding_provider or SearchEmbeddingProvider()
+
+    @classmethod
+    def invalidate_cache(cls, account_id: UUID | None = None) -> None:
+        with cls._cache_lock:
+            if account_id is None:
+                cls._document_cache.clear()
+            else:
+                cls._document_cache.pop(account_id, None)
 
     def search(
         self,
@@ -131,72 +164,63 @@ class SearchService:
             normalized_query
         )
 
-        db: Session = SessionLocal()
-        try:
-            account_id = get_current_account_id()
-            documents = self._load_candidate_documents(
-                db=db,
-                account_id=account_id,
-                target_types=selected_target_types,
-                limit=max(limit * 50, 300),
+        account_id = get_current_account_id()
+        documents = self._load_cached_candidate_documents(
+            account_id=account_id,
+            target_types=selected_target_types,
+            limit=max(limit * 50, 300),
+        )
+        results = []
+
+        for document in documents:
+            semantic_score = cosine_similarity(
+                query_embedding,
+                document.embedding,
             )
-            reference_maps = self._build_reference_maps(db, account_id, documents)
-            results = []
+            keyword_score = calculate_keyword_score(normalized_query, document)
+            recency_score = calculate_recency_score(document.occurred_at)
+            score = (
+                0.55 * semantic_score
+                + 0.35 * keyword_score
+                + 0.10 * recency_score
+            )
 
-            for document in documents:
-                if not self._document_is_visible(document, reference_maps):
-                    continue
+            if score <= 0:
+                continue
 
-                semantic_score = cosine_similarity(
-                    query_embedding,
-                    parse_embedding(document.embedding_json),
-                )
-                keyword_score = calculate_keyword_score(normalized_query, document)
-                recency_score = calculate_recency_score(document.occurred_at)
-                score = (
-                    0.55 * semantic_score
-                    + 0.35 * keyword_score
-                    + 0.10 * recency_score
-                )
-
-                if score <= 0:
-                    continue
-
-                results.append(
-                    self._serialize_result(
-                        document=document,
-                        score=score,
-                        semantic_score=semantic_score,
-                        keyword_score=keyword_score,
-                        recency_score=recency_score,
-                        reference_maps=reference_maps,
-                        query=normalized_query,
-                    )
-                )
-
-            results.sort(
-                key=lambda item: (
-                    -item["score"],
-                    item["occurred_at"] is None,
-                    item["occurred_at"] or "",
-                    item["title"],
+            results.append(
+                self._serialize_cached_result(
+                    document=document,
+                    score=score,
+                    semantic_score=semantic_score,
+                    keyword_score=keyword_score,
+                    recency_score=recency_score,
+                    query=normalized_query,
                 )
             )
-            limited_results = results[:limit]
-            groups = self._group_results(limited_results)
 
-            return {
-                "query": query,
-                "embedding_model": query_embedding_model,
-                "results": limited_results,
-                "groups": groups,
-                "answer": build_rag_answer(normalized_query, limited_results, groups),
-            }
-        finally:
-            db.close()
+        results.sort(
+            key=lambda item: (
+                -item["score"],
+                item["occurred_at"] is None,
+                item["occurred_at"] or "",
+                item["title"],
+            )
+        )
+        limited_results = results[:limit]
+        groups = self._group_results(limited_results)
+
+        return {
+            "query": query,
+            "embedding_model": query_embedding_model,
+            "results": limited_results,
+            "groups": groups,
+            "answer": build_rag_answer(normalized_query, limited_results, groups),
+        }
 
     def index_interaction(self, interaction_id: str) -> None:
         db: Session = SessionLocal()
+        account_id: UUID | None = None
         try:
             account_id = get_current_account_id()
             interaction_uuid = normalize_uuid(interaction_id, "Interaction is invalid")
@@ -225,9 +249,12 @@ class SearchService:
             db.commit()
         finally:
             db.close()
+            if account_id is not None:
+                self.invalidate_cache(account_id)
 
     def rebuild_account_index(self) -> dict[str, int]:
         db: Session = SessionLocal()
+        account_id: UUID | None = None
         try:
             account_id = get_current_account_id()
             db.execute(
@@ -272,6 +299,8 @@ class SearchService:
             }
         finally:
             db.close()
+            if account_id is not None:
+                self.invalidate_cache(account_id)
 
     def _index_interaction(
         self,
@@ -573,6 +602,164 @@ class SearchService:
             .all()
         )
 
+    def _load_cached_candidate_documents(
+        self,
+        account_id: UUID,
+        target_types: list[str] | None,
+        limit: int,
+    ) -> tuple[CachedSearchDocument, ...]:
+        documents = self._get_cached_documents(account_id)
+        if target_types:
+            allowed_types = set(target_types)
+            documents = tuple(
+                document
+                for document in documents
+                if document.target_type in allowed_types
+            )
+        return documents[:limit]
+
+    def _get_cached_documents(self, account_id: UUID) -> tuple[CachedSearchDocument, ...]:
+        with self._cache_lock:
+            cached = self._document_cache.get(account_id)
+        if cached is not None:
+            return cached
+
+        documents = self._build_cached_documents(account_id)
+        with self._cache_lock:
+            cached = self._document_cache.setdefault(account_id, documents)
+        return cached
+
+    def _build_cached_documents(self, account_id: UUID) -> tuple[CachedSearchDocument, ...]:
+        db: Session = SessionLocal()
+        try:
+            documents = self._load_candidate_documents(
+                db=db,
+                account_id=account_id,
+                target_types=None,
+                limit=10_000,
+            )
+            reference_maps = self._build_cached_reference_maps(
+                db,
+                account_id,
+                documents,
+            )
+            cached_documents = []
+
+            for document in documents:
+                if not self._document_is_visible(document, reference_maps):
+                    continue
+
+                person_id = (
+                    document.target_id
+                    if document.target_type == TARGET_PERSON
+                    else document.person_id
+                )
+                community_id = (
+                    document.target_id
+                    if document.target_type == TARGET_COMMUNITY
+                    else document.community_id
+                )
+                topic_id = (
+                    document.target_id
+                    if document.target_type == TARGET_TOPIC
+                    else document.topic_id
+                )
+                person = reference_maps["people"].get(person_id) if person_id else None
+                community = (
+                    reference_maps["communities"].get(community_id)
+                    if community_id
+                    else None
+                )
+                topic = reference_maps["topics"].get(topic_id) if topic_id else None
+
+                cached_documents.append(
+                    CachedSearchDocument(
+                        id=document.id,
+                        target_type=document.target_type,
+                        target_id=document.target_id,
+                        title=document.title,
+                        summary=document.summary,
+                        search_text=document.search_text,
+                        embedding=tuple(parse_embedding(document.embedding_json)),
+                        occurred_at=document.occurred_at,
+                        indexed_at=document.indexed_at,
+                        created_at=document.created_at,
+                        person_id=person_id,
+                        person_name=person.name if person else None,
+                        community_id=community_id,
+                        community_path=self._build_cached_path(
+                            community,
+                            reference_maps["communities"],
+                        )
+                        if community
+                        else None,
+                        topic_id=topic_id,
+                        topic_path=self._build_cached_path(
+                            topic,
+                            reference_maps["topics"],
+                        )
+                        if topic
+                        else None,
+                    )
+                )
+
+            return tuple(cached_documents)
+        finally:
+            db.close()
+
+    def _build_cached_reference_maps(
+        self,
+        db: Session,
+        account_id: UUID,
+        documents: list[SearchDocument],
+    ) -> dict[str, dict[UUID, object]]:
+        person_ids: set[UUID] = set()
+        for document in documents:
+            if document.person_id:
+                person_ids.add(document.person_id)
+            if document.target_type == TARGET_PERSON:
+                person_ids.add(document.target_id)
+
+        people = (
+            db.query(Person)
+            .filter(Person.account_id == account_id, Person.id.in_(person_ids))
+            .all()
+            if person_ids
+            else []
+        )
+        communities = (
+            db.query(Community)
+            .filter(Community.account_id == account_id)
+            .all()
+        )
+        topics = (
+            db.query(Topic)
+            .filter(Topic.account_id == account_id)
+            .all()
+        )
+        return {
+            "people": {person.id: person for person in people},
+            "communities": {community.id: community for community in communities},
+            "topics": {topic.id: topic for topic in topics},
+        }
+
+    def _build_cached_path(self, record, records_by_id: dict[UUID, object]) -> str | None:
+        if record is None:
+            return None
+
+        nodes = []
+        current = record
+        seen_ids = set()
+        while current is not None and current.id not in seen_ids:
+            seen_ids.add(current.id)
+            if not getattr(current, "is_hidden", False):
+                nodes.append(current.name)
+            parent_id = getattr(current, "parent_id", None)
+            current = records_by_id.get(parent_id) if parent_id else None
+        if not nodes:
+            return None
+        return " / ".join(reversed(nodes))
+
     def _build_reference_maps(
         self,
         db: Session,
@@ -713,6 +900,40 @@ class SearchService:
             "community_path": self._build_path(community) if community else None,
             "topic_id": str(topic_id) if topic_id else None,
             "topic_path": self._build_path(topic) if topic else None,
+            "occurred_at": document.occurred_at.isoformat()
+            if document.occurred_at
+            else None,
+            "indexed_at": document.indexed_at.isoformat(),
+        }
+
+    def _serialize_cached_result(
+        self,
+        document: CachedSearchDocument,
+        score: float,
+        semantic_score: float,
+        keyword_score: float,
+        recency_score: float,
+        query: str,
+    ) -> dict:
+        return {
+            "id": str(document.id),
+            "target_type": document.target_type,
+            "target_id": str(document.target_id),
+            "title": document.title,
+            "summary": document.summary,
+            "snippet": extract_snippet(query, document),
+            "score": round(score, 6),
+            "semantic_score": round(semantic_score, 6),
+            "keyword_score": round(keyword_score, 6),
+            "recency_score": round(recency_score, 6),
+            "person_id": str(document.person_id) if document.person_id else None,
+            "person_name": document.person_name,
+            "community_id": str(document.community_id)
+            if document.community_id
+            else None,
+            "community_path": document.community_path,
+            "topic_id": str(document.topic_id) if document.topic_id else None,
+            "topic_path": document.topic_path,
             "occurred_at": document.occurred_at.isoformat()
             if document.occurred_at
             else None,

@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.interaction.topic import Topic
+from backend.services.search_service import SearchService
 
 
 class TopicService:
@@ -31,6 +32,7 @@ class TopicService:
             db.add(topic)
             db.commit()
             db.refresh(topic)
+            SearchService.invalidate_cache(account_id)
             return topic
         finally:
             db.close()
