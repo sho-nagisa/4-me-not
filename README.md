@@ -175,50 +175,84 @@ Current smoke tests cover:
 | `GET /api/persons/{person_id}/dashboard` | person dashboard |
 | `GET /api/search` | memory search |
 
-## Design Notes
+## 工夫したポイント
 
-### Search
+### 検索キャッシュ
 
-Search documents are built from people, communities, topics, and interactions. Each document stores a normalized text representation and an embedding.
+初回検索時に `search_documents` からメモリ上の検索キャッシュを作成します。キャッシュには、パース済みのembedding、タイトル、要約、検索用テキスト、人物名、コミュニティパス、話題パスを保持するようにしています。
 
-If `OPENAI_API_KEY` is available, the app uses OpenAI embeddings. Without an API key, it falls back to a deterministic local hash embedding so the demo can run without external services.
+これにより、検索のたびに同じ検索ドキュメントをPostgreSQLから読み直したり、`embedding_json` を毎回パースしたりする処理を避けています。現在のローカルデモデータでの、初回検索後の検索は約20〜30msで実行できます。
 
-Search scoring combines:
+検索結果に関わるデータが変わる可能性がある操作では、キャッシュを破棄します。
+
+- interactionのindex更新
+- 検索indexの全再構築
+- 人物の作成、表示状態の変更、削除
+- コミュニティの作成、表示状態の変更、削除
+- 話題の作成
+
+### 検索システム
+
+検索結果は単一の指標だけではなく、複数のスコアを組み合わせて並べています。
+
+```text
+0.55 * semantic_score
++ 0.35 * keyword_score
++ 0.10 * recency_score
+```
+
+人物名、話題名、具体的な言葉が一致したときの強さを残しつつ、「面接 志望動機」「返信頻度 気になる人」のような曖昧な思い出し方にも対応できるようにしています。
+
+### 思い出すためのデータ設計
+
+会話記録は、本文だけでなく、人物、コミュニティ、話題、やり取りの種類、共有度、日時、補足メモと一緒に保存しています。これにより、単純な全文検索だけでなく、「どこで」「誰と」「何について」話したかという文脈からも探せるようにしています。
+
+また、`share_level` によって「すでに話したこと」と「まだ話していないこと」を分けています。人物ダッシュボードでは、単なる履歴確認ではなく、次に会う前の会話準備に使える情報として整理できます。
+
+## 設計メモ
+
+### 検索
+
+人物、コミュニティ、話題、会話記録から検索用ドキュメントを作成しています。各ドキュメントには、検索用に整形したテキストとembeddingを保存します。
+
+`OPENAI_API_KEY` が設定されている場合はOpenAI Embeddingsを利用します。APIキーがない場合は、外部サービスなしでデモを動かせるように、決定的に生成できるローカルのhash embeddingにフォールバックします。
+
+検索スコアは、以下の要素を組み合わせています。
 
 - semantic similarity
 - keyword coverage
 - recency
 
-The response also groups results by target type and returns a deterministic summary that helps identify likely people and related records.
+検索結果は、人物、会話、コミュニティ、話題ごとにグルーピングして返します。また、上位結果から「誰のことを探していそうか」を整理するための決定的なsummaryも返します。
 
-### Share Level
+### 共有度
 
-The app does not treat all remembered information as equally shareable. Each interaction has a share level:
+記録した情報を、すべて同じように会話で扱えるものとは見なしていません。各会話記録には共有度を持たせています。
 
-- `SHARED`: already talked about
-- `PARTIAL`: partially talked about
-- `WITHHELD`: not talked about yet
+- `SHARED`: すでに話した
+- `PARTIAL`: 一部だけ話した
+- `WITHHELD`: まだ話していない
 
-This allows the person dashboard to separate conversation-safe topics from topics that should not be brought up directly yet.
+これにより、人物ダッシュボードで「次に自然に話せそうなこと」と「まだ直接触れない方がよいこと」を分けて確認できます。
 
-### Account Scope
+### アカウントスコープ
 
-The database schema already has `accounts` and `account_id` on core tables. The current app uses a fixed default account for local/demo use. This keeps the portfolio demo simple while leaving a path to add authentication later.
+DBスキーマには `accounts` と各主要テーブルの `account_id` を用意しています。現時点ではローカルデモ用に固定のデフォルトアカウントを使っています。ポートフォリオとしての実行しやすさを優先しつつ、後から認証を追加できる構造にしています。
 
-## Current Limitations
+## 現在の制約
 
-- Authentication is not implemented yet. The app currently uses a fixed default account.
-- AI parsing, insight generation, relation updates, and calendar sync have service placeholders, but are not production features yet.
-- Search currently loads candidate documents from the database and scores them in application code. For larger datasets, pgvector or PostgreSQL full-text search would be a better production design.
-- The frontend has no E2E tests yet.
-- Deployment artifacts such as Docker Compose and screenshots are not included yet.
+- 認証はまだ実装していません。現在は固定のデフォルトアカウントを使っています。
+- AIによる解析、insight生成、関係性更新、カレンダー同期はサービスの枠だけあり、本番機能としては未実装です。
+- 初回検索時にメモリキャッシュを作っていますが、大規模データではpgvectorやPostgreSQL全文検索など、DB側で検索を最適化する設計が必要です。
+- フロントエンドのE2Eテストはまだありません。
+- Docker Compose、スクリーンショット、デモ動画などの公開用資料はまだ含めていません。
 
-## Future Work
+## 今後やりたいこと
 
-- Add login and per-user session handling
-- Add Docker Compose for PostgreSQL, backend, and frontend
-- Add screenshots or a short demo video to the README
-- Replace in-memory search scoring with pgvector or a database-backed ranking strategy
-- Add Playwright tests for the main user flows
-- Implement AI parsing for extracting topics, reminders, and person insights from free-form notes
-- Improve observability with structured logging and error monitoring
+- ログインとユーザーごとのセッション管理を追加する
+- PostgreSQL、バックエンド、フロントエンドをまとめて起動できるDocker Composeを追加する
+- READMEにスクリーンショットや短いデモ動画を追加する
+- データ量が増えた場合に備えて、pgvectorやDB側ランキングに移行する
+- 主要なユーザーフローにPlaywrightのE2Eテストを追加する
+- 自由記述メモから話題、リマインダー、人物insightを抽出するAI解析を実装する
+- 構造化ログやエラー監視を整備する
