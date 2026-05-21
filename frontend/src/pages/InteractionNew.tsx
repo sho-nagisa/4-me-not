@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import type { PointerEvent } from "react";
 
 import { useIsMobile } from "../hooks/useIsMobile";
 import {
   interactionTypeOptions,
-  mobilePageOptions,
-  pageOptions,
   shareLevelOptions,
 } from "./interactionNew/constants";
 import type {
@@ -25,7 +22,7 @@ import type {
   TaskRecord,
   Topic,
 } from "./interactionNew/types";
-import { DesktopHome, MobileHome, NavItem } from "./interactionNew/components";
+import { DesktopHome, MobileHome } from "./interactionNew/components";
 import { HistoryPage } from "./interactionNew/HistoryPage";
 import {
   acceptTaskCandidate,
@@ -50,45 +47,25 @@ import {
   updatePersonHidden,
 } from "./interactionNew/interactionsApi";
 import { ManagePage } from "./interactionNew/ManagePage";
+import {
+  HISTORY_DEFAULT_LIMIT,
+  relationSearchScopeOptions,
+  relationSearchTargetTypes,
+  type WorkspaceMode,
+} from "./interactionNew/navigation";
 import { PersonPage } from "./interactionNew/PersonPage";
 import { RecordPage } from "./interactionNew/RecordPage";
 import { SearchPage, type SearchScope } from "./interactionNew/SearchPage";
 import { TaskPage, type TaskPanelId } from "./interactionNew/TaskPage";
 import {
+  InteractionNewLayout,
+  type FeedbackState,
+} from "./interactionNew/InteractionNewLayout";
+import {
   buildPersonBubbles,
   buildPersonBubblesFromCounts,
   toDateTimeLocalValue,
 } from "./interactionNew/utils";
-
-const HISTORY_DEFAULT_LIMIT = 30;
-const MODE_SWITCH_HOLD_MS = 3000;
-
-type WorkspaceMode = "relations" | "tasks";
-
-const relationSearchScopeOptions: Array<{ id: SearchScope; label: string }> = [
-  { id: "all", label: "すべて" },
-  { id: "interaction", label: "会話" },
-  { id: "person", label: "人物" },
-  { id: "community", label: "団体" },
-  { id: "topic", label: "話題" },
-];
-
-const relationSearchTargetTypes: SearchTargetType[] = [
-  "interaction",
-  "person",
-  "community",
-  "topic",
-];
-
-const taskPageOptions: Array<{
-  id: TaskPanelId;
-  label: string;
-  mobileLabel: string;
-  description: string;
-}> = [
-  { id: "overview", label: "タスク", mobileLabel: "タスク", description: "候補と未完了を見る" },
-  { id: "search", label: "タスク検索", mobileLabel: "検索", description: "タスクと予定を探す" },
-];
 
 export default function InteractionNew() {
   const isMobile = useIsMobile(820);
@@ -101,7 +78,6 @@ export default function InteractionNew() {
   const [historyFilterOpen, setHistoryFilterOpen] = useState(false);
   const [mobileRecordPanel, setMobileRecordPanel] = useState<"input" | "check">("input");
   const mobileRecordSwipeRef = useRef<HTMLDivElement | null>(null);
-  const modeSwitchTimerRef = useRef<number | null>(null);
 
   const [persons, setPersons] = useState<Person[]>([]);
   const [communities, setCommunities] = useState<Community[]>([]);
@@ -134,12 +110,8 @@ export default function InteractionNew() {
   const [taskActionId, setTaskActionId] = useState<string | null>(null);
   const [taskCandidatesLoading, setTaskCandidatesLoading] = useState(false);
   const [taskItemsLoading, setTaskItemsLoading] = useState(false);
-  const [modeSwitchArmed, setModeSwitchArmed] = useState(false);
 
-  const [feedback, setFeedback] = useState<{
-    tone: "success" | "error" | "info";
-    message: string;
-  } | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackState>(null);
 
   const [occurredAt, setOccurredAt] = useState<string>(toDateTimeLocalValue());
   const [personId, setPersonId] = useState<string>("");
@@ -200,13 +172,6 @@ export default function InteractionNew() {
     setFeedback({ tone: "success", message });
   };
 
-  const clearModeSwitchTimer = () => {
-    if (modeSwitchTimerRef.current !== null) {
-      window.clearTimeout(modeSwitchTimerRef.current);
-      modeSwitchTimerRef.current = null;
-    }
-  };
-
   const toggleWorkspaceMode = () => {
     setWorkspaceMode((currentMode) => {
       const nextMode: WorkspaceMode = currentMode === "relations" ? "tasks" : "relations";
@@ -218,52 +183,6 @@ export default function InteractionNew() {
       return nextMode;
     });
   };
-
-  const handleModeSwitchPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
-    event.currentTarget.setPointerCapture(event.pointerId);
-    clearModeSwitchTimer();
-    setModeSwitchArmed(true);
-    modeSwitchTimerRef.current = window.setTimeout(() => {
-      modeSwitchTimerRef.current = null;
-      setModeSwitchArmed(false);
-      toggleWorkspaceMode();
-    }, MODE_SWITCH_HOLD_MS);
-  };
-
-  const handleModeSwitchPointerEnd = (event: PointerEvent<HTMLButtonElement>) => {
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    clearModeSwitchTimer();
-    setModeSwitchArmed(false);
-  };
-
-  const renderBrandSwitch = () => (
-    <button
-      type="button"
-      className={`brand-switch brand-switch--${workspaceMode} ${
-        modeSwitchArmed ? "brand-switch--pressing" : ""
-      }`}
-      onPointerDown={handleModeSwitchPointerDown}
-      onPointerUp={handleModeSwitchPointerEnd}
-      onPointerCancel={handleModeSwitchPointerEnd}
-      onPointerLeave={() => {
-        clearModeSwitchTimer();
-        setModeSwitchArmed(false);
-      }}
-      aria-label="勿忘草。3秒長押しで人間関係管理とタスク管理を切り替えます。"
-      title="3秒長押しで切り替え"
-    >
-      <span className="brand-switch__title">勿忘草</span>
-      <span className="brand-switch__mode">
-        {workspaceMode === "relations" ? "人間関係管理" : "タスク管理"}
-      </span>
-    </button>
-  );
-
-  useEffect(() => {
-    return () => clearModeSwitchTimer();
-  }, []);
 
   useEffect(() => {
     if (!feedback || feedback.tone === "info") return;
@@ -1128,140 +1047,28 @@ export default function InteractionNew() {
   }).length;
 
   return (
-    <main
-      className={`app-shell ${isMobile ? "app-shell--mobile" : "app-shell--desktop"} ${
-        workspaceMode === "relations" && currentPage === "home" ? "app-shell--home" : ""
-      } app-shell--${workspaceMode}`}
+    <InteractionNewLayout
+      isMobile={isMobile}
+      workspaceMode={workspaceMode}
+      currentPage={currentPage}
+      setCurrentPage={setCurrentPage}
+      taskPanel={taskPanel}
+      setTaskPanel={setTaskPanel}
+      relationSummary={{
+        totalCount: overview.total_count,
+        personCount: persons.length,
+        communityCount: communities.length,
+      }}
+      taskSummary={{
+        candidateCount: taskCandidates.length,
+        openCount: openTaskCount,
+        dueSoonCount: dueSoonTaskCount,
+      }}
+      feedback={feedback}
+      onDismissFeedback={() => setFeedback(null)}
+      onToggleWorkspaceMode={toggleWorkspaceMode}
     >
-      <div className="app-shell__glow app-shell__glow--left" />
-      <div className="app-shell__glow app-shell__glow--right" />
-
-      {!isMobile ? (
-        <div className="desktop-frame">
-          <aside className="desktop-sidebar">
-            <div className="brand-card brand-card--compact">{renderBrandSwitch()}</div>
-
-            <nav className="nav-list">
-              {workspaceMode === "relations"
-                ? pageOptions.map((page) => (
-                    <NavItem
-                      key={page.id}
-                      active={currentPage === page.id}
-                      label={page.label}
-                      description={page.description}
-                      onClick={() => setCurrentPage(page.id)}
-                    />
-                  ))
-                : taskPageOptions.map((page) => (
-                    <NavItem
-                      key={page.id}
-                      active={taskPanel === page.id}
-                      label={page.label}
-                      description={page.description}
-                      onClick={() => setTaskPanel(page.id)}
-                    />
-                  ))}
-            </nav>
-
-            <div className="sidebar-summary">
-              {workspaceMode === "relations" ? (
-                <>
-                  <div className="sidebar-summary__item">
-                    <strong>{overview.total_count}</strong>
-                    <span>記録数</span>
-                  </div>
-                  <div className="sidebar-summary__item">
-                    <strong>{persons.length}</strong>
-                    <span>人</span>
-                  </div>
-                  <div className="sidebar-summary__item">
-                    <strong>{communities.length}</strong>
-                    <span>コミュニティ</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="sidebar-summary__item">
-                    <strong>{taskCandidates.length}</strong>
-                    <span>候補</span>
-                  </div>
-                  <div className="sidebar-summary__item">
-                    <strong>{openTaskCount}</strong>
-                    <span>未完了</span>
-                  </div>
-                  <div className="sidebar-summary__item">
-                    <strong>{dueSoonTaskCount}</strong>
-                    <span>期限間近</span>
-                  </div>
-                </>
-              )}
-            </div>
-          </aside>
-
-          <section className="desktop-content">
-            {feedback ? (
-              <section className={`banner banner--${feedback.tone}`}>
-                <p>{feedback.message}</p>
-                <button
-                  type="button"
-                  className="banner__close"
-                  onClick={() => setFeedback(null)}
-                  aria-label="通知を閉じる"
-                >
-                  ×
-                </button>
-              </section>
-            ) : null}
-            {renderPage()}
-          </section>
-        </div>
-      ) : (
-        <div className="mobile-frame">
-          <header className="mobile-header mobile-header--compact">
-            {renderBrandSwitch()}
-          </header>
-
-          {feedback ? (
-            <section className={`banner banner--${feedback.tone}`}>
-              <p>{feedback.message}</p>
-              <button
-                type="button"
-                className="banner__close"
-                onClick={() => setFeedback(null)}
-                aria-label="通知を閉じる"
-              >
-                ×
-              </button>
-            </section>
-          ) : null}
-
-          <section className="mobile-content">{renderPage()}</section>
-
-          <nav className="mobile-dock">
-            {workspaceMode === "relations"
-              ? mobilePageOptions.map((page) => (
-                  <NavItem
-                    key={page.id}
-                    active={currentPage === page.id}
-                    compact
-                    label={page.mobileLabel}
-                    description=""
-                    onClick={() => setCurrentPage(page.id)}
-                  />
-                ))
-              : taskPageOptions.map((page) => (
-                  <NavItem
-                    key={page.id}
-                    active={taskPanel === page.id}
-                    compact
-                    label={page.mobileLabel}
-                    description=""
-                    onClick={() => setTaskPanel(page.id)}
-                  />
-                ))}
-          </nav>
-        </div>
-      )}
-    </main>
+      {renderPage()}
+    </InteractionNewLayout>
   );
 }
