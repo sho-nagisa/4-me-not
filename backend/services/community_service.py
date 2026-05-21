@@ -6,6 +6,7 @@ from sqlalchemy import delete as sa_delete
 from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.community.community import Community
+from backend.services.search_service import SearchService
 
 
 class CommunityService:
@@ -41,6 +42,7 @@ class CommunityService:
             db.add(community)
             db.commit()
             db.refresh(community)
+            SearchService.invalidate_cache(account_id)
             return community
         finally:
             db.close()
@@ -82,10 +84,12 @@ class CommunityService:
     def set_hidden(self, community_id: str, is_hidden: bool):
         db = SessionLocal()
         try:
+            account_id = get_current_account_id()
             community = self._get_community(db, community_id)
             community.is_hidden = is_hidden
             db.commit()
             db.refresh(community)
+            SearchService.invalidate_cache(account_id)
             return community
         finally:
             db.close()
@@ -93,9 +97,11 @@ class CommunityService:
     def delete_community(self, community_id: str):
         db = SessionLocal()
         try:
+            account_id = get_current_account_id()
             community = self._get_community(db, community_id)
             db.execute(sa_delete(Community).where(Community.id == community.id))
             db.commit()
+            SearchService.invalidate_cache(account_id)
         finally:
             db.close()
 

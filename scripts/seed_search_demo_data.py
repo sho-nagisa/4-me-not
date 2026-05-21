@@ -20,7 +20,10 @@ from backend.testing.demo_data import cleanup_demo_data
 
 PREFIX = "[SEARCH-DEMO]"
 RANDOM_SEED = 20260519
-INTERACTION_COUNT = 300
+# Keep the local dataset readable while still large enough to evaluate search.
+# The base demo seed creates 30 interactions, so this makes the combined demo
+# dataset about 150 interactions.
+INTERACTION_COUNT = 120
 
 
 PEOPLE = [

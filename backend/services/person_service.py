@@ -8,6 +8,7 @@ from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.community.community import Community
 from backend.models.person.person import Person
+from backend.services.search_service import SearchService
 
 
 class PersonService:
@@ -37,6 +38,7 @@ class PersonService:
             db.add(person)
             db.commit()
             db.refresh(person)
+            SearchService.invalidate_cache(account_id)
             return person
         finally:
             db.close()
@@ -87,10 +89,12 @@ class PersonService:
     def set_hidden(self, person_id: str, is_hidden: bool):
         db = SessionLocal()
         try:
+            account_id = get_current_account_id()
             person = self._get_person(db, person_id)
             person.is_hidden = is_hidden
             db.commit()
             db.refresh(person)
+            SearchService.invalidate_cache(account_id)
             return person
         finally:
             db.close()
@@ -98,9 +102,11 @@ class PersonService:
     def delete_person(self, person_id: str):
         db = SessionLocal()
         try:
+            account_id = get_current_account_id()
             person = self._get_person(db, person_id)
             db.execute(sa_delete(Person).where(Person.id == person.id))
             db.commit()
+            SearchService.invalidate_cache(account_id)
         finally:
             db.close()
 
