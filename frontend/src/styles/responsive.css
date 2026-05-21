@@ -88,6 +88,7 @@
   .form-grid,
   .filter-grid,
   .search-answer-card__people,
+  .task-candidate-list,
   .search-result-list--compact,
   .metric-grid--compact {
     grid-template-columns: 1fr;

@@ -2,6 +2,7 @@ import backend.models.account.account  # noqa: F401
 import backend.models.ai.ai_metadata  # noqa: F401
 import backend.models.ai.parsed_note  # noqa: F401
 import backend.models.calendar.calendar_event  # noqa: F401
+import backend.models.calendar.event_participant  # noqa: F401
 import backend.models.calendar.meeting_snapshot  # noqa: F401
 import backend.models.community.community  # noqa: F401
 import backend.models.community.community_tree  # noqa: F401
@@ -18,5 +19,7 @@ import backend.models.reminder.reminder  # noqa: F401
 import backend.models.reminder.trigger  # noqa: F401
 import backend.models.search.search_document  # noqa: F401
 import backend.models.tag.tag  # noqa: F401
+import backend.models.task.task  # noqa: F401
+import backend.models.task.task_link  # noqa: F401
 import backend.models.task.relationship_task  # noqa: F401
 import backend.models.task.task_history  # noqa: F401

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { PointerEvent } from "react";
 
 import { useIsMobile } from "../hooks/useIsMobile";
 import {
@@ -21,23 +22,28 @@ import type {
   SearchResponse,
   SearchTargetType,
   ShareLevel,
+  TaskRecord,
   Topic,
 } from "./interactionNew/types";
 import { DesktopHome, MobileHome, NavItem } from "./interactionNew/components";
 import { HistoryPage } from "./interactionNew/HistoryPage";
 import {
+  acceptTaskCandidate,
   createCommunity,
   createInteraction,
   createPerson,
   createTopic,
   deleteCommunity,
   deletePerson,
+  dismissTaskCandidate,
   getInteractionOverview,
   getPersonDashboard,
   listCommunities,
   listInteractionPage,
   listInteractions,
   listPersons,
+  listTaskCandidates,
+  listTasks,
   listTopics,
   searchMemory,
   updateCommunityHidden,
@@ -47,6 +53,7 @@ import { ManagePage } from "./interactionNew/ManagePage";
 import { PersonPage } from "./interactionNew/PersonPage";
 import { RecordPage } from "./interactionNew/RecordPage";
 import { SearchPage, type SearchScope } from "./interactionNew/SearchPage";
+import { TaskPage, type TaskPanelId } from "./interactionNew/TaskPage";
 import {
   buildPersonBubbles,
   buildPersonBubblesFromCounts,
@@ -54,16 +61,47 @@ import {
 } from "./interactionNew/utils";
 
 const HISTORY_DEFAULT_LIMIT = 30;
+const MODE_SWITCH_HOLD_MS = 3000;
+
+type WorkspaceMode = "relations" | "tasks";
+
+const relationSearchScopeOptions: Array<{ id: SearchScope; label: string }> = [
+  { id: "all", label: "すべて" },
+  { id: "interaction", label: "会話" },
+  { id: "person", label: "人物" },
+  { id: "community", label: "団体" },
+  { id: "topic", label: "話題" },
+];
+
+const relationSearchTargetTypes: SearchTargetType[] = [
+  "interaction",
+  "person",
+  "community",
+  "topic",
+];
+
+const taskPageOptions: Array<{
+  id: TaskPanelId;
+  label: string;
+  mobileLabel: string;
+  description: string;
+}> = [
+  { id: "overview", label: "タスク", mobileLabel: "タスク", description: "候補と未完了を見る" },
+  { id: "search", label: "タスク検索", mobileLabel: "検索", description: "タスクと予定を探す" },
+];
 
 export default function InteractionNew() {
   const isMobile = useIsMobile(820);
 
+  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>("relations");
   const [currentPage, setCurrentPage] = useState<PageId>("home");
+  const [taskPanel, setTaskPanel] = useState<TaskPanelId>("overview");
   const [personPanel, setPersonPanel] = useState<PersonPanelId>("summary");
   const [managePanel, setManagePanel] = useState<ManagePanelId>("people");
   const [historyFilterOpen, setHistoryFilterOpen] = useState(false);
   const [mobileRecordPanel, setMobileRecordPanel] = useState<"input" | "check">("input");
   const mobileRecordSwipeRef = useRef<HTMLDivElement | null>(null);
+  const modeSwitchTimerRef = useRef<number | null>(null);
 
   const [persons, setPersons] = useState<Person[]>([]);
   const [communities, setCommunities] = useState<Community[]>([]);
@@ -93,6 +131,10 @@ export default function InteractionNew() {
   const [isCreatingTopic, setIsCreatingTopic] = useState(false);
   const [personActionId, setPersonActionId] = useState<string | null>(null);
   const [communityActionId, setCommunityActionId] = useState<string | null>(null);
+  const [taskActionId, setTaskActionId] = useState<string | null>(null);
+  const [taskCandidatesLoading, setTaskCandidatesLoading] = useState(false);
+  const [taskItemsLoading, setTaskItemsLoading] = useState(false);
+  const [modeSwitchArmed, setModeSwitchArmed] = useState(false);
 
   const [feedback, setFeedback] = useState<{
     tone: "success" | "error" | "info";
@@ -129,6 +171,12 @@ export default function InteractionNew() {
   const [searchScope, setSearchScope] = useState<SearchScope>("all");
   const [searchResult, setSearchResult] = useState<SearchResponse | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [taskCandidates, setTaskCandidates] = useState<TaskRecord[]>([]);
+  const [taskItems, setTaskItems] = useState<TaskRecord[]>([]);
+  const [taskSearchQuery, setTaskSearchQuery] = useState<string>("");
+  const [taskSearchResult, setTaskSearchResult] = useState<SearchResponse | null>(null);
+  const [taskSearchError, setTaskSearchError] = useState<string | null>(null);
+  const [taskSearchLoading, setTaskSearchLoading] = useState(false);
 
   const [detailPersonId, setDetailPersonId] = useState<string>("");
   const [detailCommunityId, setDetailCommunityId] = useState<string>("");
@@ -151,6 +199,71 @@ export default function InteractionNew() {
   const setSuccess = (message: string) => {
     setFeedback({ tone: "success", message });
   };
+
+  const clearModeSwitchTimer = () => {
+    if (modeSwitchTimerRef.current !== null) {
+      window.clearTimeout(modeSwitchTimerRef.current);
+      modeSwitchTimerRef.current = null;
+    }
+  };
+
+  const toggleWorkspaceMode = () => {
+    setWorkspaceMode((currentMode) => {
+      const nextMode: WorkspaceMode = currentMode === "relations" ? "tasks" : "relations";
+      if (nextMode === "tasks") {
+        setTaskPanel("overview");
+      } else {
+        setCurrentPage("home");
+      }
+      return nextMode;
+    });
+  };
+
+  const handleModeSwitchPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    clearModeSwitchTimer();
+    setModeSwitchArmed(true);
+    modeSwitchTimerRef.current = window.setTimeout(() => {
+      modeSwitchTimerRef.current = null;
+      setModeSwitchArmed(false);
+      toggleWorkspaceMode();
+    }, MODE_SWITCH_HOLD_MS);
+  };
+
+  const handleModeSwitchPointerEnd = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    clearModeSwitchTimer();
+    setModeSwitchArmed(false);
+  };
+
+  const renderBrandSwitch = () => (
+    <button
+      type="button"
+      className={`brand-switch brand-switch--${workspaceMode} ${
+        modeSwitchArmed ? "brand-switch--pressing" : ""
+      }`}
+      onPointerDown={handleModeSwitchPointerDown}
+      onPointerUp={handleModeSwitchPointerEnd}
+      onPointerCancel={handleModeSwitchPointerEnd}
+      onPointerLeave={() => {
+        clearModeSwitchTimer();
+        setModeSwitchArmed(false);
+      }}
+      aria-label="勿忘草。3秒長押しで人間関係管理とタスク管理を切り替えます。"
+      title="3秒長押しで切り替え"
+    >
+      <span className="brand-switch__title">勿忘草</span>
+      <span className="brand-switch__mode">
+        {workspaceMode === "relations" ? "人間関係管理" : "タスク管理"}
+      </span>
+    </button>
+  );
+
+  useEffect(() => {
+    return () => clearModeSwitchTimer();
+  }, []);
 
   useEffect(() => {
     if (!feedback || feedback.tone === "info") return;
@@ -327,8 +440,13 @@ export default function InteractionNew() {
       return;
     }
 
+    const relationScope = relationSearchScopeOptions.some(
+      (option) => option.id === nextScope
+    )
+      ? nextScope
+      : "all";
     const targetTypes: SearchTargetType[] =
-      nextScope === "all" ? [] : [nextScope];
+      relationScope === "all" ? relationSearchTargetTypes : [relationScope];
 
     setSearchLoading(true);
     setSearchError(null);
@@ -344,6 +462,56 @@ export default function InteractionNew() {
     }
   };
 
+  const loadTaskCandidateList = async () => {
+    setTaskCandidatesLoading(true);
+    try {
+      const items = await listTaskCandidates();
+      setTaskCandidates(items);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "タスク候補の取得に失敗しました。";
+      setError(message);
+    } finally {
+      setTaskCandidatesLoading(false);
+    }
+  };
+
+  const loadTaskList = async () => {
+    setTaskItemsLoading(true);
+    try {
+      const items = await listTasks({ includeCandidates: false });
+      setTaskItems(items);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "タスクの取得に失敗しました。";
+      setError(message);
+    } finally {
+      setTaskItemsLoading(false);
+    }
+  };
+
+  const runTaskSearch = async (nextQuery = taskSearchQuery) => {
+    const trimmedQuery = nextQuery.trim();
+    if (!trimmedQuery) {
+      setTaskSearchResult(null);
+      setTaskSearchError(null);
+      return;
+    }
+
+    setTaskSearchLoading(true);
+    setTaskSearchError(null);
+    try {
+      const result = await searchMemory(trimmedQuery, ["task", "calendar_event"]);
+      setTaskSearchResult(result);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "タスク検索に失敗しました。";
+      setTaskSearchError(message);
+    } finally {
+      setTaskSearchLoading(false);
+    }
+  };
+
   useEffect(() => {
     void loadOptions();
     void loadOverviewInteractions();
@@ -354,6 +522,22 @@ export default function InteractionNew() {
       void loadManageData();
     }
   }, [currentPage]);
+
+  useEffect(() => {
+    if (workspaceMode === "tasks") {
+      void loadTaskCandidateList();
+      void loadTaskList();
+    }
+  }, [workspaceMode]);
+
+  useEffect(() => {
+    if (
+      workspaceMode === "relations" &&
+      !relationSearchScopeOptions.some((option) => option.id === searchScope)
+    ) {
+      setSearchScope("all");
+    }
+  }, [workspaceMode, searchScope]);
 
   useEffect(() => {
     if (currentPage === "history") {
@@ -407,6 +591,53 @@ export default function InteractionNew() {
     }
     if (currentPage === "person" && detailPersonId) {
       await loadDetailDashboard(detailPersonId);
+    }
+    if (currentPage === "search") {
+      await loadTaskCandidateList();
+    }
+    if (workspaceMode === "tasks") {
+      await loadTaskList();
+    }
+  };
+
+  const refreshTaskCandidateState = async () => {
+    await loadTaskCandidateList();
+    await loadTaskList();
+    if (searchQuery.trim()) {
+      await runSearch(searchQuery, searchScope);
+    }
+    if (taskSearchQuery.trim()) {
+      await runTaskSearch(taskSearchQuery);
+    }
+  };
+
+  const handleAcceptTaskCandidate = async (taskId: string) => {
+    setTaskActionId(taskId);
+    try {
+      await acceptTaskCandidate(taskId);
+      await refreshTaskCandidateState();
+      setSuccess("タスク候補を採用しました。");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "タスク候補の採用に失敗しました。";
+      setError(message);
+    } finally {
+      setTaskActionId(null);
+    }
+  };
+
+  const handleDismissTaskCandidate = async (taskId: string) => {
+    setTaskActionId(taskId);
+    try {
+      await dismissTaskCandidate(taskId);
+      await refreshTaskCandidateState();
+      setSuccess("タスク候補を却下しました。");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "タスク候補の却下に失敗しました。";
+      setError(message);
+    } finally {
+      setTaskActionId(null);
     }
   };
 
@@ -708,6 +939,28 @@ export default function InteractionNew() {
   };
 
   const renderPage = () => {
+    if (workspaceMode === "tasks") {
+      return (
+        <TaskPage
+          panel={taskPanel}
+          setPanel={setTaskPanel}
+          tasks={taskItems}
+          tasksLoading={taskItemsLoading}
+          taskCandidates={taskCandidates}
+          taskCandidatesLoading={taskCandidatesLoading}
+          taskActionId={taskActionId}
+          onAcceptTaskCandidate={handleAcceptTaskCandidate}
+          onDismissTaskCandidate={handleDismissTaskCandidate}
+          searchQuery={taskSearchQuery}
+          setSearchQuery={setTaskSearchQuery}
+          searchLoading={taskSearchLoading}
+          searchResult={taskSearchResult}
+          searchError={taskSearchError}
+          onSearch={runTaskSearch}
+        />
+      );
+    }
+
     switch (currentPage) {
       case "record":
         return (
@@ -755,12 +1008,19 @@ export default function InteractionNew() {
             setQuery={setSearchQuery}
             scope={searchScope}
             setScope={setSearchScope}
+            scopeOptions={relationSearchScopeOptions}
             loading={searchLoading}
             result={searchResult}
             error={searchError}
             onSearch={runSearch}
             onOpenPerson={openPersonFromSearch}
             onOpenRecordForPerson={openRecordForPerson}
+            taskCandidates={taskCandidates}
+            taskCandidatesLoading={taskCandidatesLoading}
+            taskActionId={taskActionId}
+            onAcceptTaskCandidate={handleAcceptTaskCandidate}
+            onDismissTaskCandidate={handleDismissTaskCandidate}
+            showTaskCandidates={false}
           />
         );
       case "history":
@@ -859,13 +1119,19 @@ export default function InteractionNew() {
     }
   };
 
-  const showBrandHeader = currentPage !== "manage" && currentPage !== "person";
+  const openTaskCount = taskItems.filter((task) => task.status === "TODO").length;
+  const dueSoonTaskCount = taskItems.filter((task) => {
+    if (!task.due_at) return false;
+    const dueAt = new Date(task.due_at).getTime();
+    const now = Date.now();
+    return dueAt >= now && dueAt <= now + 7 * 24 * 60 * 60 * 1000;
+  }).length;
 
   return (
     <main
       className={`app-shell ${isMobile ? "app-shell--mobile" : "app-shell--desktop"} ${
-        currentPage === "home" ? "app-shell--home" : ""
-      }`}
+        workspaceMode === "relations" && currentPage === "home" ? "app-shell--home" : ""
+      } app-shell--${workspaceMode}`}
     >
       <div className="app-shell__glow app-shell__glow--left" />
       <div className="app-shell__glow app-shell__glow--right" />
@@ -873,41 +1139,62 @@ export default function InteractionNew() {
       {!isMobile ? (
         <div className="desktop-frame">
           <aside className="desktop-sidebar">
-            {showBrandHeader ? (
-              <div className="brand-card">
-                <p className="eyebrow">勿忘草</p>
-                <h1>勿忘草</h1>
-                <p>
-                  PC では左ナビでページを切り替え、右側はその目的だけに集中できる構成です。
-                </p>
-              </div>
-            ) : null}
+            <div className="brand-card brand-card--compact">{renderBrandSwitch()}</div>
 
             <nav className="nav-list">
-              {pageOptions.map((page) => (
-                <NavItem
-                  key={page.id}
-                  active={currentPage === page.id}
-                  label={page.label}
-                  description={page.description}
-                  onClick={() => setCurrentPage(page.id)}
-                />
-              ))}
+              {workspaceMode === "relations"
+                ? pageOptions.map((page) => (
+                    <NavItem
+                      key={page.id}
+                      active={currentPage === page.id}
+                      label={page.label}
+                      description={page.description}
+                      onClick={() => setCurrentPage(page.id)}
+                    />
+                  ))
+                : taskPageOptions.map((page) => (
+                    <NavItem
+                      key={page.id}
+                      active={taskPanel === page.id}
+                      label={page.label}
+                      description={page.description}
+                      onClick={() => setTaskPanel(page.id)}
+                    />
+                  ))}
             </nav>
 
             <div className="sidebar-summary">
-              <div className="sidebar-summary__item">
-                <strong>{overview.total_count}</strong>
-                <span>記録数</span>
-              </div>
-              <div className="sidebar-summary__item">
-                <strong>{persons.length}</strong>
-                <span>人</span>
-              </div>
-              <div className="sidebar-summary__item">
-                <strong>{communities.length}</strong>
-                <span>コミュニティ</span>
-              </div>
+              {workspaceMode === "relations" ? (
+                <>
+                  <div className="sidebar-summary__item">
+                    <strong>{overview.total_count}</strong>
+                    <span>記録数</span>
+                  </div>
+                  <div className="sidebar-summary__item">
+                    <strong>{persons.length}</strong>
+                    <span>人</span>
+                  </div>
+                  <div className="sidebar-summary__item">
+                    <strong>{communities.length}</strong>
+                    <span>コミュニティ</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="sidebar-summary__item">
+                    <strong>{taskCandidates.length}</strong>
+                    <span>候補</span>
+                  </div>
+                  <div className="sidebar-summary__item">
+                    <strong>{openTaskCount}</strong>
+                    <span>未完了</span>
+                  </div>
+                  <div className="sidebar-summary__item">
+                    <strong>{dueSoonTaskCount}</strong>
+                    <span>期限間近</span>
+                  </div>
+                </>
+              )}
             </div>
           </aside>
 
@@ -930,15 +1217,9 @@ export default function InteractionNew() {
         </div>
       ) : (
         <div className="mobile-frame">
-          {showBrandHeader ? (
-            <header className="mobile-header">
-              <div>
-                <p className="eyebrow">勿忘草</p>
-                <h1>勿忘草</h1>
-              </div>
-              <p>スマホでは 1 画面 1 目的に寄せて、下タブで切り替える構成です。</p>
-            </header>
-          ) : null}
+          <header className="mobile-header mobile-header--compact">
+            {renderBrandSwitch()}
+          </header>
 
           {feedback ? (
             <section className={`banner banner--${feedback.tone}`}>
@@ -957,16 +1238,27 @@ export default function InteractionNew() {
           <section className="mobile-content">{renderPage()}</section>
 
           <nav className="mobile-dock">
-            {mobilePageOptions.map((page) => (
-              <NavItem
-                key={page.id}
-                active={currentPage === page.id}
-                compact
-                label={page.mobileLabel}
-                description=""
-                onClick={() => setCurrentPage(page.id)}
-              />
-            ))}
+            {workspaceMode === "relations"
+              ? mobilePageOptions.map((page) => (
+                  <NavItem
+                    key={page.id}
+                    active={currentPage === page.id}
+                    compact
+                    label={page.mobileLabel}
+                    description=""
+                    onClick={() => setCurrentPage(page.id)}
+                  />
+                ))
+              : taskPageOptions.map((page) => (
+                  <NavItem
+                    key={page.id}
+                    active={taskPanel === page.id}
+                    compact
+                    label={page.mobileLabel}
+                    description=""
+                    onClick={() => setTaskPanel(page.id)}
+                  />
+                ))}
           </nav>
         </div>
       )}
