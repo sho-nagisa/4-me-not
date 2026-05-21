@@ -58,7 +58,13 @@ export type ShareLevel = "SHARED" | "PARTIAL" | "WITHHELD";
 export type PageId = "home" | "record" | "search" | "history" | "person" | "manage";
 export type PersonPanelId = "summary" | "topics" | "notes" | "recent";
 export type ManagePanelId = "people" | "communities" | "topics";
-export type SearchTargetType = "interaction" | "person" | "community" | "topic";
+export type SearchTargetType =
+  | "interaction"
+  | "person"
+  | "task"
+  | "calendar_event"
+  | "community"
+  | "topic";
 
 export type InteractionRecord = {
   id: string;
@@ -165,8 +171,43 @@ export type SearchResultItem = {
   community_path: string | null;
   topic_id: string | null;
   topic_path: string | null;
+  due_at: string | null;
+  status: string | null;
+  status_label: string | null;
+  source_type: string | null;
+  is_candidate: boolean;
+  candidate_status: string | null;
+  start_at: string | null;
+  end_at: string | null;
+  location: string | null;
+  target_label: string | null;
   occurred_at: string | null;
   indexed_at: string;
+};
+
+export type TaskLinkRecord = {
+  target_type: SearchTargetType;
+  target_id: string;
+  target_label: string | null;
+  role: string;
+  confidence: number | null;
+};
+
+export type TaskRecord = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  due_at: string | null;
+  priority: number | null;
+  source_type: string;
+  source_id: string | null;
+  is_candidate: boolean;
+  candidate_status: string;
+  confidence: number | null;
+  links: TaskLinkRecord[];
+  created_at: string;
+  updated_at: string;
 };
 
 export type SearchResponse = {
@@ -177,6 +218,8 @@ export type SearchResponse = {
   groups: {
     people: SearchResultItem[];
     interactions: SearchResultItem[];
+    tasks: SearchResultItem[];
+    calendar_events: SearchResultItem[];
     communities: SearchResultItem[];
     topics: SearchResultItem[];
   };

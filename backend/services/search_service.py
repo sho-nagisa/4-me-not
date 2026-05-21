@@ -20,11 +20,15 @@ from sqlalchemy.orm import Session, joinedload
 
 from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
+from backend.models.base.enums import TaskStatus
 from backend.models.community.community import Community
 from backend.models.interaction.interaction import Interaction
 from backend.models.interaction.topic import Topic
+from backend.models.calendar.calendar_event import CalendarEvent
+from backend.models.calendar.event_participant import EventParticipant
 from backend.models.person.person import Person
 from backend.models.search.search_document import SearchDocument
+from backend.models.task.task import Task
 
 
 logger = logging.getLogger(__name__)
@@ -34,17 +38,23 @@ TARGET_INTERACTION = "interaction"
 TARGET_PERSON = "person"
 TARGET_COMMUNITY = "community"
 TARGET_TOPIC = "topic"
+TARGET_TASK = "task"
+TARGET_CALENDAR_EVENT = "calendar_event"
 ALLOWED_TARGET_TYPES = {
     TARGET_INTERACTION,
     TARGET_PERSON,
     TARGET_COMMUNITY,
     TARGET_TOPIC,
+    TARGET_TASK,
+    TARGET_CALENDAR_EVENT,
 }
 GROUP_KEYS = {
     TARGET_INTERACTION: "interactions",
     TARGET_PERSON: "people",
     TARGET_COMMUNITY: "communities",
     TARGET_TOPIC: "topics",
+    TARGET_TASK: "tasks",
+    TARGET_CALENDAR_EVENT: "calendar_events",
 }
 
 
@@ -66,6 +76,16 @@ class CachedSearchDocument:
     community_path: str | None
     topic_id: UUID | None
     topic_path: str | None
+    due_at: datetime | None
+    status: str | None
+    status_label: str | None
+    source_type: str | None
+    is_candidate: bool
+    candidate_status: str | None
+    start_at: datetime | None
+    end_at: datetime | None
+    location: str | None
+    target_label: str | None
 
 
 class SearchEmbeddingProvider:
@@ -252,6 +272,71 @@ class SearchService:
             if account_id is not None:
                 self.invalidate_cache(account_id)
 
+    def index_task(self, task_id: str) -> None:
+        db: Session = SessionLocal()
+        account_id: UUID | None = None
+        try:
+            account_id = get_current_account_id()
+            task_uuid = normalize_uuid(task_id, "Task is invalid")
+            task = (
+                db.query(Task)
+                .options(joinedload(Task.links))
+                .filter(Task.id == task_uuid, Task.account_id == account_id)
+                .first()
+            )
+            if task is None or task.candidate_status == "dismissed":
+                self._delete_target_document(
+                    db=db,
+                    account_id=account_id,
+                    target_type=TARGET_TASK,
+                    target_id=task_uuid,
+                )
+                db.commit()
+                return
+
+            self._index_task(db, account_id, task)
+            db.commit()
+        finally:
+            db.close()
+            if account_id is not None:
+                self.invalidate_cache(account_id)
+
+    def index_calendar_event(self, calendar_event_id: str) -> None:
+        db: Session = SessionLocal()
+        account_id: UUID | None = None
+        try:
+            account_id = get_current_account_id()
+            event_uuid = normalize_uuid(calendar_event_id, "Calendar event is invalid")
+            calendar_event = (
+                db.query(CalendarEvent)
+                .options(
+                    joinedload(CalendarEvent.participants).joinedload(
+                        EventParticipant.person
+                    )
+                )
+                .filter(
+                    CalendarEvent.id == event_uuid,
+                    CalendarEvent.account_id == account_id,
+                )
+                .first()
+            )
+            if calendar_event is None:
+                self._delete_target_document(
+                    db=db,
+                    account_id=account_id,
+                    target_type=TARGET_CALENDAR_EVENT,
+                    target_id=event_uuid,
+                )
+                db.commit()
+                return
+
+            self._index_calendar_event(db, account_id, calendar_event)
+            db.commit()
+        finally:
+            db.close()
+            if account_id is not None:
+                self.invalidate_cache(account_id)
+
     def rebuild_account_index(self) -> dict[str, int]:
         db: Session = SessionLocal()
         account_id: UUID | None = None
@@ -280,6 +365,25 @@ class SearchService:
                 .all()
             )
             interactions = self._visible_interactions_query(db, account_id).all()
+            tasks = (
+                db.query(Task)
+                .options(joinedload(Task.links))
+                .filter(
+                    Task.account_id == account_id,
+                    Task.candidate_status != "dismissed",
+                )
+                .all()
+            )
+            calendar_events = (
+                db.query(CalendarEvent)
+                .options(
+                    joinedload(CalendarEvent.participants).joinedload(
+                        EventParticipant.person
+                    )
+                )
+                .filter(CalendarEvent.account_id == account_id)
+                .all()
+            )
 
             for person in people:
                 self._index_person(db, account_id, person)
@@ -289,6 +393,10 @@ class SearchService:
                 self._index_topic(db, account_id, topic)
             for interaction in interactions:
                 self._index_interaction(db, account_id, interaction)
+            for task in tasks:
+                self._index_task(db, account_id, task)
+            for calendar_event in calendar_events:
+                self._index_calendar_event(db, account_id, calendar_event)
 
             db.commit()
             return {
@@ -296,6 +404,8 @@ class SearchService:
                 "communities": len(communities),
                 "topics": len(topics),
                 "interactions": len(interactions),
+                "tasks": len(tasks),
+                "calendar_events": len(calendar_events),
             }
         finally:
             db.close()
@@ -505,6 +615,164 @@ class SearchService:
             topic_id=topic.id,
         )
 
+    def _index_task(
+        self,
+        db: Session,
+        account_id: UUID,
+        task: Task,
+    ) -> None:
+        if task.candidate_status == "dismissed":
+            return
+
+        links = list(task.links)
+        person_ids = [
+            link.target_id for link in links if link.target_type == TARGET_PERSON
+        ]
+        community_ids = [
+            link.target_id for link in links if link.target_type == TARGET_COMMUNITY
+        ]
+        topic_ids = [
+            link.target_id for link in links if link.target_type == TARGET_TOPIC
+        ]
+
+        people = (
+            db.query(Person)
+            .filter(
+                Person.account_id == account_id,
+                Person.id.in_(person_ids),
+                Person.is_hidden.is_(False),
+            )
+            .all()
+            if person_ids
+            else []
+        )
+        communities = (
+            db.query(Community)
+            .filter(
+                Community.account_id == account_id,
+                Community.id.in_(community_ids),
+                Community.is_hidden.is_(False),
+            )
+            .all()
+            if community_ids
+            else []
+        )
+        topics = (
+            db.query(Topic)
+            .filter(Topic.account_id == account_id, Topic.id.in_(topic_ids))
+            .all()
+            if topic_ids
+            else []
+        )
+        people_by_id = {person.id: person for person in people}
+        communities_by_id = {community.id: community for community in communities}
+        topics_by_id = {topic.id: topic for topic in topics}
+
+        primary_person = next(
+            (people_by_id[person_id] for person_id in person_ids if person_id in people_by_id),
+            None,
+        )
+        primary_community = next(
+            (
+                communities_by_id[community_id]
+                for community_id in community_ids
+                if community_id in communities_by_id
+            ),
+            None,
+        )
+        primary_topic = next(
+            (topics_by_id[topic_id] for topic_id in topic_ids if topic_id in topics_by_id),
+            None,
+        )
+        people_names = ", ".join(person.name for person in people)
+        community_paths = ", ".join(
+            path for path in (self._build_path(community) for community in communities) if path
+        )
+        topic_paths = ", ".join(
+            path for path in (self._build_path(topic) for topic in topics) if path
+        )
+        status_label = task_status_label(task.status)
+        candidate_label = "候補" if task.is_candidate else "確定"
+        due_text = task.due_at.isoformat() if task.due_at else ""
+        search_text = join_search_parts(
+            [
+                "type: task",
+                f"title: {task.title}",
+                f"description: {task.description or ''}",
+                f"status: {status_label}",
+                f"candidate: {candidate_label}",
+                f"due_at: {due_text}",
+                f"source_type: {task.source_type}",
+                f"people: {people_names}",
+                f"communities: {community_paths}",
+                f"topics: {topic_paths}",
+            ]
+        )
+        self._upsert_document(
+            db=db,
+            account_id=account_id,
+            target_type=TARGET_TASK,
+            target_id=task.id,
+            title=task.title[:200],
+            summary=compact_text(task.description) or f"{candidate_label} / {status_label}",
+            search_text=search_text,
+            occurred_at=task.due_at or task.updated_at,
+            person_id=primary_person.id if primary_person else None,
+            community_id=primary_community.id if primary_community else None,
+            topic_id=primary_topic.id if primary_topic else None,
+        )
+
+    def _index_calendar_event(
+        self,
+        db: Session,
+        account_id: UUID,
+        calendar_event: CalendarEvent,
+    ) -> None:
+        participants = list(calendar_event.participants)
+        people = [
+            participant.person
+            for participant in participants
+            if participant.person and not participant.person.is_hidden
+        ]
+        participant_labels = [
+            participant.person.name
+            if participant.person
+            else first_non_empty(participant.display_name, participant.email)
+            for participant in participants
+        ]
+        participant_text = ", ".join(label for label in participant_labels if label)
+        primary_person = people[0] if people else None
+        search_text = join_search_parts(
+            [
+                "type: calendar_event",
+                f"title: {calendar_event.title}",
+                f"description: {calendar_event.description or ''}",
+                f"location: {calendar_event.location or ''}",
+                f"participants: {participant_text}",
+                f"start_at: {calendar_event.start_at.isoformat()}",
+                f"end_at: {calendar_event.end_at.isoformat()}",
+                f"source: {calendar_event.source or ''}",
+            ]
+        )
+        summary = first_non_empty(
+            compact_text(calendar_event.description),
+            calendar_event.location,
+            participant_text,
+        )
+        self._upsert_document(
+            db=db,
+            account_id=account_id,
+            target_type=TARGET_CALENDAR_EVENT,
+            target_id=calendar_event.id,
+            title=calendar_event.title[:200],
+            summary=summary,
+            search_text=search_text,
+            occurred_at=calendar_event.start_at,
+            person_id=primary_person.id if primary_person else None,
+            community_id=None,
+            topic_id=None,
+        )
+
     def _upsert_document(
         self,
         db: Session,
@@ -643,6 +911,11 @@ class SearchService:
                 account_id,
                 documents,
             )
+            detail_maps = self._build_cached_detail_maps(
+                db,
+                account_id,
+                documents,
+            )
             cached_documents = []
 
             for document in documents:
@@ -671,6 +944,10 @@ class SearchService:
                     else None
                 )
                 topic = reference_maps["topics"].get(topic_id) if topic_id else None
+                details = detail_maps.get(document.target_type, {}).get(
+                    document.target_id,
+                    {},
+                )
 
                 cached_documents.append(
                     CachedSearchDocument(
@@ -700,6 +977,16 @@ class SearchService:
                         )
                         if topic
                         else None,
+                        due_at=details.get("due_at"),
+                        status=details.get("status"),
+                        status_label=details.get("status_label"),
+                        source_type=details.get("source_type"),
+                        is_candidate=bool(details.get("is_candidate", False)),
+                        candidate_status=details.get("candidate_status"),
+                        start_at=details.get("start_at"),
+                        end_at=details.get("end_at"),
+                        location=details.get("location"),
+                        target_label=details.get("target_label"),
                     )
                 )
 
@@ -741,6 +1028,82 @@ class SearchService:
             "people": {person.id: person for person in people},
             "communities": {community.id: community for community in communities},
             "topics": {topic.id: topic for topic in topics},
+        }
+
+    def _build_cached_detail_maps(
+        self,
+        db: Session,
+        account_id: UUID,
+        documents: list[SearchDocument],
+    ) -> dict[str, dict[UUID, dict]]:
+        task_ids = {
+            document.target_id
+            for document in documents
+            if document.target_type == TARGET_TASK
+        }
+        calendar_event_ids = {
+            document.target_id
+            for document in documents
+            if document.target_type == TARGET_CALENDAR_EVENT
+        }
+
+        tasks = (
+            db.query(Task)
+            .filter(Task.account_id == account_id, Task.id.in_(task_ids))
+            .all()
+            if task_ids
+            else []
+        )
+        calendar_events = (
+            db.query(CalendarEvent)
+            .options(
+                joinedload(CalendarEvent.participants).joinedload(
+                    EventParticipant.person
+                )
+            )
+            .filter(
+                CalendarEvent.account_id == account_id,
+                CalendarEvent.id.in_(calendar_event_ids),
+            )
+            .all()
+            if calendar_event_ids
+            else []
+        )
+
+        return {
+            TARGET_TASK: {
+                task.id: {
+                    "due_at": task.due_at,
+                    "status": TaskStatus(task.status).name,
+                    "status_label": task_status_label(task.status),
+                    "source_type": task.source_type,
+                    "is_candidate": bool(task.is_candidate),
+                    "candidate_status": task.candidate_status,
+                }
+                for task in tasks
+            },
+            TARGET_CALENDAR_EVENT: {
+                event.id: {
+                    "start_at": event.start_at,
+                    "end_at": event.end_at,
+                    "location": event.location,
+                    "source_type": event.source,
+                    "target_label": ", ".join(
+                        label
+                        for label in (
+                            participant.person.name
+                            if participant.person
+                            else first_non_empty(
+                                participant.display_name,
+                                participant.email,
+                            )
+                            for participant in event.participants
+                        )
+                        if label
+                    ),
+                }
+                for event in calendar_events
+            },
         }
 
     def _build_cached_path(self, record, records_by_id: dict[UUID, object]) -> str | None:
@@ -934,6 +1297,16 @@ class SearchService:
             "community_path": document.community_path,
             "topic_id": str(document.topic_id) if document.topic_id else None,
             "topic_path": document.topic_path,
+            "due_at": document.due_at.isoformat() if document.due_at else None,
+            "status": document.status,
+            "status_label": document.status_label,
+            "source_type": document.source_type,
+            "is_candidate": document.is_candidate,
+            "candidate_status": document.candidate_status,
+            "start_at": document.start_at.isoformat() if document.start_at else None,
+            "end_at": document.end_at.isoformat() if document.end_at else None,
+            "location": document.location,
+            "target_label": document.target_label,
             "occurred_at": document.occurred_at.isoformat()
             if document.occurred_at
             else None,
@@ -944,6 +1317,8 @@ class SearchService:
         grouped = {
             "people": [],
             "interactions": [],
+            "tasks": [],
+            "calendar_events": [],
             "communities": [],
             "topics": [],
         }
@@ -1017,6 +1392,8 @@ class SearchService:
             "groups": {
                 "people": [],
                 "interactions": [],
+                "tasks": [],
+                "calendar_events": [],
                 "communities": [],
                 "topics": [],
             },
@@ -1029,6 +1406,16 @@ def normalize_uuid(value: str, detail: str) -> UUID:
         return UUID(str(value))
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=detail) from exc
+
+
+def task_status_label(status: TaskStatus | int) -> str:
+    normalized = TaskStatus(status)
+    labels = {
+        TaskStatus.TODO: "未完了",
+        TaskStatus.DONE: "完了",
+        TaskStatus.SKIPPED: "スキップ",
+    }
+    return labels.get(normalized, normalized.name)
 
 
 def normalize_text(value: str | None) -> str:
@@ -1146,10 +1533,28 @@ def join_search_parts(parts: list[str | None]) -> str:
     return "\n".join(part.strip() for part in parts if part and part.strip())
 
 
+def add_unique_reason(candidate: dict, reason: str) -> None:
+    if reason and reason not in candidate["reasons"]:
+        candidate["reasons"].append(reason)
+
+
+def classify_answer_confidence(primary: dict, others: list[dict]) -> str:
+    score = float(primary["score"])
+    interaction_count = int(primary["interaction_count"])
+    runner_up_score = float(others[0]["score"]) if others else 0.0
+    margin = score - runner_up_score
+
+    if score >= 0.75 and (interaction_count >= 2 or margin >= 0.25):
+        return "high"
+    if score >= 0.42:
+        return "medium"
+    return "low"
+
+
 def empty_rag_answer() -> dict:
     return {
         "answer_model": "deterministic-rag-v1",
-        "summary": "検索語を入力すると、候補人物と根拠になる会話を整理します。",
+        "summary": "検索語を入力すると、人物・会話・タスク・予定の近い候補を整理します。",
         "confidence": "none",
         "primary_person": None,
         "people": [],
@@ -1166,7 +1571,7 @@ def build_rag_answer(
     if not results:
         return {
             **empty_rag_answer(),
-            "summary": "該当しそうな人物や会話は見つかりませんでした。",
+            "summary": "該当しそうな記録は見つかりませんでした。",
         }
 
     person_candidates = aggregate_person_candidates(results)
@@ -1241,6 +1646,8 @@ def aggregate_person_candidates(results: list[dict]) -> list[dict]:
                 "score": 0.0,
                 "direct_person_score": 0.0,
                 "interaction_count": 0,
+                "task_count": 0,
+                "event_count": 0,
                 "reasons": [],
                 "evidence": [],
             },
@@ -1263,6 +1670,16 @@ def aggregate_person_candidates(results: list[dict]) -> list[dict]:
             candidate["interaction_count"] += 1
             candidate["evidence"].append(result)
             add_unique_reason(candidate, "過去の会話内容が検索語に近い")
+        elif target_type == TARGET_TASK:
+            candidate["score"] += score * 0.9
+            candidate["task_count"] += 1
+            candidate["evidence"].append(result)
+            add_unique_reason(candidate, "関連タスクが検索語に近い")
+        elif target_type == TARGET_CALENDAR_EVENT:
+            candidate["score"] += score * 0.8
+            candidate["event_count"] += 1
+            candidate["evidence"].append(result)
+            add_unique_reason(candidate, "予定の内容が検索語に近い")
         else:
             candidate["score"] += score * 0.45
 
@@ -1273,6 +1690,8 @@ def aggregate_person_candidates(results: list[dict]) -> list[dict]:
 
     for candidate in candidates.values():
         candidate["score"] += min(candidate["interaction_count"], 4) * 0.08
+        candidate["score"] += min(candidate["task_count"], 3) * 0.06
+        candidate["score"] += min(candidate["event_count"], 3) * 0.04
         candidate["evidence"].sort(key=lambda item: -float(item.get("score") or 0))
 
     return sorted(
@@ -1280,27 +1699,11 @@ def aggregate_person_candidates(results: list[dict]) -> list[dict]:
         key=lambda item: (
             -float(item["score"]),
             -int(item["interaction_count"]),
+            -int(item["task_count"]),
+            -int(item["event_count"]),
             item["person_name"],
         ),
     )
-
-
-def add_unique_reason(candidate: dict, reason: str) -> None:
-    if reason and reason not in candidate["reasons"]:
-        candidate["reasons"].append(reason)
-
-
-def classify_answer_confidence(primary: dict, others: list[dict]) -> str:
-    score = float(primary["score"])
-    interaction_count = int(primary["interaction_count"])
-    runner_up_score = float(others[0]["score"]) if others else 0.0
-    margin = score - runner_up_score
-
-    if score >= 0.75 and (interaction_count >= 2 or margin >= 0.25):
-        return "high"
-    if score >= 0.42:
-        return "medium"
-    return "low"
 
 
 def build_non_person_answer(
@@ -1309,15 +1712,27 @@ def build_non_person_answer(
     groups: dict[str, list[dict]],
 ) -> dict:
     top_result = results[0]
+    type_label = {
+        TARGET_TASK: "タスク",
+        TARGET_CALENDAR_EVENT: "予定",
+        TARGET_INTERACTION: "会話",
+        TARGET_COMMUNITY: "団体",
+        TARGET_TOPIC: "話題",
+    }.get(top_result.get("target_type"), "記録")
+
     related_labels = [
         item["title"]
-        for item in [*groups.get("communities", []), *groups.get("topics", [])][:3]
+        for item in [
+            *groups.get("tasks", []),
+            *groups.get("calendar_events", []),
+            *groups.get("communities", []),
+            *groups.get("topics", []),
+        ][:3]
     ]
     if related_labels:
-        related_text = "、".join(f"「{label}」" for label in related_labels)
-        summary = f"人物までは絞り込めませんでしたが、{related_text}が近い候補です。"
+        summary = f"人物までは絞り込めませんでしたが、{type_label}「{top_result['title']}」が近い候補です。関連候補は{ '、'.join(related_labels) }です。"
     else:
-        summary = f"人物までは絞り込めませんでしたが、「{top_result['title']}」が近い候補です。"
+        summary = f"人物までは絞り込めませんでしたが、{type_label}「{top_result['title']}」が近い候補です。"
 
     return {
         "answer_model": "deterministic-rag-v1",
@@ -1342,7 +1757,11 @@ def build_follow_up_queries(
         if top_person.get("community_path"):
             suggestions.append(f"{top_person['community_path']} {query}")
 
-    for item in groups.get("topics", [])[:2]:
+    for item in groups.get("tasks", [])[:1]:
+        suggestions.append(f"{item['title']} {query}")
+    for item in groups.get("calendar_events", [])[:1]:
+        suggestions.append(f"{item['title']} {query}")
+    for item in groups.get("topics", [])[:1]:
         suggestions.append(f"{item['title']} {query}")
     for item in groups.get("communities", [])[:1]:
         suggestions.append(f"{item['title']} {query}")

@@ -6,6 +6,7 @@ import type {
   SearchResponse,
   SearchResultItem,
   SearchTargetType,
+  TaskRecord,
 } from "./types";
 import { formatDateTime } from "./utils";
 
@@ -16,34 +17,58 @@ type SearchPageProps = {
   setQuery: Dispatch<SetStateAction<string>>;
   scope: SearchScope;
   setScope: Dispatch<SetStateAction<SearchScope>>;
+  scopeOptions?: Array<{ id: SearchScope; label: string }>;
   loading: boolean;
   result: SearchResponse | null;
   error: string | null;
   onSearch: (query?: string, scope?: SearchScope) => void | Promise<void>;
   onOpenPerson: (personId: string) => void;
   onOpenRecordForPerson: (personId: string) => void;
+  taskCandidates: TaskRecord[];
+  taskCandidatesLoading: boolean;
+  taskActionId: string | null;
+  onAcceptTaskCandidate: (taskId: string) => void | Promise<void>;
+  onDismissTaskCandidate: (taskId: string) => void | Promise<void>;
+  showTaskCandidates?: boolean;
 };
 
-const scopeOptions: Array<{ id: SearchScope; label: string }> = [
+export const defaultSearchScopeOptions: Array<{ id: SearchScope; label: string }> = [
   { id: "all", label: "すべて" },
-  { id: "person", label: "人物" },
   { id: "interaction", label: "会話" },
-  { id: "community", label: "所属" },
+  { id: "task", label: "タスク" },
+  { id: "calendar_event", label: "予定" },
+  { id: "person", label: "人物" },
+  { id: "community", label: "団体" },
   { id: "topic", label: "話題" },
 ];
 
 const exampleQueries = [
+  "発表資料 期限",
+  "山田さん 返信",
+  "研究室 来週",
   "面接 志望動機",
-  "アルバイト シフト 店長",
-  "恋愛 返信頻度",
-  "誰だっけ テニス 就活",
 ];
 
 const targetTypeLabels: Record<SearchTargetType, string> = {
-  person: "人物",
   interaction: "会話",
-  community: "所属",
+  task: "タスク",
+  calendar_event: "予定",
+  person: "人物",
+  community: "団体",
   topic: "話題",
+};
+
+const sourceTypeLabels: Record<string, string> = {
+  interaction: "会話から抽出",
+  calendar_event: "予定から抽出",
+  manual_note: "手入力",
+  manual: "手入力",
+};
+
+const taskStatusLabels: Record<string, string> = {
+  TODO: "未完了",
+  DONE: "完了",
+  SKIPPED: "見送り",
 };
 
 export function SearchPage({
@@ -51,12 +76,19 @@ export function SearchPage({
   setQuery,
   scope,
   setScope,
+  scopeOptions = defaultSearchScopeOptions,
   loading,
   result,
   error,
   onSearch,
   onOpenPerson,
   onOpenRecordForPerson,
+  taskCandidates,
+  taskCandidatesLoading,
+  taskActionId,
+  onAcceptTaskCandidate,
+  onDismissTaskCandidate,
+  showTaskCandidates = true,
 }: SearchPageProps) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -65,8 +97,12 @@ export function SearchPage({
 
   const peopleResults = result?.groups.people ?? [];
   const interactionResults = result?.groups.interactions ?? [];
-  const communityResults = result?.groups.communities ?? [];
-  const topicResults = result?.groups.topics ?? [];
+  const taskResults = result?.groups.tasks ?? [];
+  const calendarEventResults = result?.groups.calendar_events ?? [];
+  const relationResults = [
+    ...(result?.groups.communities ?? []),
+    ...(result?.groups.topics ?? []),
+  ];
   const hasResults = Boolean(result && result.results.length > 0);
 
   return (
@@ -75,17 +111,17 @@ export function SearchPage({
         <div className="page-card__header search-panel__header">
           <div>
             <p className="eyebrow">Search</p>
-            <h2>思い出す検索</h2>
+            <h2>記憶検索</h2>
           </div>
         </div>
 
         <form className="search-form" onSubmit={handleSubmit}>
           <label className="field search-form__field">
-            <span className="field__label">覚えていること</span>
+            <span className="field__label">思い出したいこと</span>
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="例: 面接の志望動機を相談した人"
+              placeholder="例: 来週までに山田さんへ送る資料"
             />
           </label>
 
@@ -138,6 +174,16 @@ export function SearchPage({
         {error ? <p className="search-error">{error}</p> : null}
       </section>
 
+      {showTaskCandidates ? (
+        <TaskCandidatePanel
+          candidates={taskCandidates}
+          loading={taskCandidatesLoading}
+          taskActionId={taskActionId}
+          onAcceptTaskCandidate={onAcceptTaskCandidate}
+          onDismissTaskCandidate={onDismissTaskCandidate}
+        />
+      ) : null}
+
       {result?.answer ? (
         <SearchAnswerCard
           answer={result.answer}
@@ -151,41 +197,164 @@ export function SearchPage({
         <section className="page-card">
           <EmptyState
             title="まだ検索していません"
-            description="人名が曖昧でも、話した内容・所属・話題をそのまま入力できます。"
+            description="人物名、予定、締め切り、話した内容をそのまま入力できます。"
           />
         </section>
       ) : !hasResults ? (
         <section className="page-card">
           <EmptyState
             title="候補が見つかりませんでした"
-            description="単語を短くするか、所属や話題を入れて検索してみてください。"
+            description="単語を短くするか、人物名・日付・タスク名を入れて検索してみてください。"
           />
         </section>
       ) : (
-        <section className="search-results-grid">
+        <section className="search-results-grid search-results-grid--memory">
           <SearchGroup
-            title="人物候補"
-            items={peopleResults}
-            emptyLabel="人物候補はまだありません。"
-            onOpenPerson={onOpenPerson}
-            onOpenRecordForPerson={onOpenRecordForPerson}
-          />
-          <SearchGroup
-            title="関連する会話"
+            title="会話"
             items={interactionResults}
             emptyLabel="関連する会話はまだありません。"
             onOpenPerson={onOpenPerson}
             onOpenRecordForPerson={onOpenRecordForPerson}
+            taskActionId={taskActionId}
+            onAcceptTaskCandidate={onAcceptTaskCandidate}
+            onDismissTaskCandidate={onDismissTaskCandidate}
           />
           <SearchGroup
-            title="所属・話題"
-            items={[...communityResults, ...topicResults]}
-            emptyLabel="関連する所属・話題はまだありません。"
+            title="タスク"
+            items={taskResults}
+            emptyLabel="関連するタスクはまだありません。"
+            onOpenPerson={onOpenPerson}
+            onOpenRecordForPerson={onOpenRecordForPerson}
+            taskActionId={taskActionId}
+            onAcceptTaskCandidate={onAcceptTaskCandidate}
+            onDismissTaskCandidate={onDismissTaskCandidate}
+          />
+          <SearchGroup
+            title="予定"
+            items={calendarEventResults}
+            emptyLabel="関連する予定はまだありません。"
+            onOpenPerson={onOpenPerson}
+            onOpenRecordForPerson={onOpenRecordForPerson}
+            taskActionId={taskActionId}
+            onAcceptTaskCandidate={onAcceptTaskCandidate}
+            onDismissTaskCandidate={onDismissTaskCandidate}
+          />
+          <SearchGroup
+            title="人物"
+            items={peopleResults}
+            emptyLabel="関連する人物はまだありません。"
+            onOpenPerson={onOpenPerson}
+            onOpenRecordForPerson={onOpenRecordForPerson}
+            taskActionId={taskActionId}
+            onAcceptTaskCandidate={onAcceptTaskCandidate}
+            onDismissTaskCandidate={onDismissTaskCandidate}
+          />
+          <SearchGroup
+            title="団体・話題"
+            items={relationResults}
+            emptyLabel="関連する団体・話題はまだありません。"
             compact
             onOpenPerson={onOpenPerson}
             onOpenRecordForPerson={onOpenRecordForPerson}
+            taskActionId={taskActionId}
+            onAcceptTaskCandidate={onAcceptTaskCandidate}
+            onDismissTaskCandidate={onDismissTaskCandidate}
           />
         </section>
+      )}
+    </section>
+  );
+}
+
+export function TaskCandidatePanel({
+  candidates,
+  loading,
+  taskActionId,
+  onAcceptTaskCandidate,
+  onDismissTaskCandidate,
+}: {
+  candidates: TaskRecord[];
+  loading: boolean;
+  taskActionId: string | null;
+  onAcceptTaskCandidate: (taskId: string) => void | Promise<void>;
+  onDismissTaskCandidate: (taskId: string) => void | Promise<void>;
+}) {
+  return (
+    <section className="page-card task-candidate-panel">
+      <div className="page-card__header task-candidate-panel__header">
+        <div>
+          <p className="eyebrow">Task Candidates</p>
+          <h2>タスク候補</h2>
+        </div>
+        <span className="task-candidate-badge">
+          {loading ? "読込中" : `${candidates.length}件`}
+        </span>
+      </div>
+
+      {loading ? (
+        <p className="muted">タスク候補を読み込んでいます。</p>
+      ) : candidates.length === 0 ? (
+        <p className="muted">
+          未確認のタスク候補はありません。会話を記録すると、期限や対応が含まれる文から候補を作ります。
+        </p>
+      ) : (
+        <div className="task-candidate-list">
+          {candidates.map((task) => {
+            const isBusy = taskActionId === task.id;
+            const metaItems = getTaskCandidateMetaItems(task);
+
+            return (
+              <article key={task.id} className="task-candidate-card">
+                <div className="task-candidate-card__top">
+                  <div>
+                    <span className="task-candidate-card__type">
+                      {sourceTypeLabels[task.source_type] ?? task.source_type}
+                    </span>
+                    <h3>{task.title}</h3>
+                  </div>
+                  <strong>{formatConfidence(task.confidence)}</strong>
+                </div>
+
+                {task.description ? (
+                  <p className="task-candidate-card__description">
+                    {task.description}
+                  </p>
+                ) : null}
+
+                <div className="task-candidate-card__meta">
+                  {metaItems.map((meta) => (
+                    <span key={`${task.id}:${meta.label}:${meta.value}`}>
+                      {meta.label}: {meta.value}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="task-candidate-card__actions">
+                  <button
+                    type="button"
+                    className="button button--primary button--small"
+                    disabled={isBusy}
+                    onClick={() => {
+                      void onAcceptTaskCandidate(task.id);
+                    }}
+                  >
+                    採用
+                  </button>
+                  <button
+                    type="button"
+                    className="button button--ghost button--small"
+                    disabled={isBusy}
+                    onClick={() => {
+                      void onDismissTaskCandidate(task.id);
+                    }}
+                  >
+                    却下
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       )}
     </section>
   );
@@ -263,7 +432,9 @@ function SearchAnswerCard({
         <div className="search-answer-card__evidence">
           <span>根拠</span>
           {answer.evidence.slice(0, 3).map((item) => (
-            <p key={item.id}>{item.title}: {item.snippet}</p>
+            <p key={item.id}>
+              {item.title}: {item.snippet}
+            </p>
           ))}
         </div>
       ) : null}
@@ -296,6 +467,9 @@ function SearchGroup({
   compact = false,
   onOpenPerson,
   onOpenRecordForPerson,
+  taskActionId,
+  onAcceptTaskCandidate,
+  onDismissTaskCandidate,
 }: {
   title: string;
   items: SearchResultItem[];
@@ -303,6 +477,9 @@ function SearchGroup({
   compact?: boolean;
   onOpenPerson: (personId: string) => void;
   onOpenRecordForPerson: (personId: string) => void;
+  taskActionId: string | null;
+  onAcceptTaskCandidate: (taskId: string) => void | Promise<void>;
+  onDismissTaskCandidate: (taskId: string) => void | Promise<void>;
 }) {
   return (
     <section className="page-card search-group">
@@ -330,6 +507,9 @@ function SearchGroup({
               item={item}
               onOpenPerson={onOpenPerson}
               onOpenRecordForPerson={onOpenRecordForPerson}
+              taskActionId={taskActionId}
+              onAcceptTaskCandidate={onAcceptTaskCandidate}
+              onDismissTaskCandidate={onDismissTaskCandidate}
             />
           ))}
         </div>
@@ -342,13 +522,25 @@ function SearchResultCard({
   item,
   onOpenPerson,
   onOpenRecordForPerson,
+  taskActionId,
+  onAcceptTaskCandidate,
+  onDismissTaskCandidate,
 }: {
   item: SearchResultItem;
   onOpenPerson: (personId: string) => void;
   onOpenRecordForPerson: (personId: string) => void;
+  taskActionId: string | null;
+  onAcceptTaskCandidate: (taskId: string) => void | Promise<void>;
+  onDismissTaskCandidate: (taskId: string) => void | Promise<void>;
 }) {
   const scoreLabel = Math.round(item.score * 100);
   const personId = item.person_id;
+  const metaItems = getMetaItems(item);
+  const canActOnTaskCandidate =
+    item.target_type === "task" &&
+    item.is_candidate &&
+    item.candidate_status === "pending";
+  const isTaskBusy = taskActionId === item.target_id;
 
   return (
     <article className="search-result-card">
@@ -365,30 +557,140 @@ function SearchResultCard({
       <p className="search-result-card__snippet">{item.snippet}</p>
 
       <div className="search-result-card__meta">
-        {item.person_name ? <span>人物: {item.person_name}</span> : null}
-        {item.community_path ? <span>所属: {item.community_path}</span> : null}
-        {item.topic_path ? <span>話題: {item.topic_path}</span> : null}
-        {item.occurred_at ? <span>{formatDateTime(item.occurred_at)}</span> : null}
+        {metaItems.map((meta) => (
+          <span key={`${meta.label}:${meta.value}`}>
+            {meta.label}: {meta.value}
+          </span>
+        ))}
       </div>
 
-      {personId ? (
+      {personId || canActOnTaskCandidate ? (
         <div className="search-result-card__actions">
-          <button
-            type="button"
-            className="button button--secondary button--small"
-            onClick={() => onOpenPerson(personId)}
-          >
-            人物を見る
-          </button>
-          <button
-            type="button"
-            className="button button--ghost button--small"
-            onClick={() => onOpenRecordForPerson(personId)}
-          >
-            この人で記録
-          </button>
+          {personId ? (
+            <>
+              <button
+                type="button"
+                className="button button--secondary button--small"
+                onClick={() => onOpenPerson(personId)}
+              >
+                人物を見る
+              </button>
+              <button
+                type="button"
+                className="button button--ghost button--small"
+                onClick={() => onOpenRecordForPerson(personId)}
+              >
+                この人で記録
+              </button>
+            </>
+          ) : null}
+          {canActOnTaskCandidate ? (
+            <>
+              <button
+                type="button"
+                className="button button--primary button--small"
+                disabled={isTaskBusy}
+                onClick={() => {
+                  void onAcceptTaskCandidate(item.target_id);
+                }}
+              >
+                候補を採用
+              </button>
+              <button
+                type="button"
+                className="button button--ghost button--small"
+                disabled={isTaskBusy}
+                onClick={() => {
+                  void onDismissTaskCandidate(item.target_id);
+                }}
+              >
+                却下
+              </button>
+            </>
+          ) : null}
         </div>
       ) : null}
     </article>
   );
+}
+
+function getTaskCandidateMetaItems(task: TaskRecord) {
+  const meta: Array<{ label: string; value: string }> = [];
+
+  if (task.due_at) {
+    meta.push({ label: "締め切り", value: formatDateTime(task.due_at) });
+  }
+  meta.push({
+    label: "状態",
+    value: taskStatusLabels[task.status] ?? task.status,
+  });
+
+  task.links
+    .filter((link) => link.role === "related" && link.target_label)
+    .slice(0, 4)
+    .forEach((link) => {
+      meta.push({
+        label: targetTypeLabels[link.target_type] ?? link.target_type,
+        value: link.target_label!,
+      });
+    });
+
+  return meta;
+}
+
+function formatConfidence(value: number | null) {
+  if (value === null) return "-";
+  return `${Math.round(value * 100)}%`;
+}
+
+function getMetaItems(item: SearchResultItem) {
+  const meta: Array<{ label: string; value: string }> = [];
+
+  if (item.target_type === "task") {
+    if (item.due_at) meta.push({ label: "締め切り", value: formatDateTime(item.due_at) });
+    if (item.status_label) meta.push({ label: "状態", value: item.status_label });
+    if (item.is_candidate) meta.push({ label: "扱い", value: "候補" });
+    addCommonTargets(meta, item);
+    if (item.source_type) {
+      meta.push({
+        label: "元データ",
+        value: sourceTypeLabels[item.source_type] ?? item.source_type,
+      });
+    }
+    return meta;
+  }
+
+  if (item.target_type === "calendar_event") {
+    if (item.start_at) meta.push({ label: "開始", value: formatDateTime(item.start_at) });
+    if (item.end_at) meta.push({ label: "終了", value: formatDateTime(item.end_at) });
+    if (item.location) meta.push({ label: "場所", value: item.location });
+    if (item.target_label) meta.push({ label: "参加者", value: item.target_label });
+    addCommonTargets(meta, item);
+    return meta;
+  }
+
+  if (item.target_type === "interaction") {
+    if (item.occurred_at) meta.push({ label: "記録日", value: formatDateTime(item.occurred_at) });
+    addCommonTargets(meta, item);
+    return meta;
+  }
+
+  if (item.target_type === "person") {
+    if (item.community_path) meta.push({ label: "所属", value: item.community_path });
+    if (item.occurred_at) meta.push({ label: "最近の記録", value: formatDateTime(item.occurred_at) });
+    return meta;
+  }
+
+  addCommonTargets(meta, item);
+  if (item.occurred_at) meta.push({ label: "関連日", value: formatDateTime(item.occurred_at) });
+  return meta;
+}
+
+function addCommonTargets(
+  meta: Array<{ label: string; value: string }>,
+  item: SearchResultItem
+) {
+  if (item.person_name) meta.push({ label: "人物", value: item.person_name });
+  if (item.community_path) meta.push({ label: "団体", value: item.community_path });
+  if (item.topic_path) meta.push({ label: "話題", value: item.topic_path });
 }

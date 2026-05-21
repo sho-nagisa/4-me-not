@@ -15,6 +15,8 @@ def main() -> None:
     print(f"communities: {result['communities']}")
     print(f"topics: {result['topics']}")
     print(f"interactions: {result['interactions']}")
+    print(f"tasks: {result.get('tasks', 0)}")
+    print(f"calendar_events: {result.get('calendar_events', 0)}")
 
 
 if __name__ == "__main__":

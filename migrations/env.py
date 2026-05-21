@@ -31,6 +31,8 @@ import backend.models.interaction.topic
 import backend.models.interaction.interaction_tag
 
 # task
+import backend.models.task.task
+import backend.models.task.task_link
 import backend.models.task.relationship_task
 import backend.models.task.task_history
 
@@ -53,6 +55,7 @@ import backend.models.ai.ai_metadata
 
 # calendar
 import backend.models.calendar.calendar_event
+import backend.models.calendar.event_participant
 import backend.models.calendar.meeting_snapshot
 
 

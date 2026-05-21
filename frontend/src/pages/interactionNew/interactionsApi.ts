@@ -9,6 +9,7 @@ import type {
   SearchResponse,
   SearchTargetType,
   ShareLevel,
+  TaskRecord,
   Topic,
 } from "./types";
 import { buildDateQuery } from "./utils";
@@ -143,6 +144,50 @@ export const searchMemory = (
   targetTypes.forEach((targetType) => params.append("target_type", targetType));
   return fetchJson<SearchResponse>(`/api/search?${params.toString()}`);
 };
+
+export const listTaskCandidates = (limit = 20) =>
+  fetchJson<TaskRecord[]>(
+    `/api/tasks?candidate_status=pending&limit=${limit}`
+  );
+
+export const listTasks = ({
+  includeCandidates = false,
+  candidateStatus,
+  limit = 100,
+}: {
+  includeCandidates?: boolean;
+  candidateStatus?: string;
+  limit?: number;
+} = {}) => {
+  const params = new URLSearchParams();
+  params.set("include_candidates", String(includeCandidates));
+  params.set("limit", String(limit));
+  if (candidateStatus) {
+    params.set("candidate_status", candidateStatus);
+  }
+
+  return fetchJson<TaskRecord[]>(`/api/tasks?${params.toString()}`);
+};
+
+export const acceptTaskCandidate = (taskId: string) =>
+  fetchJson<TaskRecord>(
+    `/api/tasks/${taskId}/accept`,
+    {
+      method: "POST",
+      headers: jsonHeaders,
+    },
+    "タスク候補の採用に失敗しました。"
+  );
+
+export const dismissTaskCandidate = (taskId: string) =>
+  fetchJson<TaskRecord>(
+    `/api/tasks/${taskId}/dismiss`,
+    {
+      method: "POST",
+      headers: jsonHeaders,
+    },
+    "タスク候補の却下に失敗しました。"
+  );
 
 export const createInteraction = (payload: CreateInteractionPayload) =>
   fetchJson<void>(

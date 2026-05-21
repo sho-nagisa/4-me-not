@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from sqlalchemy import text
 
-from backend.app.api import interaction, reference, reminder, search
+from backend.app.api import calendar, interaction, reference, reminder, search, task
 from backend.db.session import engine
 
 
@@ -11,6 +11,8 @@ app.include_router(reference.router, prefix="/api")
 app.include_router(interaction.router, prefix="/api")
 app.include_router(reminder.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
+app.include_router(task.router, prefix="/api")
+app.include_router(calendar.router, prefix="/api")
 
 
 @app.get("/api/health")

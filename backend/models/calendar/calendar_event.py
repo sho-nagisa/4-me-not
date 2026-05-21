@@ -1,41 +1,36 @@
-from sqlalchemy import String, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from datetime import datetime
+from uuid import UUID
+
+from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.models.base.base import BaseModel
 
 
 class CalendarEvent(BaseModel):
-    """
-    外部カレンダー予定（同期スナップショット）
-    - Google Calendar 等との連携結果
-    """
-
     __tablename__ = "calendar_events"
+    __table_args__ = {"schema": "formegot"}
 
-    external_id: Mapped[str] = mapped_column(
-        String(255),
+    account_id: Mapped[UUID] = mapped_column(
+        ForeignKey("formegot.accounts.id", ondelete="CASCADE"),
         nullable=False,
-        unique=True,
-        comment="外部カレンダーのイベントID"
     )
-
-    title: Mapped[str] = mapped_column(
-        String(200),
-        nullable=False
-    )
-
-    start_at: Mapped[DateTime] = mapped_column(
+    external_id: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    start_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        nullable=False
+        nullable=False,
     )
-
-    end_at: Mapped[DateTime] = mapped_column(
+    end_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        nullable=False
+        nullable=False,
     )
+    source: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
-    source: Mapped[str | None] = mapped_column(
-        String(50),
-        nullable=True,
-        comment="google / apple など"
+    participants = relationship(
+        "EventParticipant",
+        back_populates="calendar_event",
+        cascade="all, delete-orphan",
     )
