@@ -96,6 +96,12 @@ def delete_person(person_id: str):
     return {"status": "ok"}
 
 
+@router.get("/persons/interaction-counts")
+def list_person_interaction_counts(community_id: str | None = None):
+    service = InteractionService()
+    return service.list_person_interaction_counts(community_id=community_id)
+
+
 @router.get("/persons/{person_id}/interactions")
 def list_person_interactions(person_id: str):
     service = InteractionService()

@@ -255,6 +255,71 @@ class InteractionService:
         finally:
             db.close()
 
+    def list_person_interaction_counts(self, community_id: str | None = None):
+        db: Session = SessionLocal()
+        try:
+            account_id = get_current_account_id()
+            community_uuid = None
+            if community_id:
+                community_uuid = self._validate_optional_reference(
+                    db=db,
+                    model=Community,
+                    record_id=community_id,
+                    detail="Community not found",
+                    account_id=account_id,
+                )
+
+            count_query = (
+                db.query(
+                    Interaction.person_id.label("person_id"),
+                    func.count(Interaction.id).label("interaction_count"),
+                )
+                .join(Person, Interaction.person_id == Person.id)
+                .filter(
+                    Interaction.account_id == account_id,
+                    Person.account_id == account_id,
+                    Person.is_hidden.is_(False),
+                )
+            )
+            if community_uuid:
+                count_query = count_query.filter(
+                    Interaction.community_id == community_uuid
+                )
+
+            interaction_counts = {
+                row.person_id: int(row.interaction_count)
+                for row in count_query.group_by(Interaction.person_id).all()
+            }
+
+            # Include primary-community members even with zero matching interactions so
+            # the person explorer can filter by community without loading every record.
+            people_query = db.query(Person).filter(
+                Person.account_id == account_id,
+                Person.is_hidden.is_(False),
+            )
+            if community_uuid:
+                people_query = people_query.filter(
+                    (Person.primary_community_id == community_uuid)
+                    | (Person.id.in_(list(interaction_counts)))
+                )
+
+            people = people_query.all()
+            return [
+                {
+                    "person_id": str(person.id),
+                    "count": interaction_counts.get(person.id, 0),
+                }
+                for person in sorted(
+                    people,
+                    key=lambda item: (
+                        -interaction_counts.get(item.id, 0),
+                        item.name,
+                    ),
+                )
+            ]
+        finally:
+            db.close()
+
     def get_person_dashboard(self, person_id: str):
         db: Session = SessionLocal()
         try:
