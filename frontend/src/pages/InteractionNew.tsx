@@ -85,7 +85,6 @@ export default function InteractionNew() {
   });
 
   const [loading, setLoading] = useState(true);
-  const [summaryLoading, setSummaryLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [recordDashboardLoading, setRecordDashboardLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -281,7 +280,6 @@ export default function InteractionNew() {
   };
 
   const loadOverviewInteractions = async () => {
-    setSummaryLoading(true);
     try {
       const items = await getInteractionOverview();
       setOverview(items);
@@ -289,8 +287,6 @@ export default function InteractionNew() {
       const message =
         error instanceof Error ? error.message : "全体の履歴取得に失敗しました。";
       setError(message);
-    } finally {
-      setSummaryLoading(false);
     }
   };
 
