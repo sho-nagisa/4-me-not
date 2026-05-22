@@ -6,7 +6,7 @@ from sqlalchemy import delete as sa_delete
 from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.community.community import Community
-from backend.services.search_service import SearchService
+from backend.services.search import SearchService
 
 
 class CommunityService:

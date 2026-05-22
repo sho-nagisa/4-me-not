@@ -342,7 +342,7 @@ class TaskService:
         finally:
             db.close()
 
-        from backend.services.search_service import SearchService
+        from backend.services.search import SearchService
 
         if task is not None:
             SearchService().index_task(str(task.id))

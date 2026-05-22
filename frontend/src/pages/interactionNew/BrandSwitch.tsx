@@ -3,7 +3,7 @@ import type { PointerEvent } from "react";
 
 import type { WorkspaceMode } from "./navigation";
 
-const MODE_SWITCH_HOLD_MS = 3000;
+const MODE_SWITCH_HOLD_MS = 1500;
 
 export function BrandSwitch({
   workspaceMode,

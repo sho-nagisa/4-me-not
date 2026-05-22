@@ -93,7 +93,7 @@ class CalendarService:
         finally:
             db.close()
 
-        from backend.services.search_service import SearchService
+        from backend.services.search import SearchService
 
         if event is not None:
             SearchService().index_calendar_event(str(event.id))

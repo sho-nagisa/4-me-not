@@ -8,7 +8,7 @@ import re
 
 import httpx
 
-from backend.services.search_utils import normalize_text, normalize_vector
+from backend.services.search.utils import normalize_text, normalize_vector
 
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@ import logging
 from backend.services.ai_service import AIService
 from backend.services.insight_service import InsightService
 from backend.services.relation_service import RelationService
-from backend.services.search_service import SearchService
+from backend.services.search import SearchService
 from backend.services.task_service import TaskService
 
 

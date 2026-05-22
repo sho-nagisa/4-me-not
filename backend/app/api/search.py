@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
 
-from backend.services.search_service import SearchService
+from backend.services.search import SearchService
 
 
 router = APIRouter(prefix="/search", tags=["search"])
