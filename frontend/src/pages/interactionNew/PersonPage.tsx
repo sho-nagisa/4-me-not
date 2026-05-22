@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { EmptyState, HistoryCard, MetricCard, PersonBubbleCloud, SectionTabs, SummaryRows } from "./components";
 import { personPanelOptions } from "./constants";
-import type { Community, InteractionRecord, Person, PersonBubble, PersonDashboard, PersonPanelId } from "./types";
+import type { Community, Person, PersonBubble, PersonDashboard, PersonPanelId } from "./types";
 import { formatDateTime, truncate } from "./utils";
 
 type PersonPageProps = {
@@ -14,8 +14,6 @@ type PersonPageProps = {
   detailCommunityId: string;
   setDetailCommunityId: Dispatch<SetStateAction<string>>;
   setPersonPanel: Dispatch<SetStateAction<PersonPanelId>>;
-  persons: Person[];
-  interactions: InteractionRecord[];
   setDetailPersonId: Dispatch<SetStateAction<string>>;
   loading: boolean;
   communities: Community[];
@@ -35,8 +33,6 @@ export function PersonPage(props: PersonPageProps) {
     detailCommunityId,
     setDetailCommunityId,
     setPersonPanel,
-    persons,
-    interactions,
     setDetailPersonId,
     loading,
     communities,
@@ -86,23 +82,6 @@ export function PersonPage(props: PersonPageProps) {
                 const nextCommunityId = event.target.value;
                 setDetailCommunityId(nextCommunityId);
                 setPersonPanel("summary");
-
-                const nextPersons = persons.filter((person) => {
-                  if (!nextCommunityId) return true;
-                  if (person.primary_community_id === nextCommunityId) return true;
-                  return interactions.some(
-                    (item) =>
-                      item.person_id === person.id &&
-                      item.community_id === nextCommunityId
-                  );
-                });
-
-                if (
-                  detailPersonId &&
-                  !nextPersons.some((person) => person.id === detailPersonId)
-                ) {
-                  setDetailPersonId(nextPersons[0]?.id ?? "");
-                }
               }}
               disabled={loading}
             >

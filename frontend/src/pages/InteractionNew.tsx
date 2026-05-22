@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useIsMobile } from "../hooks/useIsMobile";
 import {
@@ -9,7 +9,6 @@ import type {
   Community,
   HomeViewProps,
   InteractionOverview,
-  InteractionRecord,
   InteractionType,
   ManagePanelId,
   PageId,
@@ -19,7 +18,6 @@ import type {
   SearchResponse,
   SearchTargetType,
   ShareLevel,
-  TaskRecord,
   Topic,
 } from "./interactionNew/types";
 import { DesktopHome, MobileHome } from "./interactionNew/components";
@@ -36,11 +34,7 @@ import {
   getInteractionOverview,
   getPersonDashboard,
   listCommunities,
-  listInteractionPage,
-  listInteractions,
   listPersons,
-  listTaskCandidates,
-  listTasks,
   listTopics,
   searchMemory,
   updateCommunityHidden,
@@ -48,7 +42,6 @@ import {
 } from "./interactionNew/interactionsApi";
 import { ManagePage } from "./interactionNew/ManagePage";
 import {
-  HISTORY_DEFAULT_LIMIT,
   relationSearchScopeOptions,
   relationSearchTargetTypes,
   type WorkspaceMode,
@@ -62,10 +55,12 @@ import {
   type FeedbackState,
 } from "./interactionNew/InteractionNewLayout";
 import {
-  buildPersonBubbles,
   buildPersonBubblesFromCounts,
   toDateTimeLocalValue,
 } from "./interactionNew/utils";
+import { useInteractionHistory } from "./interactionNew/useInteractionHistory";
+import { usePersonExplorer } from "./interactionNew/usePersonExplorer";
+import { useTaskWorkspace } from "./interactionNew/useTaskWorkspace";
 
 export default function InteractionNew() {
   const isMobile = useIsMobile(820);
@@ -75,7 +70,6 @@ export default function InteractionNew() {
   const [taskPanel, setTaskPanel] = useState<TaskPanelId>("overview");
   const [personPanel, setPersonPanel] = useState<PersonPanelId>("summary");
   const [managePanel, setManagePanel] = useState<ManagePanelId>("people");
-  const [historyFilterOpen, setHistoryFilterOpen] = useState(false);
   const [mobileRecordPanel, setMobileRecordPanel] = useState<"input" | "check">("input");
   const mobileRecordSwipeRef = useRef<HTMLDivElement | null>(null);
 
@@ -89,27 +83,17 @@ export default function InteractionNew() {
     recent_interactions: [],
     person_counts: [],
   });
-  const [interactions, setInteractions] = useState<InteractionRecord[]>([]);
-  const [interactionsLoaded, setInteractionsLoaded] = useState(false);
-  const [historyItems, setHistoryItems] = useState<InteractionRecord[]>([]);
-  const [historyPage, setHistoryPage] = useState(1);
-  const [historyTotalCount, setHistoryTotalCount] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(false);
-  const [historyLoading, setHistoryLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [recordDashboardLoading, setRecordDashboardLoading] = useState(false);
-  const [detailDashboardLoading, setDetailDashboardLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isCreatingPerson, setIsCreatingPerson] = useState(false);
   const [isCreatingCommunity, setIsCreatingCommunity] = useState(false);
   const [isCreatingTopic, setIsCreatingTopic] = useState(false);
   const [personActionId, setPersonActionId] = useState<string | null>(null);
   const [communityActionId, setCommunityActionId] = useState<string | null>(null);
-  const [taskActionId, setTaskActionId] = useState<string | null>(null);
-  const [taskCandidatesLoading, setTaskCandidatesLoading] = useState(false);
-  const [taskItemsLoading, setTaskItemsLoading] = useState(false);
 
   const [feedback, setFeedback] = useState<FeedbackState>(null);
 
@@ -131,46 +115,94 @@ export default function InteractionNew() {
   const [newTopicName, setNewTopicName] = useState("");
   const [newTopicParentId, setNewTopicParentId] = useState("");
 
-  const [historyPersonId, setHistoryPersonId] = useState<string>("");
-  const [historyCommunityId, setHistoryCommunityId] = useState<string>("");
-  const [historyTopicId, setHistoryTopicId] = useState<string>("");
-  const [historyShareLevel, setHistoryShareLevel] = useState<ShareLevel | "">("");
-  const [historySearch, setHistorySearch] = useState<string>("");
-  const [historyDateFrom, setHistoryDateFrom] = useState<string>("");
-  const [historyDateTo, setHistoryDateTo] = useState<string>("");
-
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchScope, setSearchScope] = useState<SearchScope>("all");
   const [searchResult, setSearchResult] = useState<SearchResponse | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [taskCandidates, setTaskCandidates] = useState<TaskRecord[]>([]);
-  const [taskItems, setTaskItems] = useState<TaskRecord[]>([]);
-  const [taskSearchQuery, setTaskSearchQuery] = useState<string>("");
-  const [taskSearchResult, setTaskSearchResult] = useState<SearchResponse | null>(null);
-  const [taskSearchError, setTaskSearchError] = useState<string | null>(null);
-  const [taskSearchLoading, setTaskSearchLoading] = useState(false);
-
-  const [detailPersonId, setDetailPersonId] = useState<string>("");
-  const [detailCommunityId, setDetailCommunityId] = useState<string>("");
   const [recordDashboard, setRecordDashboard] = useState<PersonDashboard | null>(null);
-  const [detailDashboard, setDetailDashboard] = useState<PersonDashboard | null>(null);
+
+  const setError = useCallback((message: string) => {
+    setFeedback({ tone: "error", message });
+  }, []);
+
+  const setSuccess = useCallback((message: string) => {
+    setFeedback({ tone: "success", message });
+  }, []);
+
+  const {
+    taskCandidates,
+    taskItems,
+    taskActionId,
+    setTaskActionId,
+    taskCandidatesLoading,
+    taskItemsLoading,
+    taskSearchQuery,
+    setTaskSearchQuery,
+    taskSearchResult,
+    taskSearchError,
+    taskSearchLoading,
+    loadTaskCandidateList,
+    loadTaskList,
+    runTaskSearch,
+  } = useTaskWorkspace({ onError: setError });
+
+  const {
+    historyItems,
+    historyPage,
+    historyTotalCount,
+    historyPageSize,
+    historyLoading,
+    historyFilterOpen,
+    setHistoryFilterOpen,
+    historyPersonId,
+    setHistoryPersonId,
+    historyCommunityId,
+    setHistoryCommunityId,
+    historyTopicId,
+    setHistoryTopicId,
+    historyShareLevel,
+    setHistoryShareLevel,
+    historySearch,
+    setHistorySearch,
+    historyDateFrom,
+    setHistoryDateFrom,
+    historyDateTo,
+    setHistoryDateTo,
+    loadHistory,
+    clearHistoryFilters,
+    selectedHistoryLevelLabel,
+  } = useInteractionHistory({
+    currentPage,
+    onError: setError,
+  });
+
+  const {
+    detailPersonId,
+    setDetailPersonId,
+    detailCommunityId,
+    setDetailCommunityId,
+    detailDashboard,
+    detailDashboardLoading,
+    detailPersonCountsLoading,
+    detailPersonBubbles,
+    detailPersons,
+    selectedDetailPerson,
+    loadDetailDashboard,
+    loadDetailPersonCounts,
+    refreshPersonExplorer,
+  } = usePersonExplorer({
+    currentPage,
+    persons,
+    onError: setError,
+  });
 
   const selectedPerson = persons.find((person) => person.id === personId);
-  const selectedDetailPerson = persons.find((person) => person.id === detailPersonId);
   const selectedType = interactionTypeOptions.find(
     (option) => option.value === interactionType
   );
   const selectedShareLevel = shareLevelOptions.find(
     (option) => option.value === shareLevel
   );
-
-  const setError = (message: string) => {
-    setFeedback({ tone: "error", message });
-  };
-
-  const setSuccess = (message: string) => {
-    setFeedback({ tone: "success", message });
-  };
 
   const toggleWorkspaceMode = () => {
     setWorkspaceMode((currentMode) => {
@@ -211,8 +243,6 @@ export default function InteractionNew() {
       const fallbackPerson = personsJson[0] ?? null;
       const currentRecordPerson =
         personsJson.find((person) => person.id === personId) ?? fallbackPerson;
-      const currentDetailPerson =
-        personsJson.find((person) => person.id === detailPersonId) ?? fallbackPerson;
       const currentHistoryPerson =
         personsJson.find((person) => person.id === historyPersonId) ?? null;
 
@@ -220,10 +250,6 @@ export default function InteractionNew() {
         setPersonId(currentRecordPerson?.id ?? "");
         setCommunityId(currentRecordPerson?.primary_community_id ?? "");
         setCommunityTouched(false);
-      }
-
-      if (!detailPersonId || !currentDetailPerson) {
-        setDetailPersonId(currentDetailPerson?.id ?? "");
       }
 
       if (historyPersonId && !currentHistoryPerson) {
@@ -268,48 +294,6 @@ export default function InteractionNew() {
     }
   };
 
-  const loadAllInteractions = async () => {
-    setSummaryLoading(true);
-    try {
-      const items = await listInteractions();
-      setInteractions(items);
-      setInteractionsLoaded(true);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to load interactions.";
-      setError(message);
-    } finally {
-      setSummaryLoading(false);
-    }
-  };
-
-  const loadHistory = async (page = historyPage) => {
-    const nextPage = Math.max(1, page);
-    setHistoryLoading(true);
-    try {
-      const result = await listInteractionPage({
-        personId: historyPersonId,
-        communityId: historyCommunityId,
-        topicId: historyTopicId,
-        shareLevel: historyShareLevel,
-        search: historySearch,
-        dateFrom: historyDateFrom,
-        dateTo: historyDateTo,
-        limit: HISTORY_DEFAULT_LIMIT,
-        offset: (nextPage - 1) * HISTORY_DEFAULT_LIMIT,
-      });
-      setHistoryItems(result.items);
-      setHistoryPage(nextPage);
-      setHistoryTotalCount(result.total_count);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "履歴の取得に失敗しました。";
-      setError(message);
-    } finally {
-      setHistoryLoading(false);
-    }
-  };
-
   const loadRecordDashboard = async (targetPersonId: string) => {
     if (!targetPersonId) {
       setRecordDashboard(null);
@@ -326,25 +310,6 @@ export default function InteractionNew() {
       setError(message);
     } finally {
       setRecordDashboardLoading(false);
-    }
-  };
-
-  const loadDetailDashboard = async (targetPersonId: string) => {
-    if (!targetPersonId) {
-      setDetailDashboard(null);
-      return;
-    }
-
-    setDetailDashboardLoading(true);
-    try {
-      const dashboard = await getPersonDashboard(targetPersonId);
-      setDetailDashboard(dashboard);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "人物ダッシュボードを取得できませんでした。";
-      setError(message);
-    } finally {
-      setDetailDashboardLoading(false);
     }
   };
 
@@ -381,56 +346,6 @@ export default function InteractionNew() {
     }
   };
 
-  const loadTaskCandidateList = async () => {
-    setTaskCandidatesLoading(true);
-    try {
-      const items = await listTaskCandidates();
-      setTaskCandidates(items);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "タスク候補の取得に失敗しました。";
-      setError(message);
-    } finally {
-      setTaskCandidatesLoading(false);
-    }
-  };
-
-  const loadTaskList = async () => {
-    setTaskItemsLoading(true);
-    try {
-      const items = await listTasks({ includeCandidates: false });
-      setTaskItems(items);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "タスクの取得に失敗しました。";
-      setError(message);
-    } finally {
-      setTaskItemsLoading(false);
-    }
-  };
-
-  const runTaskSearch = async (nextQuery = taskSearchQuery) => {
-    const trimmedQuery = nextQuery.trim();
-    if (!trimmedQuery) {
-      setTaskSearchResult(null);
-      setTaskSearchError(null);
-      return;
-    }
-
-    setTaskSearchLoading(true);
-    setTaskSearchError(null);
-    try {
-      const result = await searchMemory(trimmedQuery, ["task", "calendar_event"]);
-      setTaskSearchResult(result);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "タスク検索に失敗しました。";
-      setTaskSearchError(message);
-    } finally {
-      setTaskSearchLoading(false);
-    }
-  };
-
   useEffect(() => {
     void loadOptions();
     void loadOverviewInteractions();
@@ -459,38 +374,10 @@ export default function InteractionNew() {
   }, [workspaceMode, searchScope]);
 
   useEffect(() => {
-    if (currentPage === "history") {
-      setHistoryPage(1);
-      void loadHistory(1);
-    }
-  }, [
-    currentPage,
-    historyPersonId,
-    historyCommunityId,
-    historyTopicId,
-    historyShareLevel,
-    historySearch,
-    historyDateFrom,
-    historyDateTo,
-  ]);
-
-  useEffect(() => {
-    if (currentPage === "person" && !interactionsLoaded) {
-      void loadAllInteractions();
-    }
-  }, [currentPage, interactionsLoaded]);
-
-  useEffect(() => {
     if (currentPage === "record") {
       void loadRecordDashboard(personId);
     }
   }, [currentPage, personId]);
-
-  useEffect(() => {
-    if (currentPage === "person") {
-      void loadDetailDashboard(detailPersonId);
-    }
-  }, [currentPage, detailPersonId]);
 
   const refreshAll = async () => {
     await loadOptions();
@@ -502,14 +389,11 @@ export default function InteractionNew() {
     if (currentPage === "history") {
       await loadHistory(historyPage);
     }
-    if (currentPage === "person" || interactionsLoaded) {
-      await loadAllInteractions();
-    }
     if (currentPage === "record" && personId) {
       await loadRecordDashboard(personId);
     }
-    if (currentPage === "person" && detailPersonId) {
-      await loadDetailDashboard(detailPersonId);
+    if (currentPage === "person") {
+      await refreshPersonExplorer();
     }
     if (currentPage === "search") {
       await loadTaskCandidateList();
@@ -608,8 +492,8 @@ export default function InteractionNew() {
       if (currentPage === "history") {
         await loadHistory(historyPage);
       }
-      if (currentPage === "person" || interactionsLoaded) {
-        await loadAllInteractions();
+      if (currentPage === "person") {
+        await loadDetailPersonCounts(detailCommunityId);
       }
       if (currentPage === "record") {
         await loadRecordDashboard(personId);
@@ -789,40 +673,11 @@ export default function InteractionNew() {
     }
   };
 
-  const clearHistoryFilters = () => {
-    setHistoryPersonId("");
-    setHistoryCommunityId("");
-    setHistoryTopicId("");
-    setHistoryShareLevel("");
-    setHistorySearch("");
-    setHistoryDateFrom("");
-    setHistoryDateTo("");
-  };
-
-  const handleHistoryPageChange = (nextPage: number) => {
-    void loadHistory(nextPage);
-  };
-
   const homeRecentInteractions = overview.recent_interactions;
-  const personMatchesDetailCommunity = (person: Person) => {
-    if (!detailCommunityId) return true;
-    if (person.primary_community_id === detailCommunityId) return true;
-    return interactions.some(
-      (item) => item.person_id === person.id && item.community_id === detailCommunityId
-    );
-  };
-  const detailPersons = persons.filter(personMatchesDetailCommunity);
   const homePersonBubbles = buildPersonBubblesFromCounts(
     persons,
     overview.person_counts
   );
-  const detailPersonBubbles = buildPersonBubbles(
-    detailPersons,
-    interactions,
-    detailCommunityId || null
-  );
-  const selectedHistoryLevelLabel =
-    shareLevelOptions.find((option) => option.value === historyShareLevel)?.label ?? "すべて";
 
   const switchMobileRecordPanel = (panel: "input" | "check") => {
     setMobileRecordPanel(panel);
@@ -966,8 +821,8 @@ export default function InteractionNew() {
             onLoadHistory={loadHistory}
             historyPage={historyPage}
             historyTotalCount={historyTotalCount}
-            historyPageSize={HISTORY_DEFAULT_LIMIT}
-            onHistoryPageChange={handleHistoryPageChange}
+            historyPageSize={historyPageSize}
+            onHistoryPageChange={(nextPage) => void loadHistory(nextPage)}
             onClearHistoryFilters={clearHistoryFilters}
             historyFilterOpen={historyFilterOpen}
             setHistoryFilterOpen={setHistoryFilterOpen}
@@ -986,10 +841,8 @@ export default function InteractionNew() {
             detailCommunityId={detailCommunityId}
             setDetailCommunityId={setDetailCommunityId}
             setPersonPanel={setPersonPanel}
-            persons={persons}
-            interactions={interactions}
             setDetailPersonId={setDetailPersonId}
-            loading={loading}
+            loading={loading || detailPersonCountsLoading}
             communities={communities}
             detailPersons={detailPersons}
             detailDashboardLoading={detailDashboardLoading}

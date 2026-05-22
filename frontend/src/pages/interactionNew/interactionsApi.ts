@@ -6,6 +6,7 @@ import type {
   InteractionType,
   Person,
   PersonDashboard,
+  PersonInteractionCount,
   SearchResponse,
   SearchTargetType,
   ShareLevel,
@@ -132,6 +133,19 @@ export const getInteractionOverview = () =>
 
 export const getPersonDashboard = (personId: string) =>
   fetchJson<PersonDashboard>(`/api/persons/${personId}/dashboard`);
+
+export const listPersonInteractionCounts = (communityId = "") => {
+  const params = new URLSearchParams();
+  if (communityId) {
+    params.set("community_id", communityId);
+  }
+  const query = params.toString();
+  return fetchJson<PersonInteractionCount[]>(
+    query
+      ? `/api/persons/interaction-counts?${query}`
+      : "/api/persons/interaction-counts"
+  );
+};
 
 export const searchMemory = (
   queryText: string,
