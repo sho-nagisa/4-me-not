@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from backend.services.search_constants import (
+from backend.services.search.constants import (
     TARGET_CALENDAR_EVENT,
     TARGET_COMMUNITY,
     TARGET_INTERACTION,

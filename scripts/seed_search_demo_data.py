@@ -14,7 +14,7 @@ from backend.models.community.community import Community
 from backend.models.interaction.interaction import Interaction
 from backend.models.interaction.topic import Topic
 from backend.models.person.person import Person
-from backend.services.search_service import SearchService
+from backend.services.search import SearchService
 from backend.testing.demo_data import cleanup_demo_data
 
 
