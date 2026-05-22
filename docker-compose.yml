@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-forme_not}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-forme_not}
+      POSTGRES_DB: ${POSTGRES_DB:-forme_not}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-forme_not}:${POSTGRES_PASSWORD:-forme_not}@db:5432/${POSTGRES_DB:-forme_not}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app/backend
+      - ./migrations:/app/migrations
+      - ./scripts:/app/scripts
+      - ./alembic.ini:/app/alembic.ini:ro
+    command: >
+      sh -c "python -m alembic upgrade head &&
+             python -m uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:8000
+      VITE_DEV_HOST: 0.0.0.0
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  postgres-data:
+  frontend-node-modules:
