@@ -53,6 +53,17 @@ type CreateTopicPayload = {
   parent_id: string | null;
 };
 
+export type CreateTaskPayload = {
+  title: string;
+  description?: string | null;
+  due_at?: string | null;
+  priority?: number | null;
+};
+
+export type UpdateTaskPayload = Partial<CreateTaskPayload> & {
+  status?: "TODO" | "DONE" | "SKIPPED";
+};
+
 const jsonHeaders = { "Content-Type": "application/json" };
 
 export const fetchJson = async <T,>(
@@ -167,10 +178,16 @@ export const listTaskCandidates = (limit = 20) =>
 export const listTasks = ({
   includeCandidates = false,
   candidateStatus,
+  status,
+  openOnly,
+  search,
   limit = 100,
 }: {
   includeCandidates?: boolean;
   candidateStatus?: string;
+  status?: string;
+  openOnly?: boolean;
+  search?: string;
   limit?: number;
 } = {}) => {
   const params = new URLSearchParams();
@@ -179,9 +196,60 @@ export const listTasks = ({
   if (candidateStatus) {
     params.set("candidate_status", candidateStatus);
   }
+  if (status) {
+    params.set("status", status);
+  }
+  if (openOnly !== undefined) {
+    params.set("open_only", String(openOnly));
+  }
+  if (search?.trim()) {
+    params.set("search", search.trim());
+  }
 
   return fetchJson<TaskRecord[]>(`/api/tasks?${params.toString()}`);
 };
+
+export const createTask = (payload: CreateTaskPayload) =>
+  fetchJson<TaskRecord>(
+    "/api/tasks",
+    {
+      method: "POST",
+      headers: jsonHeaders,
+      body: JSON.stringify(payload),
+    },
+    "タスクの作成に失敗しました。"
+  );
+
+export const updateTask = (taskId: string, payload: UpdateTaskPayload) =>
+  fetchJson<TaskRecord>(
+    `/api/tasks/${taskId}`,
+    {
+      method: "PATCH",
+      headers: jsonHeaders,
+      body: JSON.stringify(payload),
+    },
+    "タスクの更新に失敗しました。"
+  );
+
+export const completeTask = (taskId: string) =>
+  fetchJson<TaskRecord>(
+    `/api/tasks/${taskId}/complete`,
+    {
+      method: "POST",
+      headers: jsonHeaders,
+    },
+    "タスクの完了に失敗しました。"
+  );
+
+export const reopenTask = (taskId: string) =>
+  fetchJson<TaskRecord>(
+    `/api/tasks/${taskId}/reopen`,
+    {
+      method: "POST",
+      headers: jsonHeaders,
+    },
+    "タスクの未完了化に失敗しました。"
+  );
 
 export const acceptTaskCandidate = (taskId: string) =>
   fetchJson<TaskRecord>(

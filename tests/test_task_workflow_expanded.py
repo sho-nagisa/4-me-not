@@ -1,11 +1,12 @@
 import unittest
 from datetime import datetime, timezone
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from fastapi.testclient import TestClient
 
 from backend.app.main import app
 from backend.db.session import SessionLocal
+from backend.models.base.enums import TaskStatus
 from backend.models.search.search_document import SearchDocument
 from backend.models.task.task import Task
 from backend.services.search import SearchService
@@ -126,6 +127,146 @@ class TaskWorkflowExpandedTest(unittest.TestCase):
         accepted_titles = [item["title"] for item in accepted_only.json()]
         self.assertTrue(any("Accepted" in title for title in accepted_titles))
         self.assertFalse(any("Pending" in title for title in accepted_titles))
+
+    def test_create_manual_task_indexes_task_for_search(self) -> None:
+        response = self.client.post(
+            "/api/tasks",
+            json={
+                "title": f"{self.prefix} Manual Task",
+                "description": f"{self.prefix} manual task body",
+                "due_at": "2026-06-03T23:59:00+00:00",
+                "priority": 3,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        payload = response.json()
+        self.assertEqual(payload["title"], f"{self.prefix} Manual Task")
+        self.assertEqual(payload["status"], "TODO")
+        self.assertFalse(payload["is_candidate"])
+        self.assertEqual(payload["candidate_status"], "accepted")
+        self.assertEqual(payload["source_type"], "manual")
+        self.assertEqual(payload["priority"], 3)
+
+        db = SessionLocal()
+        try:
+            document = (
+                db.query(SearchDocument)
+                .filter(
+                    SearchDocument.target_type == "task",
+                    SearchDocument.target_id == UUID(payload["id"]),
+                )
+                .first()
+            )
+            self.assertIsNotNone(document)
+            self.assertIn("Manual Task", document.title)
+        finally:
+            db.close()
+
+    def test_create_manual_task_rejects_blank_title(self) -> None:
+        response = self.client.post("/api/tasks", json={"title": "   "})
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_update_task_edits_fields_and_reindexes(self) -> None:
+        task = self.fixture.create_task("Editable", is_candidate=False, candidate_status="accepted")
+        SearchService().index_task(str(task.id))
+
+        response = self.client.patch(
+            f"/api/tasks/{task.id}",
+            json={
+                "title": f"{self.prefix} Updated Task",
+                "description": f"{self.prefix} updated description",
+                "due_at": None,
+                "priority": 5,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        payload = response.json()
+        self.assertEqual(payload["title"], f"{self.prefix} Updated Task")
+        self.assertEqual(payload["description"], f"{self.prefix} updated description")
+        self.assertIsNone(payload["due_at"])
+        self.assertEqual(payload["priority"], 5)
+
+        db = SessionLocal()
+        try:
+            document = (
+                db.query(SearchDocument)
+                .filter(
+                    SearchDocument.target_type == "task",
+                    SearchDocument.target_id == task.id,
+                )
+                .first()
+            )
+            self.assertIsNotNone(document)
+            self.assertEqual(document.title, f"{self.prefix} Updated Task")
+        finally:
+            db.close()
+
+    def test_complete_and_reopen_task_update_status(self) -> None:
+        task = self.fixture.create_task("Toggle", is_candidate=False, candidate_status="accepted")
+
+        completed = self.client.post(f"/api/tasks/{task.id}/complete")
+        reopened = self.client.post(f"/api/tasks/{task.id}/reopen")
+
+        self.assertEqual(completed.status_code, 200, completed.text)
+        self.assertEqual(completed.json()["status"], "DONE")
+        self.assertEqual(reopened.status_code, 200, reopened.text)
+        self.assertEqual(reopened.json()["status"], "TODO")
+
+    def test_list_tasks_filters_open_status_and_search_text(self) -> None:
+        self.fixture.create_task(
+            "Open Followup",
+            description=f"{self.prefix} alpha task",
+            is_candidate=False,
+            candidate_status="accepted",
+            status=TaskStatus.TODO,
+        )
+        self.fixture.create_task(
+            "Closed Followup",
+            description=f"{self.prefix} alpha done",
+            is_candidate=False,
+            candidate_status="accepted",
+            status=TaskStatus.DONE,
+        )
+        self.fixture.create_task(
+            "Other",
+            description=f"{self.prefix} beta task",
+            is_candidate=False,
+            candidate_status="accepted",
+            status=TaskStatus.TODO,
+        )
+
+        response = self.client.get(
+            "/api/tasks",
+            params={
+                "include_candidates": "false",
+                "open_only": "true",
+                "search": "alpha",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        titles = [item["title"] for item in response.json()]
+        self.assertTrue(any("Open Followup" in title for title in titles))
+        self.assertFalse(any("Closed Followup" in title for title in titles))
+        self.assertFalse(any("Other" in title for title in titles))
+
+    def test_update_task_rejects_invalid_status_and_priority(self) -> None:
+        task = self.fixture.create_task("Invalid Update", is_candidate=False)
+
+        bad_status = self.client.patch(
+            f"/api/tasks/{task.id}",
+            json={"status": "UNKNOWN"},
+        )
+        bad_priority = self.client.patch(
+            f"/api/tasks/{task.id}",
+            json={"priority": 9},
+        )
+
+        self.assertEqual(bad_status.status_code, 400)
+        self.assertEqual(bad_priority.status_code, 422)
 
     def test_accept_task_candidate_marks_accepted(self) -> None:
         task = self.fixture.create_task("Candidate", is_candidate=True)

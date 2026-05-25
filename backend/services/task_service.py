@@ -6,6 +6,7 @@ import re
 from uuid import UUID
 
 from fastapi import HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
 from backend.app.account_context import get_current_account_id
@@ -181,6 +182,9 @@ class TaskService:
         self,
         include_candidates: bool = True,
         candidate_status: str | None = None,
+        status: str | None = None,
+        open_only: bool = False,
+        search: str | None = None,
         limit: int = 100,
     ) -> list[dict]:
         db: Session = SessionLocal()
@@ -195,6 +199,18 @@ class TaskService:
                 query = query.filter(Task.is_candidate.is_(False))
             if candidate_status:
                 query = query.filter(Task.candidate_status == candidate_status)
+            if open_only:
+                query = query.filter(Task.status == TaskStatus.TODO)
+            if status:
+                query = query.filter(Task.status == self._normalize_status(status))
+            if search and search.strip():
+                pattern = f"%{search.strip()}%"
+                query = query.filter(
+                    or_(
+                        Task.title.ilike(pattern),
+                        Task.description.ilike(pattern),
+                    )
+                )
 
             tasks = (
                 query.order_by(
@@ -211,6 +227,89 @@ class TaskService:
             ]
         finally:
             db.close()
+
+    def create_task(
+        self,
+        title: str,
+        description: str | None = None,
+        due_at: str | datetime | None = None,
+        priority: int | None = None,
+    ) -> dict:
+        db: Session = SessionLocal()
+        task_id: str | None = None
+        try:
+            account_id = get_current_account_id()
+            task = Task(
+                account_id=account_id,
+                title=self._normalize_title(title),
+                description=self._normalize_optional_text(description),
+                status=TaskStatus.TODO,
+                due_at=self._parse_optional_datetime(due_at),
+                priority=self._normalize_priority(priority),
+                source_type="manual",
+                source_id=None,
+                is_candidate=False,
+                candidate_status="accepted",
+                confidence=None,
+            )
+            db.add(task)
+            db.commit()
+            db.refresh(task)
+            task_id = str(task.id)
+            payload = self.serialize_task(task)
+        finally:
+            db.close()
+
+        if task_id:
+            self._index_task(task_id)
+        return payload
+
+    def update_task(
+        self,
+        task_id: str,
+        changes: dict,
+    ) -> dict:
+        db: Session = SessionLocal()
+        normalized_task_id: str | None = None
+        try:
+            account_id = get_current_account_id()
+            task_uuid = self._normalize_uuid(task_id, "Task is invalid")
+            task = (
+                db.query(Task)
+                .options(joinedload(Task.links))
+                .filter(Task.id == task_uuid, Task.account_id == account_id)
+                .first()
+            )
+            if task is None:
+                raise HTTPException(status_code=404, detail="Task not found")
+
+            if "title" in changes:
+                task.title = self._normalize_title(changes["title"])
+            if "description" in changes:
+                task.description = self._normalize_optional_text(changes["description"])
+            if "due_at" in changes:
+                task.due_at = self._parse_optional_datetime(changes["due_at"])
+            if "priority" in changes:
+                task.priority = self._normalize_priority(changes["priority"])
+            if "status" in changes:
+                task.status = self._normalize_status(changes["status"])
+
+            db.commit()
+            db.refresh(task)
+            normalized_task_id = str(task.id)
+            payload = self.serialize_task(task)
+        finally:
+            db.close()
+
+        if normalized_task_id:
+            self._index_task(normalized_task_id)
+        return payload
+
+    def complete_task(self, task_id: str) -> dict:
+        return self.update_task(task_id, {"status": "DONE"})
+
+    def reopen_task(self, task_id: str) -> dict:
+        return self.update_task(task_id, {"status": "TODO"})
 
     def accept_candidate(self, task_id: str) -> dict:
         return self._set_candidate_status(
@@ -342,10 +441,8 @@ class TaskService:
         finally:
             db.close()
 
-        from backend.services.search import SearchService
-
         if task is not None:
-            SearchService().index_task(str(task.id))
+            self._index_task(str(task.id))
         return payload
 
     def _candidate_exists(
@@ -393,6 +490,63 @@ class TaskService:
             return UUID(str(value))
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=detail) from exc
+
+    def _index_task(self, task_id: str) -> None:
+        from backend.services.search import SearchService
+
+        SearchService().index_task(task_id)
+
+    def _normalize_title(self, title: str | None) -> str:
+        normalized = (title or "").strip()
+        if not normalized:
+            raise HTTPException(status_code=400, detail="Task title is required")
+        if len(normalized) > 200:
+            raise HTTPException(status_code=400, detail="Task title is too long")
+        return normalized
+
+    def _normalize_optional_text(self, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
+
+    def _normalize_priority(self, priority: int | None) -> int | None:
+        if priority is None:
+            return None
+        if priority < 1 or priority > 5:
+            raise HTTPException(status_code=400, detail="Task priority is invalid")
+        return priority
+
+    def _normalize_status(self, status: str | TaskStatus | int) -> TaskStatus:
+        if isinstance(status, TaskStatus):
+            return status
+        if isinstance(status, int):
+            try:
+                return TaskStatus(status)
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail="Task status is invalid") from exc
+        value = str(status).strip().upper()
+        try:
+            return TaskStatus[value]
+        except KeyError as exc:
+            raise HTTPException(status_code=400, detail="Task status is invalid") from exc
+
+    def _parse_optional_datetime(self, value: str | datetime | None) -> datetime | None:
+        if value is None:
+            return None
+        if isinstance(value, datetime):
+            parsed = value
+        else:
+            text = str(value).strip()
+            if not text:
+                return None
+            try:
+                parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail="Task due time is invalid") from exc
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed
 
 
 def extract_task_candidates(
