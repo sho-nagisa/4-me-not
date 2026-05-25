@@ -1,0 +1,14 @@
+services:
+  db-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: forme_not
+      POSTGRES_DB: forme_not
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forme_not -d forme_not"]
+      interval: 2s
+      timeout: 5s
+      retries: 30

@@ -22,6 +22,8 @@ engine = create_engine(
     DATABASE_URL,
     echo=False,
     future=True,
+    pool_pre_ping=True,
+    pool_recycle=300,
 )
 
 SessionLocal = sessionmaker(

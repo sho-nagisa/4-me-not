@@ -448,7 +448,7 @@ def normalize_candidate_title(sentence: str) -> str:
     title = re.sub(r"^(TODO|ToDo|todo|タスク|やること)[:：\s-]*", "", sentence).strip()
     title = re.sub(r"\s+", " ", title)
     if len(title) > 120:
-        title = title[:119].rstrip() + "..."
+        title = title[:117].rstrip() + "..."
     return title
 
 

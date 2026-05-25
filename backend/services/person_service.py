@@ -2,12 +2,14 @@ from uuid import UUID
 
 from fastapi import HTTPException
 from sqlalchemy import delete as sa_delete
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
 from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.community.community import Community
 from backend.models.person.person import Person
+from backend.models.search.search_document import SearchDocument
 from backend.services.search import SearchService
 
 
@@ -24,6 +26,23 @@ class PersonService:
         db = SessionLocal()
         try:
             account_id = get_current_account_id()
+            normalized_name = name.strip()
+            if not normalized_name:
+                raise HTTPException(status_code=400, detail="Person name is required")
+            normalized_canonical_name = (
+                canonical_name.strip() if canonical_name and canonical_name.strip() else None
+            )
+            if normalized_canonical_name:
+                existing = (
+                    db.query(Person.id)
+                    .filter(
+                        Person.account_id == account_id,
+                        Person.canonical_name == normalized_canonical_name,
+                    )
+                    .first()
+                )
+                if existing is not None:
+                    raise HTTPException(status_code=409, detail="Person already exists")
             normalized_primary_community_id = self._validate_primary_community(
                 db=db,
                 primary_community_id=primary_community_id,
@@ -31,12 +50,16 @@ class PersonService:
             )
             person = Person(
                 account_id=account_id,
-                name=name,
-                canonical_name=canonical_name,
+                name=normalized_name,
+                canonical_name=normalized_canonical_name,
                 primary_community_id=normalized_primary_community_id,
             )
             db.add(person)
-            db.commit()
+            try:
+                db.commit()
+            except IntegrityError as exc:
+                db.rollback()
+                raise HTTPException(status_code=409, detail="Person already exists") from exc
             db.refresh(person)
             SearchService.invalidate_cache(account_id)
             return person
@@ -92,6 +115,17 @@ class PersonService:
             account_id = get_current_account_id()
             person = self._get_person(db, person_id)
             person.is_hidden = is_hidden
+            if is_hidden:
+                db.execute(
+                    sa_delete(SearchDocument).where(
+                        SearchDocument.account_id == account_id,
+                        (
+                            (SearchDocument.target_type == "person")
+                            & (SearchDocument.target_id == person.id)
+                        )
+                        | (SearchDocument.person_id == person.id),
+                    )
+                )
             db.commit()
             db.refresh(person)
             SearchService.invalidate_cache(account_id)
