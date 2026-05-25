@@ -1,6 +1,8 @@
 services:
   db:
     image: postgres:16-alpine
+    profiles:
+      - local-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-forme_not}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-forme_not}
@@ -21,13 +23,8 @@ services:
       dockerfile: backend/Dockerfile
     env_file:
       - .env
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-forme_not}:${POSTGRES_PASSWORD:-forme_not}@db:5432/${POSTGRES_DB:-forme_not}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
-    depends_on:
-      db:
-        condition: service_healthy
     volumes:
       - ./backend:/app/backend
       - ./migrations:/app/migrations

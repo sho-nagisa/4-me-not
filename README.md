@@ -16,13 +16,13 @@ docker compose up --build
 
 ### Docker を使う場合
 
-通常はこちらを使います。ホスト側に Python / Node の依存を入れず、PostgreSQL / backend / frontend を Docker Compose でまとめて起動します。
+通常はこちらを使います。ホスト側に Python / Node の依存を入れず、backend / frontend を Docker Compose で起動します。接続先DBは `.env` の `DATABASE_URL` を使います。
 
 Prerequisites:
 
 - Docker Desktop or Docker Engine with Docker Compose v2
 
-初回だけ `.env` を作成します。
+初回だけ `.env` を作成し、`DATABASE_URL` を接続したいDBに合わせます。
 
 Windows PowerShell:
 
@@ -54,7 +54,7 @@ docker compose up
 docker compose up -d
 ```
 
-初回にデモデータも入れる場合は、別ターミナルで実行します。
+初回にデモデータも入れる場合は、別ターミナルで実行します。実行先は `.env` の `DATABASE_URL` です。
 
 ```powershell
 docker compose exec backend python scripts/seed_demo_data.py
@@ -83,12 +83,14 @@ Prerequisites:
 - Node.js 18+
 - PostgreSQL 16 compatible database
 
-PostgreSQL だけ Docker で起動する場合:
+アプリ用の PostgreSQL だけ Docker で起動する場合:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up -d db
+docker compose --profile local-db up -d db
 ```
+
+この場合、Docker 内の backend から local DB に接続するなら `.env` の `DATABASE_URL` は `postgresql://forme_not:forme_not@db:5432/forme_not` にします。ホスト側で backend を直接起動するなら `postgresql://forme_not:forme_not@localhost:5432/forme_not` にします。
 
 既存 PostgreSQL を使う場合は、`.env.example` を `.env` にコピーして `DATABASE_URL` を自分の DB に合わせて変更します。
 
@@ -180,16 +182,16 @@ OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 SEARCH_FALLBACK_EMBEDDING_DIM=384
 ```
 
-Docker Compose の backend コンテナでは `DATABASE_URL` を `db` ホスト向けに上書きします。ホスト側でコマンドを実行する場合は `.env` の `localhost` 向け `DATABASE_URL` を使います。
+Docker Compose の backend コンテナも `.env` の `DATABASE_URL` をそのまま使います。テストだけ local DB を使う場合は `scripts/run_tests_local.ps1` を使います。
 
 ### よく使うコマンド
 
 ```powershell
-# PostgreSQL only
-docker compose up -d db
+# PostgreSQL only, for app-local DB development
+docker compose --profile local-db up -d db
 
-# Backend tests
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+# Backend tests with disposable local test DB
+.\scripts\run_tests_local.ps1
 
 # Frontend production build
 cd frontend
