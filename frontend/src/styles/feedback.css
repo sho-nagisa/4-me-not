@@ -7,6 +7,41 @@
   border-radius: 22px;
 }
 
+.offline-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 242, 220, 0.96);
+  border: 1px solid rgba(190, 127, 42, 0.2);
+  color: #543a18;
+  box-shadow: 0 14px 30px rgba(90, 70, 40, 0.1);
+}
+
+.offline-banner strong {
+  flex: 0 0 auto;
+  color: #8a5518;
+  font-size: 0.88rem;
+}
+
+.offline-banner span {
+  min-width: 0;
+  line-height: 1.45;
+  font-size: 0.86rem;
+}
+
+.offline-banner--syncing {
+  background: rgba(236, 244, 255, 0.96);
+  border-color: rgba(85, 123, 185, 0.18);
+  color: #243d67;
+}
+
+.offline-banner--syncing strong {
+  color: #315f9f;
+}
+
 .banner p {
   flex: 1 1 auto;
   margin: 0;
@@ -80,9 +115,9 @@
 
 .mobile-dock {
   position: fixed;
-  left: 14px;
-  right: 14px;
-  bottom: 14px;
+  left: max(14px, env(safe-area-inset-left));
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(14px, env(safe-area-inset-bottom));
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

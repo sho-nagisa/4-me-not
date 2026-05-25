@@ -125,6 +125,7 @@
 .field select,
 .field textarea {
   width: 100%;
+  min-width: 0;
   border-radius: 16px;
   border: 1px solid rgba(84, 112, 95, 0.14);
   background: rgba(250, 252, 250, 0.92);
@@ -279,10 +280,17 @@
 }
 
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   border: 0;
   border-radius: 999px;
   padding: 12px 18px;
   font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  touch-action: manipulation;
   transition:
     transform 140ms ease,
     opacity 140ms ease,

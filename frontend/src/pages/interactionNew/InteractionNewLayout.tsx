@@ -22,6 +22,9 @@ export function InteractionNewLayout({
   relationSummary,
   taskSummary,
   feedback,
+  isOnline,
+  pendingInteractionCount,
+  isSyncingInteractions,
   onDismissFeedback,
   onToggleWorkspaceMode,
   children,
@@ -43,6 +46,9 @@ export function InteractionNewLayout({
     dueSoonCount: number;
   };
   feedback: FeedbackState;
+  isOnline: boolean;
+  pendingInteractionCount: number;
+  isSyncingInteractions: boolean;
   onDismissFeedback: () => void;
   onToggleWorkspaceMode: () => void;
   children: ReactNode;
@@ -61,6 +67,20 @@ export function InteractionNewLayout({
       >
         ×
       </button>
+    </section>
+  ) : null;
+  const offlineBanner = !isOnline ? (
+    <section className="offline-banner" role="status" aria-live="polite">
+      <strong>オフラインです</strong>
+      <span>
+        表示中の内容は古い可能性があります。保存した記録は未送信として残します。
+        {pendingInteractionCount > 0 ? ` 未送信 ${pendingInteractionCount}件。` : ""}
+      </span>
+    </section>
+  ) : isSyncingInteractions ? (
+    <section className="offline-banner offline-banner--syncing" role="status" aria-live="polite">
+      <strong>送信中です</strong>
+      <span>未送信の記録を同期しています。</span>
     </section>
   ) : null;
 
@@ -136,6 +156,7 @@ export function InteractionNewLayout({
           </aside>
 
           <section className="desktop-content">
+            {offlineBanner}
             {feedbackBanner}
             {children}
           </section>
@@ -144,6 +165,7 @@ export function InteractionNewLayout({
         <div className="mobile-frame">
           <header className="mobile-header mobile-header--compact">{brandSwitch}</header>
 
+          {offlineBanner}
           {feedbackBanner}
 
           <section className="mobile-content">{children}</section>

@@ -4,17 +4,26 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .mobile-record-tabs {
+  position: sticky;
+  top: 10px;
+  z-index: 3;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 253, 249, 0.74);
+  border: 1px solid rgba(73, 97, 79, 0.08);
+  backdrop-filter: blur(16px);
 }
 
 .mobile-record-tab {
   min-width: 0;
+  min-height: 42px;
   padding: 9px 12px;
   border-radius: 999px;
   background: rgba(255, 253, 249, 0.72);
@@ -44,6 +53,7 @@
   scroll-snap-type: x mandatory;
   touch-action: pan-x;
   scrollbar-width: none;
+  scroll-behavior: smooth;
 }
 
 .mobile-record-swipe::-webkit-scrollbar {
