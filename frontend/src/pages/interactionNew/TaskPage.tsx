@@ -75,7 +75,7 @@ export function TaskPage({
         </div>
         <SectionTabs items={taskPanelOptions} activeId={panel} onSelect={setPanel} />
 
-        <div className="metric-grid metric-grid--compact task-metric-grid">
+        <div className="metric-grid metric-grid--compact task-metric-grid task-overview-metrics">
           <MetricCard
             label="候補"
             value={taskCandidates.length}
@@ -100,7 +100,7 @@ export function TaskPage({
       </section>
 
       {panel === "overview" ? (
-        <section className="page-grid page-grid--two">
+        <section className="page-grid page-grid--two task-overview-grid">
           <TaskCandidatePanel
             candidates={taskCandidates}
             loading={taskCandidatesLoading}
