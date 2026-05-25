@@ -58,6 +58,10 @@ import backend.models.calendar.calendar_event
 import backend.models.calendar.event_participant
 import backend.models.calendar.meeting_snapshot
 
+# search
+import backend.models.search.search_document
+import backend.models.search.search_log
+
 
 # Alembic Config
 config = context.config
