@@ -20,6 +20,7 @@ from backend.models.interaction.topic import Topic
 from backend.models.person.person import Person
 from backend.models.reminder.reminder import Reminder
 from backend.models.search.search_document import SearchDocument
+from backend.models.search.search_log import SearchLog
 from backend.models.task.task import Task
 from backend.models.task.task_link import TaskLink
 from backend.services.search import SearchService
@@ -187,6 +188,16 @@ def _cleanup_test_data_once(prefix: str) -> None:
             sa_delete(SearchDocument).where(
                 SearchDocument.account_id == account_id,
                 or_(*search_target_filters),
+            )
+        )
+        search_log_filters = [SearchLog.query.like(f"%{prefix}%")]
+        for ids in (person_ids, community_ids, topic_ids, interaction_ids, event_ids, task_ids):
+            if ids:
+                search_log_filters.append(SearchLog.top_result_id.in_(ids))
+        db.execute(
+            sa_delete(SearchLog).where(
+                SearchLog.account_id == account_id,
+                or_(*search_log_filters),
             )
         )
 

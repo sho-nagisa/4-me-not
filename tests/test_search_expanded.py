@@ -10,6 +10,7 @@ from backend.app.account_context import get_current_account_id
 from backend.app.main import app
 from backend.db.session import SessionLocal
 from backend.models.search.search_document import SearchDocument
+from backend.models.search.search_log import SearchLog
 from backend.services.person_service import PersonService
 from backend.services.search import SearchService
 from backend.services.search.answer import build_rag_answer
@@ -113,6 +114,48 @@ class SearchExpandedTest(unittest.TestCase):
         self.assertTrue(
             all(item["target_type"] in {"interaction", "person"} for item in many.json()["results"])
         )
+
+    def test_search_endpoint_records_search_log(self) -> None:
+        person = self.fixture.create_person("Log Person")
+        interaction = self.fixture.create_interaction(
+            person=person,
+            content="search-log-token",
+        )
+        SearchService().index_interaction(str(interaction.id))
+
+        query = f"{self.prefix} search-log-token"
+        response = self.client.get(
+            "/api/search",
+            params=[
+                ("q", query),
+                ("target_type", "interaction"),
+                ("target_type", "person"),
+            ],
+        )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        payload = response.json()
+        self.assertTrue(payload["results"])
+
+        db = SessionLocal()
+        try:
+            log = (
+                db.query(SearchLog)
+                .filter(
+                    SearchLog.account_id == get_current_account_id(),
+                    SearchLog.query == query,
+                )
+                .order_by(SearchLog.created_at.desc())
+                .first()
+            )
+            self.assertIsNotNone(log)
+            self.assertEqual(log.target_types, ["interaction", "person"])
+            self.assertEqual(log.result_count, len(payload["results"]))
+            self.assertEqual(log.top_result_type, payload["results"][0]["target_type"])
+            self.assertEqual(str(log.top_result_id), payload["results"][0]["target_id"])
+            self.assertIsNotNone(log.created_at)
+        finally:
+            db.close()
 
     def test_rebuild_account_index_indexes_all_supported_targets(self) -> None:
         community = self.fixture.create_community("Rebuild Community")

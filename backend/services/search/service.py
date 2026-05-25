@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from threading import RLock
 from uuid import UUID
 
@@ -15,6 +16,7 @@ from backend.models.interaction.interaction import Interaction
 from backend.models.interaction.topic import Topic
 from backend.models.person.person import Person
 from backend.models.search.search_document import SearchDocument
+from backend.models.search.search_log import SearchLog
 from backend.models.task.task import Task
 from backend.services.search.answer import build_rag_answer
 from backend.services.search.cache import SearchDocumentCacheMixin
@@ -36,6 +38,9 @@ from backend.services.search.utils import (
     cosine_similarity,
     normalize_uuid,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class SearchService(SearchIndexingMixin, SearchDocumentCacheMixin, SearchResultMixin):
@@ -113,14 +118,50 @@ class SearchService(SearchIndexingMixin, SearchDocumentCacheMixin, SearchResultM
         )
         limited_results = results[:limit]
         groups = self._group_results(limited_results)
+        answer = build_rag_answer(normalized_query, limited_results, groups)
+        self._record_search_log(
+            account_id=account_id,
+            query=normalized_query,
+            target_types=selected_target_types,
+            results=limited_results,
+        )
 
         return {
             "query": query,
             "embedding_model": query_embedding_model,
             "results": limited_results,
             "groups": groups,
-            "answer": build_rag_answer(normalized_query, limited_results, groups),
+            "answer": answer,
         }
+
+    def _record_search_log(
+        self,
+        account_id: UUID,
+        query: str,
+        target_types: list[str] | None,
+        results: list[dict],
+    ) -> None:
+        top_result = results[0] if results else None
+        db: Session = SessionLocal()
+        try:
+            db.add(
+                SearchLog(
+                    account_id=account_id,
+                    query=query,
+                    target_types=target_types or [],
+                    result_count=len(results),
+                    top_result_type=top_result["target_type"] if top_result else None,
+                    top_result_id=UUID(top_result["target_id"])
+                    if top_result
+                    else None,
+                )
+            )
+            db.commit()
+        except Exception:
+            db.rollback()
+            logger.exception("Failed to record search log")
+        finally:
+            db.close()
 
     def index_interaction(self, interaction_id: str) -> None:
         db: Session = SessionLocal()
