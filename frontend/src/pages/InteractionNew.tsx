@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import {
   interactionTypeOptions,
   shareLevelOptions,
@@ -39,8 +40,18 @@ import {
   searchMemory,
   updateCommunityHidden,
   updatePersonHidden,
+  type CreateInteractionPayload,
 } from "./interactionNew/interactionsApi";
 import { ManagePage } from "./interactionNew/ManagePage";
+import {
+  clearRecordDraft,
+  enqueuePendingInteraction,
+  getPendingInteractionCount,
+  getPendingInteractions,
+  loadRecordDraft,
+  saveRecordDraft,
+  syncPendingInteractions,
+} from "./interactionNew/offlineInteractions";
 import {
   relationSearchScopeOptions,
   relationSearchTargetTypes,
@@ -64,6 +75,7 @@ import { useTaskWorkspace } from "./interactionNew/useTaskWorkspace";
 
 export default function InteractionNew() {
   const isMobile = useIsMobile(820);
+  const isOnline = useOnlineStatus();
 
   const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>("relations");
   const [currentPage, setCurrentPage] = useState<PageId>("home");
@@ -95,17 +107,35 @@ export default function InteractionNew() {
   const [communityActionId, setCommunityActionId] = useState<string | null>(null);
 
   const [feedback, setFeedback] = useState<FeedbackState>(null);
+  const [initialRecordDraft] = useState(loadRecordDraft);
+  const [pendingInteractionCount, setPendingInteractionCount] = useState(
+    getPendingInteractionCount
+  );
+  const [isSyncingInteractions, setIsSyncingInteractions] = useState(false);
+  const isSyncingInteractionsRef = useRef(false);
 
-  const [occurredAt, setOccurredAt] = useState<string>(toDateTimeLocalValue());
-  const [personId, setPersonId] = useState<string>("");
-  const [communityId, setCommunityId] = useState<string>("");
+  const [occurredAt, setOccurredAt] = useState<string>(
+    initialRecordDraft?.occurred_at ?? toDateTimeLocalValue()
+  );
+  const [personId, setPersonId] = useState<string>(
+    initialRecordDraft?.person_id ?? ""
+  );
+  const [communityId, setCommunityId] = useState<string>(
+    initialRecordDraft?.community_id ?? ""
+  );
   const [communityTouched, setCommunityTouched] = useState(false);
-  const [topicId, setTopicId] = useState<string>("");
+  const [topicId, setTopicId] = useState<string>(
+    initialRecordDraft?.topic_id ?? ""
+  );
   const [interactionType, setInteractionType] =
-    useState<InteractionType>("MEETING");
-  const [shareLevel, setShareLevel] = useState<ShareLevel>("SHARED");
-  const [content, setContent] = useState<string>("");
-  const [note, setNote] = useState<string>("");
+    useState<InteractionType>(initialRecordDraft?.interaction_type ?? "MEETING");
+  const [shareLevel, setShareLevel] = useState<ShareLevel>(
+    initialRecordDraft?.share_level ?? "SHARED"
+  );
+  const [content, setContent] = useState<string>(
+    initialRecordDraft?.content ?? ""
+  );
+  const [note, setNote] = useState<string>(initialRecordDraft?.note ?? "");
 
   const [newPersonName, setNewPersonName] = useState("");
   const [newPersonPrimaryCommunityId, setNewPersonPrimaryCommunityId] = useState("");
@@ -203,6 +233,34 @@ export default function InteractionNew() {
     (option) => option.value === shareLevel
   );
 
+  const buildInteractionPayload = (): CreateInteractionPayload => ({
+    occurred_at: occurredAt,
+    person_id: personId,
+    community_id: communityId || null,
+    topic_id: topicId || null,
+    interaction_type: interactionType,
+    share_level: shareLevel,
+    content,
+    note,
+  });
+
+  const resetRecordForm = () => {
+    setOccurredAt(toDateTimeLocalValue());
+    setContent("");
+    setNote("");
+    setCommunityTouched(false);
+    clearRecordDraft();
+  };
+
+  const queueInteractionForLater = (payload: CreateInteractionPayload) => {
+    enqueuePendingInteraction(payload);
+    setPendingInteractionCount(getPendingInteractionCount());
+    resetRecordForm();
+  };
+
+  const shouldQueueAfterSaveError = (error: unknown) =>
+    !isOnline || error instanceof TypeError;
+
   const toggleWorkspaceMode = () => {
     setWorkspaceMode((currentMode) => {
       const nextMode: WorkspaceMode = currentMode === "relations" ? "tasks" : "relations";
@@ -225,6 +283,24 @@ export default function InteractionNew() {
 
     return () => window.clearTimeout(timer);
   }, [feedback]);
+
+  useEffect(() => {
+    if (!content.trim() && !note.trim()) {
+      clearRecordDraft();
+      return;
+    }
+
+    saveRecordDraft(buildInteractionPayload());
+  }, [
+    occurredAt,
+    personId,
+    communityId,
+    topicId,
+    interactionType,
+    shareLevel,
+    content,
+    note,
+  ]);
 
   const loadOptions = async () => {
     setLoading(true);
@@ -399,6 +475,63 @@ export default function InteractionNew() {
     }
   };
 
+  useEffect(() => {
+    if (!isOnline || isSyncingInteractionsRef.current) {
+      return;
+    }
+
+    const pendingItems = getPendingInteractions();
+    setPendingInteractionCount(pendingItems.length);
+    if (pendingItems.length === 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const runPendingInteractionSync = async () => {
+      isSyncingInteractionsRef.current = true;
+      setIsSyncingInteractions(true);
+      let sentCount = 0;
+
+      try {
+        sentCount = await syncPendingInteractions(
+          async (payload) => {
+            if (cancelled) {
+              throw new Error("Sync cancelled");
+            }
+
+            await createInteraction(payload);
+          },
+          () => setPendingInteractionCount(getPendingInteractionCount())
+        );
+
+        if (!cancelled && sentCount > 0) {
+          setSuccess(`未送信の記録 ${sentCount}件を送信しました。`);
+          await refreshAll();
+        }
+      } catch {
+        if (!cancelled && sentCount > 0) {
+          await refreshAll();
+        }
+        if (!cancelled) {
+          setError("未送信の自動送信に失敗しました。接続が安定したら再試行します。");
+          setPendingInteractionCount(getPendingInteractionCount());
+        }
+      } finally {
+        isSyncingInteractionsRef.current = false;
+        if (!cancelled) {
+          setIsSyncingInteractions(false);
+        }
+      }
+    };
+
+    void runPendingInteractionSync();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOnline]);
+
   const refreshTaskCandidateState = async () => {
     await loadTaskCandidateList();
     await loadTaskList();
@@ -464,26 +597,22 @@ export default function InteractionNew() {
       return;
     }
 
+    const payload = buildInteractionPayload();
+
+    if (!isOnline) {
+      queueInteractionForLater(payload);
+      setSuccess("オフラインのため未送信として保存しました。接続が戻ると自動送信します。");
+      return;
+    }
+
     setIsSaving(true);
     setFeedback({ tone: "info", message: "記録を保存しています..." });
 
     try {
-      await createInteraction({
-        occurred_at: occurredAt,
-        person_id: personId,
-        community_id: communityId || null,
-        topic_id: topicId || null,
-        interaction_type: interactionType,
-        share_level: shareLevel,
-        content,
-        note,
-      });
+      await createInteraction(payload);
 
       setSuccess("やり取りを保存しました。");
-      setOccurredAt(toDateTimeLocalValue());
-      setContent("");
-      setNote("");
-      setCommunityTouched(false);
+      resetRecordForm();
       await loadOverviewInteractions();
       if (currentPage === "history") {
         await loadHistory(historyPage);
@@ -498,6 +627,12 @@ export default function InteractionNew() {
         await loadDetailDashboard(personId);
       }
     } catch (error) {
+      if (shouldQueueAfterSaveError(error)) {
+        queueInteractionForLater(payload);
+        setSuccess("通信できないため未送信として保存しました。接続が戻ると自動送信します。");
+        return;
+      }
+
       const message =
         error instanceof Error ? error.message : "保存に失敗しました。";
       setError(message);
@@ -769,6 +904,8 @@ export default function InteractionNew() {
             selectedPerson={selectedPerson}
             recordDashboardLoading={recordDashboardLoading}
             recordDashboard={recordDashboard}
+            isOnline={isOnline}
+            pendingInteractionCount={pendingInteractionCount}
           />
         );
       case "search":
@@ -914,6 +1051,9 @@ export default function InteractionNew() {
         dueSoonCount: dueSoonTaskCount,
       }}
       feedback={feedback}
+      isOnline={isOnline}
+      pendingInteractionCount={pendingInteractionCount}
+      isSyncingInteractions={isSyncingInteractions}
       onDismissFeedback={() => setFeedback(null)}
       onToggleWorkspaceMode={toggleWorkspaceMode}
     >

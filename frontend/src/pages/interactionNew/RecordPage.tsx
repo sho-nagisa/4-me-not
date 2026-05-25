@@ -40,6 +40,8 @@ type RecordPageProps = {
   selectedPerson?: Person;
   recordDashboardLoading: boolean;
   recordDashboard: PersonDashboard | null;
+  isOnline: boolean;
+  pendingInteractionCount: number;
 };
 
 export function RecordPage(props: RecordPageProps) {
@@ -78,10 +80,12 @@ export function RecordPage(props: RecordPageProps) {
     selectedPerson,
     recordDashboardLoading,
     recordDashboard,
+    isOnline,
+    pendingInteractionCount,
   } = props;
 
   const recordFormCard = (
-    <section className="page-card">
+    <section className="page-card record-form-card">
       <div className="page-card__header">
         <div>
           <p className="eyebrow">Record</p>
@@ -203,17 +207,21 @@ export function RecordPage(props: RecordPageProps) {
         </label>
       </div>
 
-      <div className="action-row">
+      <div className="action-row record-action-row">
         <button
           type="button"
           className="button button--primary"
           onClick={handleSubmit}
           disabled={isSaving || loading}
         >
-          {isSaving ? "保存中..." : "記録を保存"}
+          {isSaving ? "保存中..." : isOnline ? "記録を保存" : "未送信として保存"}
         </button>
         <p className="action-row__hint">
-          {communityTouched
+          {!isOnline
+            ? `オフライン中です。保存すると未送信としてこの端末に残します${
+                pendingInteractionCount > 0 ? `。未送信 ${pendingInteractionCount}件` : "。"
+              }`
+            : communityTouched
             ? "コミュニティは今回だけ手動で変更しています。"
             : `${selectedPerson?.primary_community_path ?? "主な所属未設定"} を初期値にしています。`}
         </p>

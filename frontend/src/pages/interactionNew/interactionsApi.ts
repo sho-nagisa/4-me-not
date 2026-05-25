@@ -27,7 +27,7 @@ type HistoryFilters = {
   offset?: number;
 };
 
-type CreateInteractionPayload = {
+export type CreateInteractionPayload = {
   occurred_at: string;
   person_id: string;
   community_id: string | null;
