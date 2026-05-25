@@ -25,9 +25,11 @@ import { DesktopHome, MobileHome } from "./interactionNew/components";
 import { HistoryPage } from "./interactionNew/HistoryPage";
 import {
   acceptTaskCandidate,
+  completeTask,
   createCommunity,
   createInteraction,
   createPerson,
+  createTask,
   createTopic,
   deleteCommunity,
   deletePerson,
@@ -38,8 +40,12 @@ import {
   listPersons,
   listTopics,
   searchMemory,
+  updateTask,
   updateCommunityHidden,
   updatePersonHidden,
+  reopenTask,
+  type CreateTaskPayload,
+  type UpdateTaskPayload,
   type CreateInteractionPayload,
 } from "./interactionNew/interactionsApi";
 import { ManagePage } from "./interactionNew/ManagePage";
@@ -573,6 +579,68 @@ export default function InteractionNew() {
     }
   };
 
+  const handleCreateTask = async (payload: CreateTaskPayload) => {
+    setTaskActionId("new-task");
+    try {
+      await createTask(payload);
+      await refreshTaskCandidateState();
+      setSuccess("タスクを作成しました。");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "タスクの作成に失敗しました。";
+      setError(message);
+      throw error;
+    } finally {
+      setTaskActionId(null);
+    }
+  };
+
+  const handleUpdateTask = async (taskId: string, payload: UpdateTaskPayload) => {
+    setTaskActionId(taskId);
+    try {
+      await updateTask(taskId, payload);
+      await refreshTaskCandidateState();
+      setSuccess("タスクを更新しました。");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "タスクの更新に失敗しました。";
+      setError(message);
+      throw error;
+    } finally {
+      setTaskActionId(null);
+    }
+  };
+
+  const handleCompleteTask = async (taskId: string) => {
+    setTaskActionId(taskId);
+    try {
+      await completeTask(taskId);
+      await refreshTaskCandidateState();
+      setSuccess("タスクを完了しました。");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "タスクの完了に失敗しました。";
+      setError(message);
+    } finally {
+      setTaskActionId(null);
+    }
+  };
+
+  const handleReopenTask = async (taskId: string) => {
+    setTaskActionId(taskId);
+    try {
+      await reopenTask(taskId);
+      await refreshTaskCandidateState();
+      setSuccess("タスクを未完了に戻しました。");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "タスクの未完了化に失敗しました。";
+      setError(message);
+    } finally {
+      setTaskActionId(null);
+    }
+  };
+
   const handlePersonChange = (nextPersonId: string) => {
     setPersonId(nextPersonId);
     const nextPerson = persons.find((person) => person.id === nextPersonId);
@@ -856,6 +924,10 @@ export default function InteractionNew() {
           taskActionId={taskActionId}
           onAcceptTaskCandidate={handleAcceptTaskCandidate}
           onDismissTaskCandidate={handleDismissTaskCandidate}
+          onCreateTask={handleCreateTask}
+          onUpdateTask={handleUpdateTask}
+          onCompleteTask={handleCompleteTask}
+          onReopenTask={handleReopenTask}
           searchQuery={taskSearchQuery}
           setSearchQuery={setTaskSearchQuery}
           searchLoading={taskSearchLoading}

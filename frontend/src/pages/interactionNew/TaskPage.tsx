@@ -1,6 +1,7 @@
-import type { Dispatch, FormEvent, SetStateAction } from "react";
+import { useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 
 import { EmptyState, MetricCard, SectionTabs } from "./components";
+import type { CreateTaskPayload, UpdateTaskPayload } from "./interactionsApi";
 import type { SearchResponse, SearchResultItem, TaskRecord } from "./types";
 import { formatDateTime } from "./utils";
 import { TaskCandidatePanel } from "./SearchPage";
@@ -17,6 +18,10 @@ type TaskPageProps = {
   taskActionId: string | null;
   onAcceptTaskCandidate: (taskId: string) => void | Promise<void>;
   onDismissTaskCandidate: (taskId: string) => void | Promise<void>;
+  onCreateTask: (payload: CreateTaskPayload) => void | Promise<void>;
+  onUpdateTask: (taskId: string, payload: UpdateTaskPayload) => void | Promise<void>;
+  onCompleteTask: (taskId: string) => void | Promise<void>;
+  onReopenTask: (taskId: string) => void | Promise<void>;
   searchQuery: string;
   setSearchQuery: Dispatch<SetStateAction<string>>;
   searchLoading: boolean;
@@ -53,6 +58,10 @@ export function TaskPage({
   taskActionId,
   onAcceptTaskCandidate,
   onDismissTaskCandidate,
+  onCreateTask,
+  onUpdateTask,
+  onCompleteTask,
+  onReopenTask,
   searchQuery,
   setSearchQuery,
   searchLoading,
@@ -101,14 +110,27 @@ export function TaskPage({
 
       {panel === "overview" ? (
         <section className="page-grid page-grid--two task-overview-grid">
-          <TaskCandidatePanel
-            candidates={taskCandidates}
-            loading={taskCandidatesLoading}
+          <div className="task-overview-column">
+            <TaskCreatePanel
+              busy={taskActionId === "new-task"}
+              onCreateTask={onCreateTask}
+            />
+            <TaskCandidatePanel
+              candidates={taskCandidates}
+              loading={taskCandidatesLoading}
+              taskActionId={taskActionId}
+              onAcceptTaskCandidate={onAcceptTaskCandidate}
+              onDismissTaskCandidate={onDismissTaskCandidate}
+            />
+          </div>
+          <TaskList
+            tasks={tasks}
+            loading={tasksLoading}
             taskActionId={taskActionId}
-            onAcceptTaskCandidate={onAcceptTaskCandidate}
-            onDismissTaskCandidate={onDismissTaskCandidate}
+            onUpdateTask={onUpdateTask}
+            onCompleteTask={onCompleteTask}
+            onReopenTask={onReopenTask}
           />
-          <TaskList tasks={tasks} loading={tasksLoading} />
         </section>
       ) : (
         <TaskSearchPanel
@@ -127,52 +149,376 @@ export function TaskPage({
   );
 }
 
+function TaskCreatePanel({
+  busy,
+  onCreateTask,
+}: {
+  busy: boolean;
+  onCreateTask: (payload: CreateTaskPayload) => void | Promise<void>;
+}) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [priority, setPriority] = useState("");
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) return;
+
+    await onCreateTask({
+      title: trimmedTitle,
+      description: description.trim() || null,
+      due_at: toDueAtIso(dueDate),
+      priority: priority ? Number(priority) : null,
+    });
+    setTitle("");
+    setDescription("");
+    setDueDate("");
+    setPriority("");
+  };
+
+  return (
+    <section className="page-card task-create-panel">
+      <div className="page-card__header">
+        <div>
+          <p className="eyebrow">New Task</p>
+          <h2>タスクを追加</h2>
+        </div>
+      </div>
+
+      <form className="task-edit-form" onSubmit={handleSubmit}>
+        <label className="field">
+          <span className="field__label">タイトル</span>
+          <input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="例: 企画書を送る"
+            maxLength={200}
+          />
+        </label>
+        <label className="field">
+          <span className="field__label">メモ</span>
+          <textarea
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="必要な補足を入力"
+          />
+        </label>
+        <div className="task-edit-form__row">
+          <label className="field">
+            <span className="field__label">締め切り</span>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(event) => setDueDate(event.target.value)}
+            />
+          </label>
+          <label className="field">
+            <span className="field__label">優先度</span>
+            <select
+              value={priority}
+              onChange={(event) => setPriority(event.target.value)}
+            >
+              <option value="">未設定</option>
+              <option value="1">1 低</option>
+              <option value="2">2</option>
+              <option value="3">3 標準</option>
+              <option value="4">4</option>
+              <option value="5">5 高</option>
+            </select>
+          </label>
+        </div>
+        <button
+          type="submit"
+          className="button button--primary"
+          disabled={busy || !title.trim()}
+        >
+          {busy ? "追加中..." : "追加"}
+        </button>
+      </form>
+    </section>
+  );
+}
+
 function TaskList({
   tasks,
   loading,
+  taskActionId,
+  onUpdateTask,
+  onCompleteTask,
+  onReopenTask,
 }: {
   tasks: TaskRecord[];
   loading: boolean;
+  taskActionId: string | null;
+  onUpdateTask: (taskId: string, payload: UpdateTaskPayload) => void | Promise<void>;
+  onCompleteTask: (taskId: string) => void | Promise<void>;
+  onReopenTask: (taskId: string) => void | Promise<void>;
 }) {
-  const activeTasks = tasks.filter((task) => task.status !== "DONE");
+  const [filterText, setFilterText] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"open" | "done" | "all">("open");
+  const visibleTasks = useMemo(
+    () =>
+      tasks.filter((task) => {
+        if (statusFilter === "open" && task.status !== "TODO") return false;
+        if (statusFilter === "done" && task.status !== "DONE") return false;
+        if (!matchesTaskFilter(task, filterText)) return false;
+        return true;
+      }),
+    [filterText, statusFilter, tasks]
+  );
 
   return (
     <section className="page-card task-list-panel">
       <div className="page-card__header">
         <div>
-          <p className="eyebrow">Accepted Tasks</p>
-          <h2>採用済みタスク</h2>
+          <p className="eyebrow">Open Tasks</p>
+          <h2>未完了タスク</h2>
         </div>
         <span className="task-candidate-badge">
-          {loading ? "読込中" : `${activeTasks.length}件`}
+          {loading ? "読込中" : `${visibleTasks.length}件`}
         </span>
+      </div>
+      <div className="task-list-toolbar">
+        <label className="field field--toolbar">
+          <span className="field__label">タスク検索</span>
+          <input
+            value={filterText}
+            onChange={(event) => setFilterText(event.target.value)}
+            placeholder="タイトル、メモ、関連人物で絞り込み"
+          />
+        </label>
+        <div className="task-status-filter" aria-label="タスク状態">
+          <button
+            type="button"
+            className={`search-scope__item ${
+              statusFilter === "open" ? "search-scope__item--active" : ""
+            }`}
+            onClick={() => setStatusFilter("open")}
+          >
+            未完了
+          </button>
+          <button
+            type="button"
+            className={`search-scope__item ${
+              statusFilter === "done" ? "search-scope__item--active" : ""
+            }`}
+            onClick={() => setStatusFilter("done")}
+          >
+            完了
+          </button>
+          <button
+            type="button"
+            className={`search-scope__item ${
+              statusFilter === "all" ? "search-scope__item--active" : ""
+            }`}
+            onClick={() => setStatusFilter("all")}
+          >
+            すべて
+          </button>
+        </div>
       </div>
 
       {loading ? (
         <p className="muted">タスクを読み込んでいます。</p>
-      ) : activeTasks.length === 0 ? (
+      ) : visibleTasks.length === 0 ? (
         <EmptyState
-          title="採用済みタスクはまだありません"
-          description="タスク候補を採用すると、ここに表示されます。"
+          title="表示できるタスクがありません"
+          description="タスクを追加するか、検索条件を変えてください。"
         />
       ) : (
         <div className="task-list">
-          {activeTasks.map((task) => (
-            <article key={task.id} className="task-list-card">
-              <div className="task-list-card__top">
-                <div>
-                  <span>{sourceTypeLabels[task.source_type] ?? task.source_type}</span>
-                  <h3>{task.title}</h3>
-                </div>
-                <strong>{taskStatusLabels[task.status] ?? task.status}</strong>
-              </div>
-              {task.description ? <p>{task.description}</p> : null}
-              <TaskMeta task={task} />
-            </article>
+          {visibleTasks.map((task) => (
+            <EditableTaskCard
+              key={task.id}
+              task={task}
+              busy={taskActionId === task.id}
+              onUpdateTask={onUpdateTask}
+              onCompleteTask={onCompleteTask}
+              onReopenTask={onReopenTask}
+            />
           ))}
         </div>
       )}
     </section>
+  );
+}
+
+function EditableTaskCard({
+  task,
+  busy,
+  onUpdateTask,
+  onCompleteTask,
+  onReopenTask,
+}: {
+  task: TaskRecord;
+  busy: boolean;
+  onUpdateTask: (taskId: string, payload: UpdateTaskPayload) => void | Promise<void>;
+  onCompleteTask: (taskId: string) => void | Promise<void>;
+  onReopenTask: (taskId: string) => void | Promise<void>;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState(task.title);
+  const [description, setDescription] = useState(task.description ?? "");
+  const [dueDate, setDueDate] = useState(toDateInputValue(task.due_at));
+  const [priority, setPriority] = useState(task.priority ? String(task.priority) : "");
+  const [status, setStatus] = useState<"TODO" | "DONE" | "SKIPPED">(
+    normalizeTaskStatus(task.status)
+  );
+
+  const resetForm = () => {
+    setTitle(task.title);
+    setDescription(task.description ?? "");
+    setDueDate(toDateInputValue(task.due_at));
+    setPriority(task.priority ? String(task.priority) : "");
+    setStatus(normalizeTaskStatus(task.status));
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) return;
+
+    await onUpdateTask(task.id, {
+      title: trimmedTitle,
+      description: description.trim() || null,
+      due_at: toDueAtIso(dueDate),
+      priority: priority ? Number(priority) : null,
+      status,
+    });
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <article className="task-list-card">
+        <form className="task-edit-form" onSubmit={handleSubmit}>
+          <label className="field">
+            <span className="field__label">タイトル</span>
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              maxLength={200}
+            />
+          </label>
+          <label className="field">
+            <span className="field__label">メモ</span>
+            <textarea
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
+          </label>
+          <div className="task-edit-form__row">
+            <label className="field">
+              <span className="field__label">締め切り</span>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(event) => setDueDate(event.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">優先度</span>
+              <select
+                value={priority}
+                onChange={(event) => setPriority(event.target.value)}
+              >
+                <option value="">未設定</option>
+                <option value="1">1 低</option>
+                <option value="2">2</option>
+                <option value="3">3 標準</option>
+                <option value="4">4</option>
+                <option value="5">5 高</option>
+              </select>
+            </label>
+            <label className="field">
+              <span className="field__label">状態</span>
+              <select
+                value={status}
+                onChange={(event) =>
+                  setStatus(event.target.value as "TODO" | "DONE" | "SKIPPED")
+                }
+              >
+                <option value="TODO">未完了</option>
+                <option value="DONE">完了</option>
+                <option value="SKIPPED">見送り</option>
+              </select>
+            </label>
+          </div>
+          <div className="task-card-actions">
+            <button
+              type="submit"
+              className="button button--primary button--small"
+              disabled={busy || !title.trim()}
+            >
+              {busy ? "保存中..." : "保存"}
+            </button>
+            <button
+              type="button"
+              className="button button--ghost button--small"
+              disabled={busy}
+              onClick={() => {
+                resetForm();
+                setIsEditing(false);
+              }}
+            >
+              キャンセル
+            </button>
+          </div>
+        </form>
+      </article>
+    );
+  }
+
+  return (
+    <article className="task-list-card">
+      <div className="task-list-card__top">
+        <div>
+          <span>{sourceTypeLabels[task.source_type] ?? task.source_type}</span>
+          <h3>{task.title}</h3>
+        </div>
+        <strong>{taskStatusLabels[task.status] ?? task.status}</strong>
+      </div>
+      {task.description ? <p>{task.description}</p> : null}
+      <TaskMeta task={task} />
+      <div className="task-card-actions">
+        {task.status === "TODO" ? (
+          <button
+            type="button"
+            className="button button--primary button--small"
+            disabled={busy}
+            onClick={() => {
+              void onCompleteTask(task.id);
+            }}
+          >
+            完了
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="button button--secondary button--small"
+            disabled={busy}
+            onClick={() => {
+              void onReopenTask(task.id);
+            }}
+          >
+            未完了へ戻す
+          </button>
+        )}
+        <button
+          type="button"
+          className="button button--ghost button--small"
+          disabled={busy}
+          onClick={() => {
+            resetForm();
+            setIsEditing(true);
+          }}
+        >
+          編集
+        </button>
+      </div>
+    </article>
   );
 }
 
@@ -338,6 +684,7 @@ function TaskMeta({ task }: { task: TaskRecord }) {
   return (
     <div className="task-list-card__meta">
       {task.due_at ? <span>締め切り: {formatDateTime(task.due_at)}</span> : null}
+      {task.priority ? <span>優先度: {task.priority}</span> : null}
       {relatedLinks.slice(0, 3).map((link) => (
         <span key={`${task.id}:${link.target_type}:${link.target_id}`}>
           {link.target_label}
@@ -353,4 +700,34 @@ function isDueSoon(task: TaskRecord) {
   const now = Date.now();
   const sevenDays = 7 * 24 * 60 * 60 * 1000;
   return dueAt >= now && dueAt <= now + sevenDays;
+}
+
+function toDueAtIso(value: string) {
+  return value ? `${value}T23:59:00+00:00` : null;
+}
+
+function toDateInputValue(value: string | null) {
+  return value ? value.slice(0, 10) : "";
+}
+
+function normalizeTaskStatus(value: string): "TODO" | "DONE" | "SKIPPED" {
+  if (value === "DONE" || value === "SKIPPED") return value;
+  return "TODO";
+}
+
+function matchesTaskFilter(task: TaskRecord, filterText: string) {
+  const query = filterText.trim().toLocaleLowerCase();
+  if (!query) return true;
+
+  const haystack = [
+    task.title,
+    task.description ?? "",
+    task.due_at ?? "",
+    task.priority ? String(task.priority) : "",
+    ...task.links.map((link) => link.target_label ?? ""),
+  ]
+    .join("\n")
+    .toLocaleLowerCase();
+
+  return haystack.includes(query);
 }
