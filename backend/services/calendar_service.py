@@ -4,6 +4,7 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
 from backend.app.account_context import get_current_account_id
@@ -51,11 +52,25 @@ class CalendarService:
             account_id = get_current_account_id()
             if end_at < start_at:
                 raise HTTPException(status_code=400, detail="Event end must be after start")
+            normalized_title = title.strip()
+            if not normalized_title:
+                raise HTTPException(status_code=400, detail="Event title is required")
+            normalized_external_id = external_id or f"manual:{uuid4()}"
+            existing = (
+                db.query(CalendarEvent.id)
+                .filter(
+                    CalendarEvent.account_id == account_id,
+                    CalendarEvent.external_id == normalized_external_id,
+                )
+                .first()
+            )
+            if existing is not None:
+                raise HTTPException(status_code=409, detail="Calendar event already exists")
 
             event = CalendarEvent(
                 account_id=account_id,
-                external_id=external_id or f"manual:{uuid4()}",
-                title=title.strip(),
+                external_id=normalized_external_id,
+                title=normalized_title,
                 description=description.strip() if description else None,
                 location=location.strip() if location else None,
                 start_at=start_at,
@@ -87,7 +102,14 @@ class CalendarService:
                     )
                 )
 
-            db.commit()
+            try:
+                db.commit()
+            except IntegrityError as exc:
+                db.rollback()
+                raise HTTPException(
+                    status_code=409,
+                    detail="Calendar event already exists",
+                ) from exc
             db.refresh(event)
             payload = self.serialize_event(event)
         finally:

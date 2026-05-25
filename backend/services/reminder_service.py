@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from fastapi import HTTPException
+
 from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.reminder.reminder import Reminder
@@ -27,4 +29,7 @@ class ReminderService:
     def _parse_remind_at(self, remind_at) -> datetime:
         if isinstance(remind_at, datetime):
             return remind_at
-        return datetime.fromisoformat(str(remind_at).replace("Z", "+00:00"))
+        try:
+            return datetime.fromisoformat(str(remind_at).replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Reminder time is invalid") from exc

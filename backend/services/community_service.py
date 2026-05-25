@@ -6,6 +6,7 @@ from sqlalchemy import delete as sa_delete
 from backend.app.account_context import get_current_account_id
 from backend.db.session import SessionLocal
 from backend.models.community.community import Community
+from backend.models.search.search_document import SearchDocument
 from backend.services.search import SearchService
 
 
@@ -87,6 +88,17 @@ class CommunityService:
             account_id = get_current_account_id()
             community = self._get_community(db, community_id)
             community.is_hidden = is_hidden
+            if is_hidden:
+                db.execute(
+                    sa_delete(SearchDocument).where(
+                        SearchDocument.account_id == account_id,
+                        (
+                            (SearchDocument.target_type == "community")
+                            & (SearchDocument.target_id == community.id)
+                        )
+                        | (SearchDocument.community_id == community.id),
+                    )
+                )
             db.commit()
             db.refresh(community)
             SearchService.invalidate_cache(account_id)

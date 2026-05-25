@@ -1,11 +1,4 @@
-import sys
-import unittest
-
-
-def main() -> None:
-    suite = unittest.defaultTestLoader.discover("tests")
-    result = unittest.TextTestRunner(verbosity=2).run(suite)
-    raise SystemExit(0 if result.wasSuccessful() else 1)
+from scripts.run_tests import main
 
 
 if __name__ == "__main__":
