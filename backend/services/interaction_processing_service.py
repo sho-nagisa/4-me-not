@@ -1,5 +1,7 @@
 import logging
+from uuid import UUID
 
+from backend.app.account_context import reset_current_account_id, set_current_account_id
 from backend.services.ai_service import AIService
 from backend.services.insight_service import InsightService
 from backend.services.relation_service import RelationService
@@ -10,8 +12,16 @@ from backend.services.task_service import TaskService
 logger = logging.getLogger(__name__)
 
 
-def process_interaction_after_save(interaction_id: str, person_id: str) -> None:
+def process_interaction_after_save(
+    interaction_id: str,
+    person_id: str,
+    account_id: str | None = None,
+) -> None:
+    context_token = None
     try:
+        if account_id is not None:
+            context_token = set_current_account_id(UUID(account_id))
+
         ai_service = AIService()
         insight_service = InsightService()
         relation_service = RelationService()
@@ -36,3 +46,6 @@ def process_interaction_after_save(interaction_id: str, person_id: str) -> None:
             "Failed to process interaction after save",
             extra={"interaction_id": interaction_id},
         )
+    finally:
+        if context_token is not None:
+            reset_current_account_id(context_token)

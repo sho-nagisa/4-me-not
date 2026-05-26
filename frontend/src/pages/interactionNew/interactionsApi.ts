@@ -71,17 +71,59 @@ export type SearchOptions = {
   fuzzy?: boolean;
 };
 
+export type AuthAccount = {
+  id: string;
+  email: string;
+  is_active: boolean;
+};
+
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 const jsonHeaders = { "Content-Type": "application/json" };
+
+const parseErrorMessage = (responseText: string, fallbackMessage: string) => {
+  if (!responseText) {
+    return fallbackMessage;
+  }
+
+  try {
+    const payload = JSON.parse(responseText) as { detail?: unknown };
+    if (typeof payload.detail === "string") {
+      return payload.detail;
+    }
+    if (Array.isArray(payload.detail)) {
+      return payload.detail
+        .map((item) =>
+          typeof item === "object" && item !== null && "msg" in item
+            ? String(item.msg)
+            : String(item)
+        )
+        .join("\n");
+    }
+  } catch {
+    // Fall through to the raw response text.
+  }
+
+  return responseText;
+};
 
 export const fetchJson = async <T,>(
   url: string,
   init?: RequestInit,
   fallbackMessage = "データ取得に失敗しました。"
 ): Promise<T> => {
-  const response = await fetch(url, init);
+  const response = await fetch(url, { credentials: "include", ...init });
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || fallbackMessage);
+    const message = parseErrorMessage(await response.text(), fallbackMessage);
+    throw new ApiError(message, response.status);
   }
 
   const responseText = await response.text();
@@ -91,6 +133,41 @@ export const fetchJson = async <T,>(
 
   return JSON.parse(responseText) as T;
 };
+
+export const getCurrentAccount = () =>
+  fetchJson<AuthAccount>("/api/auth/me", undefined, "ログイン状態を確認できませんでした。");
+
+export const loginAccount = (email: string, password: string) =>
+  fetchJson<AuthAccount>(
+    "/api/auth/login",
+    {
+      method: "POST",
+      headers: jsonHeaders,
+      body: JSON.stringify({ email, password }),
+    },
+    "ログインに失敗しました。"
+  );
+
+export const registerAccount = (email: string, password: string) =>
+  fetchJson<AuthAccount>(
+    "/api/auth/register",
+    {
+      method: "POST",
+      headers: jsonHeaders,
+      body: JSON.stringify({ email, password }),
+    },
+    "登録に失敗しました。"
+  );
+
+export const logoutAccount = () =>
+  fetchJson<{ status: string }>(
+    "/api/auth/logout",
+    {
+      method: "POST",
+      headers: jsonHeaders,
+    },
+    "ログアウトに失敗しました。"
+  );
 
 export const listPersons = (includeHidden = false) =>
   fetchJson<Person[]>(

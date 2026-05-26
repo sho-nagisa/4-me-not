@@ -44,6 +44,7 @@ import {
   updateCommunityHidden,
   updatePersonHidden,
   reopenTask,
+  type AuthAccount,
   type CreateTaskPayload,
   type UpdateTaskPayload,
   type CreateInteractionPayload,
@@ -80,7 +81,13 @@ import { useInteractionHistory } from "./interactionNew/useInteractionHistory";
 import { usePersonExplorer } from "./interactionNew/usePersonExplorer";
 import { useTaskWorkspace } from "./interactionNew/useTaskWorkspace";
 
-export default function InteractionNew() {
+export default function InteractionNew({
+  account,
+  onLogout,
+}: {
+  account: AuthAccount;
+  onLogout: () => Promise<void>;
+}) {
   const isMobile = useIsMobile(820);
   const isOnline = useOnlineStatus();
 
@@ -1151,10 +1158,12 @@ export default function InteractionNew() {
         dueSoonCount: dueSoonTaskCount,
       }}
       feedback={feedback}
+      accountEmail={account.email}
       isOnline={isOnline}
       pendingInteractionCount={pendingInteractionCount}
       isSyncingInteractions={isSyncingInteractions}
       onDismissFeedback={() => setFeedback(null)}
+      onLogout={onLogout}
       onToggleWorkspaceMode={toggleWorkspaceMode}
     >
       {renderPage()}
