@@ -1,5 +1,12 @@
+import { AuthGate } from "./AuthGate";
 import InteractionNew from "./pages/InteractionNew";
 
 export default function App() {
-  return <InteractionNew />;
+  return (
+    <AuthGate>
+      {({ account, onLogout }) => (
+        <InteractionNew account={account} onLogout={onLogout} />
+      )}
+    </AuthGate>
+  );
 }

@@ -13,6 +13,9 @@ from backend.models.base.base import Base
 target_metadata = Base.metadata
 # --- models import（Alembic に存在を知らせるため） ---
 
+# account
+import backend.models.account.account
+
 # person
 import backend.models.person.person
 import backend.models.person.person_profile

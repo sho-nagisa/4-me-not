@@ -81,11 +81,13 @@ def record_interaction(
         note=payload.note,
     )
     interaction_id = str(interaction.id)
+    interaction_account_id = getattr(interaction, "account_id", None)
 
     background_tasks.add_task(
         process_interaction_after_save,
         interaction_id=interaction_id,
         person_id=payload.person_id,
+        account_id=str(interaction_account_id) if interaction_account_id is not None else None,
     )
 
     return {

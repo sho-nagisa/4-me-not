@@ -22,10 +22,12 @@ export function InteractionNewLayout({
   relationSummary,
   taskSummary,
   feedback,
+  accountEmail,
   isOnline,
   pendingInteractionCount,
   isSyncingInteractions,
   onDismissFeedback,
+  onLogout,
   onToggleWorkspaceMode,
   children,
 }: {
@@ -46,15 +48,32 @@ export function InteractionNewLayout({
     dueSoonCount: number;
   };
   feedback: FeedbackState;
+  accountEmail: string;
   isOnline: boolean;
   pendingInteractionCount: number;
   isSyncingInteractions: boolean;
   onDismissFeedback: () => void;
+  onLogout: () => Promise<void>;
   onToggleWorkspaceMode: () => void;
   children: ReactNode;
 }) {
   const brandSwitch = (
     <BrandSwitch workspaceMode={workspaceMode} onToggle={onToggleWorkspaceMode} />
+  );
+  const accountPanel = (
+    <div className="account-panel">
+      <div className="account-panel__identity">
+        <span>ログイン中</span>
+        <strong title={accountEmail}>{accountEmail}</strong>
+      </div>
+      <button
+        type="button"
+        className="button button--ghost button--small"
+        onClick={() => void onLogout()}
+      >
+        ログアウト
+      </button>
+    </div>
   );
   const feedbackBanner = feedback ? (
     <section className={`banner banner--${feedback.tone}`}>
@@ -97,6 +116,7 @@ export function InteractionNewLayout({
         <div className="desktop-frame">
           <aside className="desktop-sidebar">
             <div className="brand-card brand-card--compact">{brandSwitch}</div>
+            {accountPanel}
 
             <nav className="nav-list">
               {workspaceMode === "relations"
@@ -163,7 +183,10 @@ export function InteractionNewLayout({
         </div>
       ) : (
         <div className="mobile-frame">
-          <header className="mobile-header mobile-header--compact">{brandSwitch}</header>
+          <header className="mobile-header mobile-header--compact mobile-header--account">
+            {brandSwitch}
+            {accountPanel}
+          </header>
 
           {offlineBanner}
           {feedbackBanner}
