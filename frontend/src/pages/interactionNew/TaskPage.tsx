@@ -24,6 +24,12 @@ type TaskPageProps = {
   onReopenTask: (taskId: string) => void | Promise<void>;
   searchQuery: string;
   setSearchQuery: Dispatch<SetStateAction<string>>;
+  searchDateFrom: string;
+  setSearchDateFrom: Dispatch<SetStateAction<string>>;
+  searchDateTo: string;
+  setSearchDateTo: Dispatch<SetStateAction<string>>;
+  searchFuzzy: boolean;
+  setSearchFuzzy: Dispatch<SetStateAction<boolean>>;
   searchLoading: boolean;
   searchResult: SearchResponse | null;
   searchError: string | null;
@@ -64,6 +70,12 @@ export function TaskPage({
   onReopenTask,
   searchQuery,
   setSearchQuery,
+  searchDateFrom,
+  setSearchDateFrom,
+  searchDateTo,
+  setSearchDateTo,
+  searchFuzzy,
+  setSearchFuzzy,
   searchLoading,
   searchResult,
   searchError,
@@ -136,6 +148,12 @@ export function TaskPage({
         <TaskSearchPanel
           query={searchQuery}
           setQuery={setSearchQuery}
+          dateFrom={searchDateFrom}
+          setDateFrom={setSearchDateFrom}
+          dateTo={searchDateTo}
+          setDateTo={setSearchDateTo}
+          fuzzy={searchFuzzy}
+          setFuzzy={setSearchFuzzy}
           loading={searchLoading}
           result={searchResult}
           error={searchError}
@@ -158,7 +176,7 @@ function TaskCreatePanel({
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState(() => getTodayInputValue());
   const [priority, setPriority] = useState("");
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -174,7 +192,7 @@ function TaskCreatePanel({
     });
     setTitle("");
     setDescription("");
-    setDueDate("");
+    setDueDate(getTodayInputValue());
     setPriority("");
   };
 
@@ -525,6 +543,12 @@ function EditableTaskCard({
 function TaskSearchPanel({
   query,
   setQuery,
+  dateFrom,
+  setDateFrom,
+  dateTo,
+  setDateTo,
+  fuzzy,
+  setFuzzy,
   loading,
   result,
   error,
@@ -535,6 +559,12 @@ function TaskSearchPanel({
 }: {
   query: string;
   setQuery: Dispatch<SetStateAction<string>>;
+  dateFrom: string;
+  setDateFrom: Dispatch<SetStateAction<string>>;
+  dateTo: string;
+  setDateTo: Dispatch<SetStateAction<string>>;
+  fuzzy: boolean;
+  setFuzzy: Dispatch<SetStateAction<boolean>>;
   loading: boolean;
   result: SearchResponse | null;
   error: string | null;
@@ -570,6 +600,32 @@ function TaskSearchPanel({
             placeholder="例: 来週までの提出物"
           />
         </label>
+        <div className="search-date-filter">
+          <label className="field">
+            <span className="field__label">開始日</span>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(event) => setDateFrom(event.target.value)}
+            />
+          </label>
+          <label className="field">
+            <span className="field__label">終了日</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(event) => setDateTo(event.target.value)}
+            />
+          </label>
+          <label className="search-fuzzy-toggle">
+            <input
+              type="checkbox"
+              checked={fuzzy}
+              onChange={(event) => setFuzzy(event.target.checked)}
+            />
+            <span>あいまい一致</span>
+          </label>
+        </div>
         <div className="button-row">
           <button
             type="submit"
@@ -708,6 +764,14 @@ function toDueAtIso(value: string) {
 
 function toDateInputValue(value: string | null) {
   return value ? value.slice(0, 10) : "";
+}
+
+function getTodayInputValue() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function normalizeTaskStatus(value: string): "TODO" | "DONE" | "SKIPPED" {
