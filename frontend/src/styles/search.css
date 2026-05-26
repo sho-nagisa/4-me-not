@@ -38,6 +38,28 @@
   color: #8f4425;
 }
 
+.search-date-filter {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 180px)) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.search-fuzzy-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  color: #234032;
+  font-weight: 800;
+}
+
+.search-fuzzy-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: #b35d2f;
+}
+
 .search-form__actions {
   justify-content: space-between;
 }

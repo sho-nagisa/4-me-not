@@ -64,6 +64,13 @@ export type UpdateTaskPayload = Partial<CreateTaskPayload> & {
   status?: "TODO" | "DONE" | "SKIPPED";
 };
 
+export type SearchOptions = {
+  limit?: number;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  fuzzy?: boolean;
+};
+
 const jsonHeaders = { "Content-Type": "application/json" };
 
 export const fetchJson = async <T,>(
@@ -161,11 +168,22 @@ export const listPersonInteractionCounts = (communityId = "") => {
 export const searchMemory = (
   queryText: string,
   targetTypes: SearchTargetType[] = [],
-  limit = 24
+  limitOrOptions: number | SearchOptions = 24
 ) => {
+  const options =
+    typeof limitOrOptions === "number" ? { limit: limitOrOptions } : limitOrOptions;
   const params = new URLSearchParams();
   params.set("q", queryText.trim());
-  params.set("limit", String(limit));
+  params.set("limit", String(options.limit ?? 24));
+  if (options.dateFrom) {
+    params.set("date_from", options.dateFrom);
+  }
+  if (options.dateTo) {
+    params.set("date_to", options.dateTo);
+  }
+  if (options.fuzzy !== undefined) {
+    params.set("fuzzy", String(options.fuzzy));
+  }
   targetTypes.forEach((targetType) => params.append("target_type", targetType));
   return fetchJson<SearchResponse>(`/api/search?${params.toString()}`);
 };

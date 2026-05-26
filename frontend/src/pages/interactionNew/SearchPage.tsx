@@ -18,6 +18,12 @@ type SearchPageProps = {
   scope: SearchScope;
   setScope: Dispatch<SetStateAction<SearchScope>>;
   scopeOptions?: Array<{ id: SearchScope; label: string }>;
+  dateFrom: string;
+  setDateFrom: Dispatch<SetStateAction<string>>;
+  dateTo: string;
+  setDateTo: Dispatch<SetStateAction<string>>;
+  fuzzy: boolean;
+  setFuzzy: Dispatch<SetStateAction<boolean>>;
   loading: boolean;
   result: SearchResponse | null;
   error: string | null;
@@ -77,6 +83,12 @@ export function SearchPage({
   scope,
   setScope,
   scopeOptions = defaultSearchScopeOptions,
+  dateFrom,
+  setDateFrom,
+  dateTo,
+  setDateTo,
+  fuzzy,
+  setFuzzy,
   loading,
   result,
   error,
@@ -143,6 +155,33 @@ export function SearchPage({
                 {option.label}
               </button>
             ))}
+          </div>
+
+          <div className="search-date-filter">
+            <label className="field">
+              <span className="field__label">開始日</span>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(event) => setDateFrom(event.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">終了日</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(event) => setDateTo(event.target.value)}
+              />
+            </label>
+            <label className="search-fuzzy-toggle">
+              <input
+                type="checkbox"
+                checked={fuzzy}
+                onChange={(event) => setFuzzy(event.target.checked)}
+              />
+              <span>あいまい一致</span>
+            </label>
           </div>
 
           <div className="button-row search-form__actions">

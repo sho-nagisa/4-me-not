@@ -16,6 +16,7 @@ from backend.services.search import SearchService
 from backend.services.search.answer import build_rag_answer
 from backend.services.search.embedding import SearchEmbeddingProvider
 from backend.services.search.utils import (
+    calculate_fuzzy_score,
     calculate_keyword_score,
     calculate_recency_score,
     compact_text,
@@ -157,6 +158,91 @@ class SearchExpandedTest(unittest.TestCase):
         finally:
             db.close()
 
+    def test_search_endpoint_filters_results_by_date_range(self) -> None:
+        person = self.fixture.create_person("Timeline Person")
+        old_interaction = self.fixture.create_interaction(
+            person=person,
+            content="timeline-window-token old",
+            occurred_at=datetime(2026, 5, 1, 10, 0, tzinfo=timezone.utc),
+        )
+        recent_interaction = self.fixture.create_interaction(
+            person=person,
+            content="timeline-window-token recent",
+            occurred_at=datetime(2026, 5, 20, 10, 0, tzinfo=timezone.utc),
+        )
+        service = SearchService()
+        service.index_interaction(str(old_interaction.id))
+        service.index_interaction(str(recent_interaction.id))
+
+        response = self.client.get(
+            "/api/search",
+            params={
+                "q": "timeline-window-token",
+                "target_type": "interaction",
+                "date_from": "2026-05-15",
+                "date_to": "2026-05-25",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        target_ids = {item["target_id"] for item in response.json()["results"]}
+        self.assertIn(str(recent_interaction.id), target_ids)
+        self.assertNotIn(str(old_interaction.id), target_ids)
+
+    def test_search_endpoint_rejects_invalid_date_range(self) -> None:
+        response = self.client.get(
+            "/api/search",
+            params={
+                "q": "anything",
+                "date_from": "2026-05-25",
+                "date_to": "2026-05-01",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_search_endpoint_returns_fuzzy_matches_for_typo_query(self) -> None:
+        person = self.fixture.create_person("Fuzzy Person")
+        interaction = self.fixture.create_interaction(
+            person=person,
+            content="presentation deadline handoff",
+        )
+        SearchService().index_interaction(str(interaction.id))
+
+        response = self.client.get(
+            "/api/search",
+            params={
+                "q": "presentaton dedline handof",
+                "target_type": "interaction",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        results = response.json()["results"]
+        matched = [item for item in results if item["target_id"] == str(interaction.id)]
+        self.assertTrue(matched)
+        self.assertGreater(matched[0]["fuzzy_score"], 0.7)
+
+    def test_search_endpoint_can_disable_fuzzy_score(self) -> None:
+        person = self.fixture.create_person("Fuzzy Disabled Person")
+        interaction = self.fixture.create_interaction(
+            person=person,
+            content="manual review checklist",
+        )
+        SearchService().index_interaction(str(interaction.id))
+
+        response = self.client.get(
+            "/api/search",
+            params={
+                "q": "manul reviw checklst",
+                "target_type": "interaction",
+                "fuzzy": "false",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertTrue(all(item["fuzzy_score"] == 0 for item in response.json()["results"]))
+
     def test_rebuild_account_index_indexes_all_supported_targets(self) -> None:
         community = self.fixture.create_community("Rebuild Community")
         topic = self.fixture.create_topic("Rebuild Topic")
@@ -276,6 +362,17 @@ class SearchExpandedTest(unittest.TestCase):
         score = calculate_keyword_score("Career Plan", document)
 
         self.assertGreaterEqual(score, 0.8)
+
+    def test_search_utils_scores_fuzzy_typo_matches(self) -> None:
+        document = SearchDocument(
+            title="Presentation Deadline",
+            summary="Discussed handoff notes",
+            search_text="presentation deadline handoff",
+        )
+
+        score = calculate_fuzzy_score("presentaton dedline handof", document)
+
+        self.assertGreater(score, 0.7)
 
     def test_search_utils_extract_snippet_prefers_query_neighborhood(self) -> None:
         document = SearchDocument(

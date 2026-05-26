@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from threading import RLock
 from uuid import UUID
 
+from fastapi import HTTPException
 from sqlalchemy import delete as sa_delete
 from sqlalchemy.orm import Session, joinedload
 
@@ -33,10 +35,13 @@ from backend.services.search.indexing import SearchIndexingMixin
 from backend.services.search.results import SearchResultMixin
 from backend.services.search.types import CachedSearchDocument
 from backend.services.search.utils import (
+    calculate_fuzzy_score,
     calculate_keyword_score,
     calculate_recency_score,
     cosine_similarity,
+    ensure_aware_datetime,
     normalize_uuid,
+    parse_search_date_boundary,
 )
 
 
@@ -63,21 +68,43 @@ class SearchService(SearchIndexingMixin, SearchDocumentCacheMixin, SearchResultM
         query: str,
         limit: int = 20,
         target_types: list[str] | None = None,
+        date_from: str | datetime | None = None,
+        date_to: str | datetime | None = None,
+        fuzzy: bool = True,
     ) -> dict:
         normalized_query = query.strip()
         if not normalized_query:
             return self._empty_response(query)
 
         selected_target_types = self._normalize_target_types(target_types)
+        normalized_date_from = parse_search_date_boundary(date_from, "from")
+        normalized_date_to = parse_search_date_boundary(date_to, "to")
+        if (
+            normalized_date_from is not None
+            and normalized_date_to is not None
+            and normalized_date_from > normalized_date_to
+        ):
+            raise HTTPException(status_code=400, detail="Search date range is invalid")
+
         query_embedding, query_embedding_model = self.embedding_provider.embed(
             normalized_query
         )
 
         account_id = get_current_account_id()
+        candidate_limit = (
+            10_000
+            if normalized_date_from is not None or normalized_date_to is not None
+            else max(limit * 50, 300)
+        )
         documents = self._load_cached_candidate_documents(
             account_id=account_id,
             target_types=selected_target_types,
-            limit=max(limit * 50, 300),
+            limit=candidate_limit,
+        )
+        documents = self._filter_documents_by_date(
+            documents,
+            date_from=normalized_date_from,
+            date_to=normalized_date_to,
         )
         results = []
 
@@ -87,10 +114,14 @@ class SearchService(SearchIndexingMixin, SearchDocumentCacheMixin, SearchResultM
                 document.embedding,
             )
             keyword_score = calculate_keyword_score(normalized_query, document)
+            fuzzy_score = (
+                calculate_fuzzy_score(normalized_query, document) if fuzzy else 0.0
+            )
             recency_score = calculate_recency_score(document.occurred_at)
             score = (
-                0.55 * semantic_score
-                + 0.35 * keyword_score
+                0.50 * semantic_score
+                + 0.30 * keyword_score
+                + 0.10 * fuzzy_score
                 + 0.10 * recency_score
             )
 
@@ -103,6 +134,7 @@ class SearchService(SearchIndexingMixin, SearchDocumentCacheMixin, SearchResultM
                     score=score,
                     semantic_score=semantic_score,
                     keyword_score=keyword_score,
+                    fuzzy_score=fuzzy_score,
                     recency_score=recency_score,
                     query=normalized_query,
                 )
@@ -133,6 +165,27 @@ class SearchService(SearchIndexingMixin, SearchDocumentCacheMixin, SearchResultM
             "groups": groups,
             "answer": answer,
         }
+
+    def _filter_documents_by_date(
+        self,
+        documents: tuple[CachedSearchDocument, ...],
+        date_from: datetime | None,
+        date_to: datetime | None,
+    ) -> tuple[CachedSearchDocument, ...]:
+        if date_from is None and date_to is None:
+            return documents
+
+        filtered = []
+        for document in documents:
+            occurred_at = ensure_aware_datetime(document.occurred_at)
+            if occurred_at is None:
+                continue
+            if date_from is not None and occurred_at < date_from:
+                continue
+            if date_to is not None and occurred_at > date_to:
+                continue
+            filtered.append(document)
+        return tuple(filtered)
 
     def _record_search_log(
         self,

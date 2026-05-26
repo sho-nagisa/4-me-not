@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 
 import { listTaskCandidates, listTasks, searchMemory } from "./interactionsApi";
 import type { SearchResponse, TaskRecord } from "./types";
+import { buildDateQuery } from "./utils";
 
 type UseTaskWorkspaceParams = {
   onError: (message: string) => void;
@@ -14,6 +15,9 @@ export function useTaskWorkspace({ onError }: UseTaskWorkspaceParams) {
   const [taskCandidatesLoading, setTaskCandidatesLoading] = useState(false);
   const [taskItemsLoading, setTaskItemsLoading] = useState(false);
   const [taskSearchQuery, setTaskSearchQuery] = useState<string>("");
+  const [taskSearchDateFrom, setTaskSearchDateFrom] = useState("");
+  const [taskSearchDateTo, setTaskSearchDateTo] = useState("");
+  const [taskSearchFuzzy, setTaskSearchFuzzy] = useState(true);
   const [taskSearchResult, setTaskSearchResult] =
     useState<SearchResponse | null>(null);
   const [taskSearchError, setTaskSearchError] = useState<string | null>(null);
@@ -58,7 +62,11 @@ export function useTaskWorkspace({ onError }: UseTaskWorkspaceParams) {
     setTaskSearchLoading(true);
     setTaskSearchError(null);
     try {
-      const result = await searchMemory(trimmedQuery, ["task", "calendar_event"]);
+      const result = await searchMemory(trimmedQuery, ["task", "calendar_event"], {
+        dateFrom: buildDateQuery(taskSearchDateFrom, "from"),
+        dateTo: buildDateQuery(taskSearchDateTo, "to"),
+        fuzzy: taskSearchFuzzy,
+      });
       setTaskSearchResult(result);
     } catch (error) {
       const message =
@@ -67,7 +75,7 @@ export function useTaskWorkspace({ onError }: UseTaskWorkspaceParams) {
     } finally {
       setTaskSearchLoading(false);
     }
-  }, [taskSearchQuery]);
+  }, [taskSearchDateFrom, taskSearchDateTo, taskSearchFuzzy, taskSearchQuery]);
 
   return {
     taskCandidates,
@@ -78,6 +86,12 @@ export function useTaskWorkspace({ onError }: UseTaskWorkspaceParams) {
     taskItemsLoading,
     taskSearchQuery,
     setTaskSearchQuery,
+    taskSearchDateFrom,
+    setTaskSearchDateFrom,
+    taskSearchDateTo,
+    setTaskSearchDateTo,
+    taskSearchFuzzy,
+    setTaskSearchFuzzy,
     taskSearchResult,
     taskSearchError,
     taskSearchLoading,

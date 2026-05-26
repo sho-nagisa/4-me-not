@@ -164,6 +164,7 @@ export type SearchResultItem = {
   score: number;
   semantic_score: number;
   keyword_score: number;
+  fuzzy_score: number;
   recency_score: number;
   person_id: string | null;
   person_name: string | null;

@@ -72,6 +72,7 @@ import {
   type FeedbackState,
 } from "./interactionNew/InteractionNewLayout";
 import {
+  buildDateQuery,
   buildPersonBubblesFromCounts,
   toDateTimeLocalValue,
 } from "./interactionNew/utils";
@@ -152,6 +153,9 @@ export default function InteractionNew() {
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchScope, setSearchScope] = useState<SearchScope>("all");
+  const [searchDateFrom, setSearchDateFrom] = useState("");
+  const [searchDateTo, setSearchDateTo] = useState("");
+  const [searchFuzzy, setSearchFuzzy] = useState(true);
   const [searchResult, setSearchResult] = useState<SearchResponse | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [recordDashboard, setRecordDashboard] = useState<PersonDashboard | null>(null);
@@ -173,6 +177,12 @@ export default function InteractionNew() {
     taskItemsLoading,
     taskSearchQuery,
     setTaskSearchQuery,
+    taskSearchDateFrom,
+    setTaskSearchDateFrom,
+    taskSearchDateTo,
+    setTaskSearchDateTo,
+    taskSearchFuzzy,
+    setTaskSearchFuzzy,
     taskSearchResult,
     taskSearchError,
     taskSearchLoading,
@@ -409,11 +419,17 @@ export default function InteractionNew() {
       : "all";
     const targetTypes: SearchTargetType[] =
       relationScope === "all" ? relationSearchTargetTypes : [relationScope];
+    const dateFrom = buildDateQuery(searchDateFrom, "from");
+    const dateTo = buildDateQuery(searchDateTo, "to");
 
     setSearchLoading(true);
     setSearchError(null);
     try {
-      const result = await searchMemory(trimmedQuery, targetTypes);
+      const result = await searchMemory(trimmedQuery, targetTypes, {
+        dateFrom,
+        dateTo,
+        fuzzy: searchFuzzy,
+      });
       setSearchResult(result);
     } catch (error) {
       const message =
@@ -930,6 +946,12 @@ export default function InteractionNew() {
           onReopenTask={handleReopenTask}
           searchQuery={taskSearchQuery}
           setSearchQuery={setTaskSearchQuery}
+          searchDateFrom={taskSearchDateFrom}
+          setSearchDateFrom={setTaskSearchDateFrom}
+          searchDateTo={taskSearchDateTo}
+          setSearchDateTo={setTaskSearchDateTo}
+          searchFuzzy={taskSearchFuzzy}
+          setSearchFuzzy={setTaskSearchFuzzy}
           searchLoading={taskSearchLoading}
           searchResult={taskSearchResult}
           searchError={taskSearchError}
@@ -988,6 +1010,12 @@ export default function InteractionNew() {
             scope={searchScope}
             setScope={setSearchScope}
             scopeOptions={relationSearchScopeOptions}
+            dateFrom={searchDateFrom}
+            setDateFrom={setSearchDateFrom}
+            dateTo={searchDateTo}
+            setDateTo={setSearchDateTo}
+            fuzzy={searchFuzzy}
+            setFuzzy={setSearchFuzzy}
             loading={searchLoading}
             result={searchResult}
             error={searchError}
