@@ -35,6 +35,10 @@ dist/
 # ======================
 .DS_Store
 Thumbs.db
+~$*.xlsx
+~$*.xls
+~$*.docx
+~$*.pptx
 
 # ======================
 # Alembic cache
