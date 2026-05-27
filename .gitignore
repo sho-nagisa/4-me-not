@@ -30,6 +30,10 @@ frontend/package-lock.json
 # ======================
 dist/
 
+# Generated outputs
+# ======================
+outputs/
+
 # ======================
 # OS
 # ======================
