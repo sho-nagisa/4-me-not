@@ -57,22 +57,30 @@ export function InteractionNewLayout({
   onToggleWorkspaceMode: () => void;
   children: ReactNode;
 }) {
+  const accountLabel = accountEmail.trim() || "account";
+  const accountInitial = (accountLabel[0] ?? "?").toLocaleUpperCase();
   const brandSwitch = (
     <BrandSwitch workspaceMode={workspaceMode} onToggle={onToggleWorkspaceMode} />
   );
   const accountPanel = (
-    <div className="account-panel">
-      <div className="account-panel__identity">
-        <span>ログイン中</span>
-        <strong title={accountEmail}>{accountEmail}</strong>
-      </div>
+    <div className="account-panel" aria-label={`Logged in as ${accountLabel}`}>
+      <span className="account-panel__avatar" title={accountLabel} aria-hidden="true">
+        {accountInitial}
+      </span>
       <button
         type="button"
-        className="button button--ghost button--small"
+        className="button button--ghost button--small account-panel__logout"
         onClick={() => void onLogout()}
+        title="Logout"
       >
         ログアウト
       </button>
+    </div>
+  );
+  const brandAccount = (
+    <div className="brand-account">
+      <div className="brand-account__main">{brandSwitch}</div>
+      {accountPanel}
     </div>
   );
   const feedbackBanner = feedback ? (
@@ -115,8 +123,7 @@ export function InteractionNewLayout({
       {!isMobile ? (
         <div className="desktop-frame">
           <aside className="desktop-sidebar">
-            <div className="brand-card brand-card--compact">{brandSwitch}</div>
-            {accountPanel}
+            <div className="brand-card brand-card--compact">{brandAccount}</div>
 
             <nav className="nav-list">
               {workspaceMode === "relations"
@@ -184,8 +191,7 @@ export function InteractionNewLayout({
       ) : (
         <div className="mobile-frame">
           <header className="mobile-header mobile-header--compact mobile-header--account">
-            {brandSwitch}
-            {accountPanel}
+            {brandAccount}
           </header>
 
           {offlineBanner}
