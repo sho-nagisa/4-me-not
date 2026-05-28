@@ -7,79 +7,48 @@ import {
   shareLevelOptions,
 } from "./interactionNew/constants";
 import type {
-  Community,
   HomeViewProps,
-  InteractionOverview,
-  InteractionType,
   ManagePanelId,
   PageId,
-  Person,
   PersonDashboard,
   PersonPanelId,
-  SearchResponse,
-  SearchTargetType,
-  ShareLevel,
-  Topic,
 } from "./interactionNew/types";
 import { DesktopHome, MobileHome } from "./interactionNew/components";
 import { HistoryPage } from "./interactionNew/HistoryPage";
 import {
-  acceptTaskCandidate,
-  completeTask,
-  createCommunity,
   createInteraction,
-  createPerson,
-  createTask,
-  createTopic,
-  deleteCommunity,
-  deletePerson,
-  dismissTaskCandidate,
-  getInteractionOverview,
   getPersonDashboard,
-  listCommunities,
-  listPersons,
-  listTopics,
-  searchMemory,
-  updateTask,
-  updateCommunityHidden,
-  updatePersonHidden,
-  reopenTask,
   type AuthAccount,
-  type CreateTaskPayload,
-  type UpdateTaskPayload,
   type CreateInteractionPayload,
 } from "./interactionNew/interactionsApi";
 import { ManagePage } from "./interactionNew/ManagePage";
 import {
-  clearRecordDraft,
   enqueuePendingInteraction,
   getPendingInteractionCount,
   getPendingInteractions,
-  loadRecordDraft,
-  saveRecordDraft,
   syncPendingInteractions,
 } from "./interactionNew/offlineInteractions";
 import {
   relationSearchScopeOptions,
-  relationSearchTargetTypes,
   type WorkspaceMode,
 } from "./interactionNew/navigation";
 import { PersonPage } from "./interactionNew/PersonPage";
 import { RecordPage } from "./interactionNew/RecordPage";
-import { SearchPage, type SearchScope } from "./interactionNew/SearchPage";
+import { SearchPage } from "./interactionNew/SearchPage";
 import { TaskPage, type TaskPanelId } from "./interactionNew/TaskPage";
 import {
   InteractionNewLayout,
   type FeedbackState,
 } from "./interactionNew/InteractionNewLayout";
-import {
-  buildDateQuery,
-  buildPersonBubblesFromCounts,
-  toDateTimeLocalValue,
-} from "./interactionNew/utils";
-import { useInteractionHistory } from "./interactionNew/useInteractionHistory";
-import { usePersonExplorer } from "./interactionNew/usePersonExplorer";
-import { useTaskWorkspace } from "./interactionNew/useTaskWorkspace";
+import { buildPersonBubblesFromCounts } from "./interactionNew/utils";
+import { useInteractionHistory } from "./interactionNew/hooks/useInteractionHistory";
+import { useManageReferenceActions } from "./interactionNew/hooks/useManageReferenceActions";
+import { useMemorySearch } from "./interactionNew/hooks/useMemorySearch";
+import { usePersonExplorer } from "./interactionNew/hooks/usePersonExplorer";
+import { useRecordForm } from "./interactionNew/hooks/useRecordForm";
+import { useRelationData } from "./interactionNew/hooks/useRelationData";
+import { useTaskActions } from "./interactionNew/hooks/useTaskActions";
+import { useTaskWorkspace } from "./interactionNew/hooks/useTaskWorkspace";
 
 export default function InteractionNew({
   account,
@@ -99,72 +68,39 @@ export default function InteractionNew({
   const [mobileRecordPanel, setMobileRecordPanel] = useState<"input" | "check">("input");
   const mobileRecordSwipeRef = useRef<HTMLDivElement | null>(null);
 
-  const [persons, setPersons] = useState<Person[]>([]);
-  const [communities, setCommunities] = useState<Community[]>([]);
-  const [managedPersons, setManagedPersons] = useState<Person[]>([]);
-  const [managedCommunities, setManagedCommunities] = useState<Community[]>([]);
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [overview, setOverview] = useState<InteractionOverview>({
-    total_count: 0,
-    recent_interactions: [],
-    person_counts: [],
-  });
+  const {
+    occurredAt,
+    setOccurredAt,
+    personId,
+    setPersonId,
+    communityId,
+    setCommunityId,
+    communityTouched,
+    setCommunityTouched,
+    topicId,
+    setTopicId,
+    interactionType,
+    setInteractionType,
+    shareLevel,
+    setShareLevel,
+    content,
+    setContent,
+    note,
+    setNote,
+    buildInteractionPayload,
+    resetRecordForm,
+  } = useRecordForm();
 
-  const [loading, setLoading] = useState(true);
-  const [searchLoading, setSearchLoading] = useState(false);
   const [recordDashboardLoading, setRecordDashboardLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isCreatingPerson, setIsCreatingPerson] = useState(false);
-  const [isCreatingCommunity, setIsCreatingCommunity] = useState(false);
-  const [isCreatingTopic, setIsCreatingTopic] = useState(false);
-  const [personActionId, setPersonActionId] = useState<string | null>(null);
-  const [communityActionId, setCommunityActionId] = useState<string | null>(null);
 
   const [feedback, setFeedback] = useState<FeedbackState>(null);
-  const [initialRecordDraft] = useState(loadRecordDraft);
   const [pendingInteractionCount, setPendingInteractionCount] = useState(
     getPendingInteractionCount
   );
   const [isSyncingInteractions, setIsSyncingInteractions] = useState(false);
   const isSyncingInteractionsRef = useRef(false);
 
-  const [occurredAt, setOccurredAt] = useState<string>(
-    initialRecordDraft?.occurred_at ?? toDateTimeLocalValue()
-  );
-  const [personId, setPersonId] = useState<string>(
-    initialRecordDraft?.person_id ?? ""
-  );
-  const [communityId, setCommunityId] = useState<string>(
-    initialRecordDraft?.community_id ?? ""
-  );
-  const [communityTouched, setCommunityTouched] = useState(false);
-  const [topicId, setTopicId] = useState<string>(
-    initialRecordDraft?.topic_id ?? ""
-  );
-  const [interactionType, setInteractionType] =
-    useState<InteractionType>(initialRecordDraft?.interaction_type ?? "MEETING");
-  const [shareLevel, setShareLevel] = useState<ShareLevel>(
-    initialRecordDraft?.share_level ?? "SHARED"
-  );
-  const [content, setContent] = useState<string>(
-    initialRecordDraft?.content ?? ""
-  );
-  const [note, setNote] = useState<string>(initialRecordDraft?.note ?? "");
-
-  const [newPersonName, setNewPersonName] = useState("");
-  const [newPersonPrimaryCommunityId, setNewPersonPrimaryCommunityId] = useState("");
-  const [newCommunityName, setNewCommunityName] = useState("");
-  const [newCommunityParentId, setNewCommunityParentId] = useState("");
-  const [newTopicName, setNewTopicName] = useState("");
-  const [newTopicParentId, setNewTopicParentId] = useState("");
-
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [searchScope, setSearchScope] = useState<SearchScope>("all");
-  const [searchDateFrom, setSearchDateFrom] = useState("");
-  const [searchDateTo, setSearchDateTo] = useState("");
-  const [searchFuzzy, setSearchFuzzy] = useState(true);
-  const [searchResult, setSearchResult] = useState<SearchResponse | null>(null);
-  const [searchError, setSearchError] = useState<string | null>(null);
   const [recordDashboard, setRecordDashboard] = useState<PersonDashboard | null>(null);
 
   const setError = useCallback((message: string) => {
@@ -229,6 +165,27 @@ export default function InteractionNew({
   });
 
   const {
+    persons,
+    communities,
+    managedPersons,
+    managedCommunities,
+    topics,
+    overview,
+    loading,
+    loadOptions,
+    loadManageData,
+    loadOverviewInteractions,
+  } = useRelationData({
+    personId,
+    setPersonId,
+    setCommunityId,
+    setCommunityTouched,
+    historyPersonId,
+    setHistoryPersonId,
+    onError: setError,
+  });
+
+  const {
     detailPersonId,
     setDetailPersonId,
     detailCommunityId,
@@ -248,6 +205,43 @@ export default function InteractionNew({
     onError: setError,
   });
 
+  const {
+    searchQuery,
+    setSearchQuery,
+    searchScope,
+    setSearchScope,
+    searchDateFrom,
+    setSearchDateFrom,
+    searchDateTo,
+    setSearchDateTo,
+    searchFuzzy,
+    setSearchFuzzy,
+    searchResult,
+    searchError,
+    searchLoading,
+    runSearch,
+  } = useMemorySearch({ workspaceMode });
+
+  const {
+    handleAcceptTaskCandidate,
+    handleDismissTaskCandidate,
+    handleCreateTask,
+    handleUpdateTask,
+    handleCompleteTask,
+    handleReopenTask,
+  } = useTaskActions({
+    setTaskActionId,
+    loadTaskCandidateList,
+    loadTaskList,
+    searchQuery,
+    searchScope,
+    runSearch,
+    taskSearchQuery,
+    runTaskSearch,
+    onError: setError,
+    onSuccess: setSuccess,
+  });
+
   const selectedPerson = persons.find((person) => person.id === personId);
   const selectedType = interactionTypeOptions.find(
     (option) => option.value === interactionType
@@ -255,25 +249,6 @@ export default function InteractionNew({
   const selectedShareLevel = shareLevelOptions.find(
     (option) => option.value === shareLevel
   );
-
-  const buildInteractionPayload = (): CreateInteractionPayload => ({
-    occurred_at: occurredAt,
-    person_id: personId,
-    community_id: communityId || null,
-    topic_id: topicId || null,
-    interaction_type: interactionType,
-    share_level: shareLevel,
-    content,
-    note,
-  });
-
-  const resetRecordForm = () => {
-    setOccurredAt(toDateTimeLocalValue());
-    setContent("");
-    setNote("");
-    setCommunityTouched(false);
-    clearRecordDraft();
-  };
 
   const queueInteractionForLater = (payload: CreateInteractionPayload) => {
     enqueuePendingInteraction(payload);
@@ -307,88 +282,6 @@ export default function InteractionNew({
     return () => window.clearTimeout(timer);
   }, [feedback]);
 
-  useEffect(() => {
-    if (!content.trim() && !note.trim()) {
-      clearRecordDraft();
-      return;
-    }
-
-    saveRecordDraft(buildInteractionPayload());
-  }, [
-    occurredAt,
-    personId,
-    communityId,
-    topicId,
-    interactionType,
-    shareLevel,
-    content,
-    note,
-  ]);
-
-  const loadOptions = async () => {
-    setLoading(true);
-    try {
-      const [personsJson, communitiesJson, topicsJson] = await Promise.all([
-        listPersons(),
-        listCommunities(),
-        listTopics(),
-      ]);
-
-      setPersons(personsJson);
-      setCommunities(communitiesJson);
-      setTopics(topicsJson);
-
-      const fallbackPerson = personsJson[0] ?? null;
-      const currentRecordPerson =
-        personsJson.find((person) => person.id === personId) ?? fallbackPerson;
-      const currentHistoryPerson =
-        personsJson.find((person) => person.id === historyPersonId) ?? null;
-
-      if (!personId || !currentRecordPerson) {
-        setPersonId(currentRecordPerson?.id ?? "");
-        setCommunityId(currentRecordPerson?.primary_community_id ?? "");
-        setCommunityTouched(false);
-      }
-
-      if (historyPersonId && !currentHistoryPerson) {
-        setHistoryPersonId("");
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "初期データの読み込みに失敗しました。";
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadManageData = async () => {
-    try {
-      const [personsJson, communitiesJson] = await Promise.all([
-        listPersons(true),
-        listCommunities(true),
-      ]);
-
-      setManagedPersons(personsJson);
-      setManagedCommunities(communitiesJson);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "管理データの読み込みに失敗しました。";
-      setError(message);
-    }
-  };
-
-  const loadOverviewInteractions = async () => {
-    try {
-      const items = await getInteractionOverview();
-      setOverview(items);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "全体の履歴取得に失敗しました。";
-      setError(message);
-    }
-  };
-
   const loadRecordDashboard = async (targetPersonId: string) => {
     if (!targetPersonId) {
       setRecordDashboard(null);
@@ -405,45 +298,6 @@ export default function InteractionNew({
       setError(message);
     } finally {
       setRecordDashboardLoading(false);
-    }
-  };
-
-  const runSearch = async (
-    nextQuery = searchQuery,
-    nextScope = searchScope
-  ) => {
-    const trimmedQuery = nextQuery.trim();
-    if (!trimmedQuery) {
-      setSearchResult(null);
-      setSearchError(null);
-      return;
-    }
-
-    const relationScope = relationSearchScopeOptions.some(
-      (option) => option.id === nextScope
-    )
-      ? nextScope
-      : "all";
-    const targetTypes: SearchTargetType[] =
-      relationScope === "all" ? relationSearchTargetTypes : [relationScope];
-    const dateFrom = buildDateQuery(searchDateFrom, "from");
-    const dateTo = buildDateQuery(searchDateTo, "to");
-
-    setSearchLoading(true);
-    setSearchError(null);
-    try {
-      const result = await searchMemory(trimmedQuery, targetTypes, {
-        dateFrom,
-        dateTo,
-        fuzzy: searchFuzzy,
-      });
-      setSearchResult(result);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "検索に失敗しました。";
-      setSearchError(message);
-    } finally {
-      setSearchLoading(false);
     }
   };
 
@@ -464,15 +318,6 @@ export default function InteractionNew({
       void loadTaskList();
     }
   }, [workspaceMode]);
-
-  useEffect(() => {
-    if (
-      workspaceMode === "relations" &&
-      !relationSearchScopeOptions.some((option) => option.id === searchScope)
-    ) {
-      setSearchScope("all");
-    }
-  }, [workspaceMode, searchScope]);
 
   useEffect(() => {
     if (currentPage === "record") {
@@ -503,6 +348,43 @@ export default function InteractionNew({
       await loadTaskList();
     }
   };
+
+  const {
+    newPersonName,
+    setNewPersonName,
+    newPersonPrimaryCommunityId,
+    setNewPersonPrimaryCommunityId,
+    newCommunityName,
+    setNewCommunityName,
+    newCommunityParentId,
+    setNewCommunityParentId,
+    newTopicName,
+    setNewTopicName,
+    newTopicParentId,
+    setNewTopicParentId,
+    isCreatingPerson,
+    isCreatingCommunity,
+    isCreatingTopic,
+    personActionId,
+    communityActionId,
+    handleCreatePerson,
+    handleCreateCommunity,
+    handleCreateTopic,
+    handleTogglePersonHidden,
+    handleDeletePerson,
+    handleToggleCommunityHidden,
+    handleDeleteCommunity,
+  } = useManageReferenceActions({
+    refreshAll,
+    setPersonId,
+    setDetailPersonId,
+    setCurrentPage,
+    setManagePanel,
+    setCommunityId,
+    setTopicId,
+    onError: setError,
+    onSuccess: setSuccess,
+  });
 
   useEffect(() => {
     if (!isOnline || isSyncingInteractionsRef.current) {
@@ -560,109 +442,6 @@ export default function InteractionNew({
       cancelled = true;
     };
   }, [isOnline]);
-
-  const refreshTaskCandidateState = async () => {
-    await loadTaskCandidateList();
-    await loadTaskList();
-    if (searchQuery.trim()) {
-      await runSearch(searchQuery, searchScope);
-    }
-    if (taskSearchQuery.trim()) {
-      await runTaskSearch(taskSearchQuery);
-    }
-  };
-
-  const handleAcceptTaskCandidate = async (taskId: string) => {
-    setTaskActionId(taskId);
-    try {
-      await acceptTaskCandidate(taskId);
-      await refreshTaskCandidateState();
-      setSuccess("タスク候補を採用しました。");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "タスク候補の採用に失敗しました。";
-      setError(message);
-    } finally {
-      setTaskActionId(null);
-    }
-  };
-
-  const handleDismissTaskCandidate = async (taskId: string) => {
-    setTaskActionId(taskId);
-    try {
-      await dismissTaskCandidate(taskId);
-      await refreshTaskCandidateState();
-      setSuccess("タスク候補を却下しました。");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "タスク候補の却下に失敗しました。";
-      setError(message);
-    } finally {
-      setTaskActionId(null);
-    }
-  };
-
-  const handleCreateTask = async (payload: CreateTaskPayload) => {
-    setTaskActionId("new-task");
-    try {
-      await createTask(payload);
-      await refreshTaskCandidateState();
-      setSuccess("タスクを作成しました。");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "タスクの作成に失敗しました。";
-      setError(message);
-      throw error;
-    } finally {
-      setTaskActionId(null);
-    }
-  };
-
-  const handleUpdateTask = async (taskId: string, payload: UpdateTaskPayload) => {
-    setTaskActionId(taskId);
-    try {
-      await updateTask(taskId, payload);
-      await refreshTaskCandidateState();
-      setSuccess("タスクを更新しました。");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "タスクの更新に失敗しました。";
-      setError(message);
-      throw error;
-    } finally {
-      setTaskActionId(null);
-    }
-  };
-
-  const handleCompleteTask = async (taskId: string) => {
-    setTaskActionId(taskId);
-    try {
-      await completeTask(taskId);
-      await refreshTaskCandidateState();
-      setSuccess("タスクを完了しました。");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "タスクの完了に失敗しました。";
-      setError(message);
-    } finally {
-      setTaskActionId(null);
-    }
-  };
-
-  const handleReopenTask = async (taskId: string) => {
-    setTaskActionId(taskId);
-    try {
-      await reopenTask(taskId);
-      await refreshTaskCandidateState();
-      setSuccess("タスクを未完了に戻しました。");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "タスクの未完了化に失敗しました。";
-      setError(message);
-    } finally {
-      setTaskActionId(null);
-    }
-  };
 
   const handlePersonChange = (nextPersonId: string) => {
     setPersonId(nextPersonId);
@@ -729,169 +508,6 @@ export default function InteractionNew({
       setError(message);
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleCreatePerson = async () => {
-    if (!newPersonName.trim()) {
-      setError("追加する人の名前を入力してください。");
-      return;
-    }
-
-    setIsCreatingPerson(true);
-    try {
-      const person = await createPerson({
-        name: newPersonName.trim(),
-        primary_community_id: newPersonPrimaryCommunityId || null,
-      });
-      setNewPersonName("");
-      setNewPersonPrimaryCommunityId("");
-      await refreshAll();
-      setPersonId(person.id);
-      setDetailPersonId(person.id);
-      setCurrentPage("manage");
-      setManagePanel("people");
-      setSuccess("人を追加しました。");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "人の追加に失敗しました。";
-      setError(message);
-    } finally {
-      setIsCreatingPerson(false);
-    }
-  };
-
-  const handleCreateCommunity = async () => {
-    if (!newCommunityName.trim()) {
-      setError("追加するコミュニティ名を入力してください。");
-      return;
-    }
-
-    setIsCreatingCommunity(true);
-    try {
-      const community = await createCommunity({
-        name: newCommunityName.trim(),
-        parent_id: newCommunityParentId || null,
-      });
-      setNewCommunityName("");
-      setNewCommunityParentId("");
-      await refreshAll();
-      setCommunityId(community.id);
-      setSuccess("コミュニティを追加しました。");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "コミュニティの追加に失敗しました。";
-      setError(message);
-    } finally {
-      setIsCreatingCommunity(false);
-    }
-  };
-
-  const handleCreateTopic = async () => {
-    if (!newTopicName.trim()) {
-      setError("追加する話題名を入力してください。");
-      return;
-    }
-
-    setIsCreatingTopic(true);
-    try {
-      const topic = await createTopic({
-        name: newTopicName.trim(),
-        parent_id: newTopicParentId || null,
-      });
-      setNewTopicName("");
-      setNewTopicParentId("");
-      await refreshAll();
-      setTopicId(topic.id);
-      setSuccess("話題を追加しました。");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "話題の追加に失敗しました。";
-      setError(message);
-    } finally {
-      setIsCreatingTopic(false);
-    }
-  };
-
-  const handleTogglePersonHidden = async (person: Person) => {
-    setPersonActionId(person.id);
-    try {
-      await updatePersonHidden(person.id, !person.is_hidden);
-
-      await refreshAll();
-      setSuccess(
-        person.is_hidden ? "人物を再表示しました。" : "人物を非表示にしました。"
-      );
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "人物状態の更新に失敗しました。";
-      setError(message);
-    } finally {
-      setPersonActionId(null);
-    }
-  };
-
-  const handleDeletePerson = async (person: Person) => {
-    if (!window.confirm(`${person.name} を削除しますか？ この人の関連記録も削除されます。`)) {
-      return;
-    }
-
-    setPersonActionId(person.id);
-    try {
-      await deletePerson(person.id);
-
-      await refreshAll();
-      setSuccess("人物を削除しました。");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "人物削除に失敗しました。";
-      setError(message);
-    } finally {
-      setPersonActionId(null);
-    }
-  };
-
-  const handleToggleCommunityHidden = async (community: Community) => {
-    setCommunityActionId(community.id);
-    try {
-      await updateCommunityHidden(community.id, !community.is_hidden);
-
-      await refreshAll();
-      setSuccess(
-        community.is_hidden
-          ? "コミュニティを再表示しました。"
-          : "コミュニティを非表示にしました。"
-      );
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "コミュニティ状態の更新に失敗しました。";
-      setError(message);
-    } finally {
-      setCommunityActionId(null);
-    }
-  };
-
-  const handleDeleteCommunity = async (community: Community) => {
-    if (
-      !window.confirm(
-        `${community.name} を削除しますか？ 関連する所属やコミュニティ参照が外れる場合があります。`
-      )
-    ) {
-      return;
-    }
-
-    setCommunityActionId(community.id);
-    try {
-      await deleteCommunity(community.id);
-
-      await refreshAll();
-      setSuccess("コミュニティを削除しました。");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "コミュニティ削除に失敗しました。";
-      setError(message);
-    } finally {
-      setCommunityActionId(null);
     }
   };
 
