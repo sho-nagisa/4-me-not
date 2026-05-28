@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { PointerEvent } from "react";
+import type { CSSProperties, PointerEvent } from "react";
 
 import type {
   Community,
@@ -10,6 +10,23 @@ import type {
   TopicTreeNode,
 } from "./types";
 import { buildCommunityTree, formatDateTime } from "./utils";
+
+type BubbleElasticOffset = {
+  x: number;
+  y: number;
+  stretch?: number;
+  squeeze?: number;
+  angle?: number;
+  duration?: number;
+};
+
+type BubbleStyle = CSSProperties & {
+  "--bubble-angle": string;
+  "--bubble-counter-angle": string;
+  "--bubble-stretch": number;
+  "--bubble-squeeze": number;
+  "--bubble-release-duration": string;
+};
 
 export function NavItem({
   active,
@@ -346,9 +363,10 @@ export function PersonBubbleCloud({
   bubbleScale?: number;
 }) {
   const releaseTimers = useRef<Record<string, number>>({});
+  const settleTimers = useRef<Record<string, number>>({});
   const suppressClick = useRef(false);
   const [temporaryOffsets, setTemporaryOffsets] = useState<
-    Record<string, { x: number; y: number }>
+    Record<string, BubbleElasticOffset>
   >({});
   const [dragging, setDragging] = useState<{
     personId: string;
@@ -363,11 +381,20 @@ export function PersonBubbleCloud({
     lastPointerAt: number;
     velocityX: number;
     velocityY: number;
+    velocityPixelX: number;
+    velocityPixelY: number;
+    movedDistance: number;
+    stretch: number;
+    squeeze: number;
+    angle: number;
   } | null>(null);
 
   useEffect(() => {
     return () => {
       Object.values(releaseTimers.current).forEach((timer) =>
+        window.clearTimeout(timer)
+      );
+      Object.values(settleTimers.current).forEach((timer) =>
         window.clearTimeout(timer)
       );
     };
@@ -394,6 +421,10 @@ export function PersonBubbleCloud({
       window.clearTimeout(releaseTimers.current[bubble.person.id]);
       delete releaseTimers.current[bubble.person.id];
     }
+    if (settleTimers.current[bubble.person.id]) {
+      window.clearTimeout(settleTimers.current[bubble.person.id]);
+      delete settleTimers.current[bubble.person.id];
+    }
 
     event.currentTarget.setPointerCapture(event.pointerId);
     suppressClick.current = false;
@@ -410,6 +441,12 @@ export function PersonBubbleCloud({
       lastPointerAt: performance.now(),
       velocityX: 0,
       velocityY: 0,
+      velocityPixelX: 0,
+      velocityPixelY: 0,
+      movedDistance: 0,
+      stretch: 1,
+      squeeze: 1,
+      angle: 0,
     });
   };
 
@@ -432,6 +469,18 @@ export function PersonBubbleCloud({
       event.clientX - dragging.pointerStartX,
       event.clientY - dragging.pointerStartY
     );
+    const pull = Math.min(0.18, movedDistance / 520);
+    const angle =
+      movedDistance > 1
+        ? (Math.atan2(
+            event.clientY - dragging.pointerStartY,
+            event.clientX - dragging.pointerStartX
+          ) *
+            180) /
+          Math.PI
+        : dragging.angle;
+    const velocityPixelX = (event.clientX - dragging.lastPointerX) / elapsed;
+    const velocityPixelY = (event.clientY - dragging.lastPointerY) / elapsed;
 
     if (movedDistance > 6) {
       suppressClick.current = true;
@@ -446,6 +495,12 @@ export function PersonBubbleCloud({
       lastPointerAt: now,
       velocityX: (((event.clientX - dragging.lastPointerX) / bounds.width) * 100) / elapsed,
       velocityY: (((event.clientY - dragging.lastPointerY) / bounds.height) * 100) / elapsed,
+      velocityPixelX,
+      velocityPixelY,
+      movedDistance,
+      stretch: 1 + pull,
+      squeeze: 1 - pull * 0.55,
+      angle,
     });
   };
 
@@ -458,16 +513,62 @@ export function PersonBubbleCloud({
     }
 
     if (dragging?.personId === bubble.person.id) {
-      const projectedX = clampPercent(dragging.currentX + dragging.velocityX * 220, 12, 88);
-      const projectedY = clampPercent(dragging.currentY + dragging.velocityY * 220, 16, 84);
+      const releaseSpeed = Math.hypot(
+        dragging.velocityPixelX,
+        dragging.velocityPixelY
+      );
+      const releasePull =
+        dragging.movedDistance > 6
+          ? Math.min(0.22, 0.04 + releaseSpeed * 0.09)
+          : 0;
+      const releaseAngle =
+        releaseSpeed > 0.02
+          ? (Math.atan2(dragging.velocityPixelY, dragging.velocityPixelX) *
+              180) /
+            Math.PI
+          : dragging.angle;
+      const releaseDuration = Math.round(
+        680 + Math.min(260, releaseSpeed * 130)
+      );
+      const projectedX = clampPercent(
+        dragging.currentX + dragging.velocityX * 280,
+        12,
+        88
+      );
+      const projectedY = clampPercent(
+        dragging.currentY + dragging.velocityY * 280,
+        16,
+        84
+      );
 
       setTemporaryOffsets((offsets) => ({
         ...offsets,
         [bubble.person.id]: {
           x: projectedX - bubble.x,
           y: projectedY - bubble.y,
+          stretch: 1 + releasePull,
+          squeeze: 1 - releasePull * 0.62,
+          angle: releaseAngle,
+          duration: releaseDuration,
         },
       }));
+
+      settleTimers.current[bubble.person.id] = window.setTimeout(() => {
+        setTemporaryOffsets((offsets) => {
+          const currentOffset = offsets[bubble.person.id];
+          if (!currentOffset) return offsets;
+          return {
+            ...offsets,
+            [bubble.person.id]: {
+              ...currentOffset,
+              stretch: 1,
+              squeeze: 1,
+              angle: 0,
+            },
+          };
+        });
+        delete settleTimers.current[bubble.person.id];
+      }, 120);
 
       releaseTimers.current[bubble.person.id] = window.setTimeout(() => {
         setTemporaryOffsets((offsets) => {
@@ -476,7 +577,7 @@ export function PersonBubbleCloud({
           return nextOffsets;
         });
         delete releaseTimers.current[bubble.person.id];
-      }, 720);
+      }, releaseDuration);
     }
 
     setDragging(null);
@@ -487,12 +588,32 @@ export function PersonBubbleCloud({
       {bubbles.map((bubble, index) => {
         const isDragging = dragging?.personId === bubble.person.id;
         const temporaryOffset = temporaryOffsets[bubble.person.id] ?? { x: 0, y: 0 };
+        const isReleased = !isDragging && Boolean(temporaryOffsets[bubble.person.id]);
         const left = isDragging
           ? dragging.currentX
           : bubble.x + temporaryOffset.x;
         const top = isDragging
           ? dragging.currentY
           : bubble.y + temporaryOffset.y;
+        const elasticAngle = isDragging
+          ? dragging.angle
+          : temporaryOffset.angle ?? 0;
+        const bubbleStyle: BubbleStyle = {
+          width: `${Math.round(bubble.size * bubbleScale)}px`,
+          height: `${Math.round(bubble.size * bubbleScale)}px`,
+          left: `${clampPercent(left, 12, 88)}%`,
+          top: `${clampPercent(top, 16, 84)}%`,
+          animationDelay: `${(index % 6) * -0.7}s`,
+          "--bubble-angle": `${elasticAngle}deg`,
+          "--bubble-counter-angle": `${-elasticAngle}deg`,
+          "--bubble-stretch": isDragging
+            ? dragging.stretch
+            : temporaryOffset.stretch ?? 1,
+          "--bubble-squeeze": isDragging
+            ? dragging.squeeze
+            : temporaryOffset.squeeze ?? 1,
+          "--bubble-release-duration": `${temporaryOffset.duration ?? 720}ms`,
+        };
 
         return (
           <button
@@ -502,14 +623,10 @@ export function PersonBubbleCloud({
               selectedPersonId === bubble.person.id ? "person-bubble--active" : ""
             } ${bubble.count === 0 ? "person-bubble--quiet" : ""} ${
               isDragging ? "person-bubble--dragging" : ""
+            } ${
+              isReleased ? "person-bubble--released" : ""
             }`}
-            style={{
-              width: `${Math.round(bubble.size * bubbleScale)}px`,
-              height: `${Math.round(bubble.size * bubbleScale)}px`,
-              left: `${clampPercent(left, 12, 88)}%`,
-              top: `${clampPercent(top, 16, 84)}%`,
-              animationDelay: `${(index % 6) * -0.7}s`,
-            }}
+            style={bubbleStyle}
             onPointerDown={(event) => handlePointerDown(event, bubble)}
             onPointerMove={handlePointerMove}
             onPointerUp={(event) => handlePointerEnd(event, bubble)}
