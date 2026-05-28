@@ -3,14 +3,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   getPersonDashboard,
   listPersonInteractionCounts,
-} from "./interactionsApi";
+} from "../interactionsApi";
 import type {
   PageId,
   Person,
   PersonDashboard,
   PersonInteractionCount,
-} from "./types";
-import { buildPersonBubblesFromCounts } from "./utils";
+} from "../types";
+import { buildPersonBubblesFromCounts } from "../utils";
 
 type UsePersonExplorerParams = {
   currentPage: PageId;

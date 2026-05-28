@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 
-import { listTaskCandidates, listTasks, searchMemory } from "./interactionsApi";
-import type { SearchResponse, TaskRecord } from "./types";
-import { buildDateQuery } from "./utils";
+import { listTaskCandidates, listTasks, searchMemory } from "../interactionsApi";
+import type { SearchResponse, TaskRecord } from "../types";
+import { buildDateQuery } from "../utils";
 
 type UseTaskWorkspaceParams = {
   onError: (message: string) => void;

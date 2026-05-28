@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { listInteractionPage } from "./interactionsApi";
-import { shareLevelOptions } from "./constants";
-import { HISTORY_DEFAULT_LIMIT } from "./navigation";
-import type { InteractionRecord, PageId, ShareLevel } from "./types";
+import { listInteractionPage } from "../interactionsApi";
+import { shareLevelOptions } from "../constants";
+import { HISTORY_DEFAULT_LIMIT } from "../navigation";
+import type { InteractionRecord, PageId, ShareLevel } from "../types";
 
 type UseInteractionHistoryParams = {
   currentPage: PageId;
