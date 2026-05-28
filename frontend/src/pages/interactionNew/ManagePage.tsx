@@ -413,13 +413,14 @@ export function ManagePage(props: ManagePageProps) {
       }
 
       setCommunityActionMenuId(null);
+      if (index !== communityExplorerIndex) {
+        setCommunityExplorerIndex(index);
+        return;
+      }
+
       if (community.children.length > 0) {
         setCommunityExplorerParentId(community.id);
         setCommunityExplorerIndex(0);
-        return;
-      }
-      if (index !== communityExplorerIndex) {
-        setCommunityExplorerIndex(index);
       }
     };
 
@@ -528,6 +529,7 @@ export function ManagePage(props: ManagePageProps) {
 
             {carouselCommunities.map(({ community, index, offset }) => {
               const isSelected = index === communityExplorerIndex;
+              const hasChildCommunities = community.children.length > 0;
               const distance = Math.abs(offset);
               const visualOffset = clampCarouselOffset(offset);
               const isVisible = distance <= 2;
@@ -548,6 +550,10 @@ export function ManagePage(props: ManagePageProps) {
                   type="button"
                   className={`person-bubble community-explorer-bubble ${
                     isSelected ? "person-bubble--active community-explorer-bubble--active" : ""
+                  } ${
+                    hasChildCommunities
+                      ? "community-explorer-bubble--branch"
+                      : "community-explorer-bubble--leaf"
                   } ${community.is_hidden ? "person-bubble--quiet" : ""}`}
                   style={style}
                   onPointerDown={(event) =>
@@ -558,17 +564,12 @@ export function ManagePage(props: ManagePageProps) {
                   }
                   onPointerCancel={handleCommunityBubblePointerCancel}
                   aria-label={`${community.name}${
-                    isSelected && community.children.length > 0
+                    isSelected && hasChildCommunities
                       ? "、タップで子コミュニティを表示"
                       : ""
-                  }、長押しで操作`}
+                  }、${hasChildCommunities ? "子コミュニティあり" : "子コミュニティなし"}、長押しで操作`}
                 >
                   <strong>{community.name}</strong>
-                  <span>
-                    {community.children.length > 0
-                      ? `${community.children.length}件`
-                      : "子なし"}
-                  </span>
                 </button>
               );
             })}
