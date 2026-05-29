@@ -14,9 +14,17 @@
 
 終了日時が開始日時より前のカレンダーイベント作成が400で拒否されることを確認します。
 
+### `test_create_calendar_event_rejects_end_equal_to_start`
+
+終了日時が開始日時と同じゼロ長のカレンダーイベント作成が400で拒否されることを確認します。
+
 ### `test_create_calendar_event_rejects_missing_person`
 
 存在しない人物IDを参加者に指定した場合、カレンダーイベント作成が404で拒否されることを確認します。
+
+### `test_create_calendar_event_rejects_invalid_participant_uuid`
+
+参加者の人物IDがUUID形式ではない場合、カレンダーイベント作成が400で拒否されることを確認します。
 
 ### `test_create_calendar_event_rejects_hidden_person`
 
@@ -25,6 +33,10 @@
 ### `test_list_calendar_events_orders_by_start_desc_and_limits`
 
 カレンダーイベント一覧が開始日時の降順で返り、取得件数の上限が適用されることを確認します。
+
+### `test_list_calendar_events_rejects_limit_outside_supported_range`
+
+カレンダーイベント一覧の `limit` が1未満または200超の場合、422で拒否されることを確認します。
 
 ### `test_create_calendar_event_indexes_event_for_search`
 
@@ -45,6 +57,14 @@
 ### `test_create_reminder_rejects_invalid_remind_at`
 
 不正な日時文字列を指定したリマインダー作成が400で拒否されることを確認します。
+
+### `test_create_reminder_rejects_blank_title`
+
+空白のみのタイトルでリマインダーを作成できないことを確認します。
+
+### `test_create_reminder_required_fields_return_422`
+
+必須項目なしでリマインダーを作成した場合、422のバリデーションエラーになることを確認します。
 
 ### `test_search_index_can_delete_missing_calendar_event_document`
 

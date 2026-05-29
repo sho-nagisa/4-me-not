@@ -40,6 +40,28 @@ describe("offline interaction storage", () => {
     expect(loadRecordDraft()).toBeNull();
   });
 
+  it("falls back safely when local storage contains invalid JSON", () => {
+    window.localStorage.setItem("4-me-not:record-draft:v1", "{not-json");
+    window.localStorage.setItem("4-me-not:pending-interactions:v1", "{not-json");
+
+    expect(loadRecordDraft()).toBeNull();
+    expect(getPendingInteractions()).toEqual([]);
+    expect(getPendingInteractionCount()).toBe(0);
+  });
+
+  it("does not throw when local storage writes fail", () => {
+    const setItem = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new Error("storage full");
+      });
+
+    expect(() => saveRecordDraft(payload())).not.toThrow();
+    expect(() => enqueuePendingInteraction(payload("保存できない"))).not.toThrow();
+
+    setItem.mockRestore();
+  });
+
   it("queues interactions while offline and removes sent items", () => {
     const first = enqueuePendingInteraction(payload("1件目"));
     const second = enqueuePendingInteraction(payload("2件目"));
@@ -87,5 +109,18 @@ describe("offline interaction storage", () => {
 
     expect(getPendingInteractions().map((item) => item.id)).toEqual([second.id]);
     expect(getPendingInteractions().map((item) => item.id)).not.toContain(first.id);
+  });
+
+  it("keeps the full queue when reconnect sync fails before sending any item", async () => {
+    const first = enqueuePendingInteraction(payload("まだ送っていない"));
+    const second = enqueuePendingInteraction(payload("これも残す"));
+    const sendInteraction = vi.fn().mockRejectedValue(new Error("offline"));
+
+    await expect(syncPendingInteractions(sendInteraction)).rejects.toThrow("offline");
+
+    expect(getPendingInteractions().map((item) => item.id)).toEqual([
+      first.id,
+      second.id,
+    ]);
   });
 });

@@ -22,6 +22,10 @@
 
 タスク一覧APIで候補ステータスや候補を含めるかどうかの条件が正しく適用されることを確認します。
 
+### `test_list_tasks_rejects_limit_outside_supported_range`
+
+タスク一覧の `limit` が1未満または200超の場合、422で拒否されることを確認します。
+
 ### `test_create_manual_task_indexes_task_for_search`
 
 手動タスク作成が成功し、通常タスクとして保存され、検索ドキュメントにも登録されることを確認します。

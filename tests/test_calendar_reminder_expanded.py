@@ -68,6 +68,18 @@ class CalendarReminderExpandedTest(unittest.TestCase):
 
         self.assertEqual(response.status_code, 400)
 
+    def test_create_calendar_event_rejects_end_equal_to_start(self) -> None:
+        response = self.client.post(
+            "/api/calendar-events",
+            json={
+                "title": f"{self.prefix} Zero Length",
+                "start_at": "2026-05-23T11:00:00+00:00",
+                "end_at": "2026-05-23T11:00:00+00:00",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+
     def test_create_calendar_event_rejects_missing_person(self) -> None:
         response = self.client.post(
             "/api/calendar-events",
@@ -80,6 +92,19 @@ class CalendarReminderExpandedTest(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+    def test_create_calendar_event_rejects_invalid_participant_uuid(self) -> None:
+        response = self.client.post(
+            "/api/calendar-events",
+            json={
+                "title": f"{self.prefix} Bad Participant",
+                "start_at": "2026-05-23T10:00:00+00:00",
+                "end_at": "2026-05-23T11:00:00+00:00",
+                "participants": [{"person_id": "not-a-uuid"}],
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
 
     def test_create_calendar_event_rejects_hidden_person(self) -> None:
         person = self.fixture.create_person("Hidden Participant", hidden=True)
@@ -114,6 +139,13 @@ class CalendarReminderExpandedTest(unittest.TestCase):
         ids = [item["id"] for item in response.json()]
         self.assertEqual(ids[0], str(second.id))
         self.assertIn(str(first.id), ids)
+
+    def test_list_calendar_events_rejects_limit_outside_supported_range(self) -> None:
+        too_small = self.client.get("/api/calendar-events", params={"limit": 0})
+        too_large = self.client.get("/api/calendar-events", params={"limit": 201})
+
+        self.assertEqual(too_small.status_code, 422, too_small.text)
+        self.assertEqual(too_large.status_code, 422, too_large.text)
 
     def test_create_calendar_event_indexes_event_for_search(self) -> None:
         payload = CalendarService().create_event(
@@ -189,6 +221,22 @@ class CalendarReminderExpandedTest(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
+
+    def test_create_reminder_rejects_blank_title(self) -> None:
+        response = self.client.post(
+            "/api/reminders",
+            json={
+                "title": "   ",
+                "remind_at": "2026-05-23T10:00:00Z",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_reminder_required_fields_return_422(self) -> None:
+        response = self.client.post("/api/reminders", json={})
+
+        self.assertEqual(response.status_code, 422)
 
     def test_search_index_can_delete_missing_calendar_event_document(self) -> None:
         event = self.fixture.create_calendar_event("Temporary Indexed")
