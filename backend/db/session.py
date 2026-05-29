@@ -1,9 +1,11 @@
 import os
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 import backend.models  # noqa: F401
 
@@ -31,3 +33,13 @@ SessionLocal = sessionmaker(
     autoflush=False,
     bind=engine,
 )
+
+
+@contextmanager
+def db_session() -> Iterator[Session]:
+    """Provide a short-lived DB session; callers own commit/rollback."""
+    db: Session = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

@@ -10,7 +10,7 @@ from sqlalchemy import delete as sa_delete
 from sqlalchemy.orm import Session, joinedload
 
 from backend.app.account_context import get_current_account_id
-from backend.db.session import SessionLocal
+from backend.db.session import db_session
 from backend.models.calendar.calendar_event import CalendarEvent
 from backend.models.calendar.event_participant import EventParticipant
 from backend.models.community.community import Community
@@ -195,242 +195,236 @@ class SearchService(SearchIndexingMixin, SearchDocumentCacheMixin, SearchResultM
         results: list[dict],
     ) -> None:
         top_result = results[0] if results else None
-        db: Session = SessionLocal()
-        try:
-            db.add(
-                SearchLog(
-                    account_id=account_id,
-                    query=query,
-                    target_types=target_types or [],
-                    result_count=len(results),
-                    top_result_type=top_result["target_type"] if top_result else None,
-                    top_result_id=UUID(top_result["target_id"])
-                    if top_result
-                    else None,
-                )
-            )
-            db.commit()
-        except Exception:
-            db.rollback()
-            logger.exception("Failed to record search log")
-        finally:
-            db.close()
-
-    def index_interaction(self, interaction_id: str) -> None:
-        db: Session = SessionLocal()
-        account_id: UUID | None = None
-        try:
-            account_id = get_current_account_id()
-            interaction_uuid = normalize_uuid(interaction_id, "Interaction is invalid")
-            interaction = (
-                self._visible_interactions_query(db, account_id)
-                .filter(Interaction.id == interaction_uuid)
-                .first()
-            )
-            if interaction is None:
-                self._delete_target_document(
-                    db=db,
-                    account_id=account_id,
-                    target_type=TARGET_INTERACTION,
-                    target_id=interaction_uuid,
+        with db_session() as db:
+            try:
+                db.add(
+                    SearchLog(
+                        account_id=account_id,
+                        query=query,
+                        target_types=target_types or [],
+                        result_count=len(results),
+                        top_result_type=top_result["target_type"] if top_result else None,
+                        top_result_id=UUID(top_result["target_id"])
+                        if top_result
+                        else None,
+                    )
                 )
                 db.commit()
-                return
+            except Exception:
+                db.rollback()
+                logger.exception("Failed to record search log")
 
-            self._index_interaction(db, account_id, interaction)
-            if interaction.person:
-                self._index_person(db, account_id, interaction.person)
-            if interaction.community and not interaction.community.is_hidden:
-                self._index_community(db, account_id, interaction.community)
-            if interaction.topic:
-                self._index_topic(db, account_id, interaction.topic)
-            db.commit()
+    def index_interaction(self, interaction_id: str) -> None:
+        account_id: UUID | None = None
+        try:
+            with db_session() as db:
+                account_id = get_current_account_id()
+                interaction_uuid = normalize_uuid(interaction_id, "Interaction is invalid")
+                interaction = (
+                    self._visible_interactions_query(db, account_id)
+                    .filter(Interaction.id == interaction_uuid)
+                    .first()
+                )
+                if interaction is None:
+                    self._delete_target_document(
+                        db=db,
+                        account_id=account_id,
+                        target_type=TARGET_INTERACTION,
+                        target_id=interaction_uuid,
+                    )
+                    db.commit()
+                    return
+
+                self._index_interaction(db, account_id, interaction)
+                if interaction.person:
+                    self._index_person(db, account_id, interaction.person)
+                if interaction.community and not interaction.community.is_hidden:
+                    self._index_community(db, account_id, interaction.community)
+                if interaction.topic:
+                    self._index_topic(db, account_id, interaction.topic)
+                db.commit()
         finally:
-            db.close()
             if account_id is not None:
                 self.invalidate_cache(account_id)
 
     def index_task(self, task_id: str) -> None:
-        db: Session = SessionLocal()
         account_id: UUID | None = None
         try:
-            account_id = get_current_account_id()
-            task_uuid = normalize_uuid(task_id, "Task is invalid")
-            task = (
-                db.query(Task)
-                .options(joinedload(Task.links))
-                .filter(Task.id == task_uuid, Task.account_id == account_id)
-                .first()
-            )
-            if task is None or task.candidate_status == "dismissed":
-                self._delete_target_document(
-                    db=db,
-                    account_id=account_id,
-                    target_type=TARGET_TASK,
-                    target_id=task_uuid,
+            with db_session() as db:
+                account_id = get_current_account_id()
+                task_uuid = normalize_uuid(task_id, "Task is invalid")
+                task = (
+                    db.query(Task)
+                    .options(joinedload(Task.links))
+                    .filter(Task.id == task_uuid, Task.account_id == account_id)
+                    .first()
                 )
-                db.commit()
-                return
+                if task is None or task.candidate_status == "dismissed":
+                    self._delete_target_document(
+                        db=db,
+                        account_id=account_id,
+                        target_type=TARGET_TASK,
+                        target_id=task_uuid,
+                    )
+                    db.commit()
+                    return
 
-            self._index_task(db, account_id, task)
-            db.commit()
+                self._index_task(db, account_id, task)
+                db.commit()
         finally:
-            db.close()
             if account_id is not None:
                 self.invalidate_cache(account_id)
 
     def index_calendar_event(self, calendar_event_id: str) -> None:
-        db: Session = SessionLocal()
         account_id: UUID | None = None
         try:
-            account_id = get_current_account_id()
-            event_uuid = normalize_uuid(calendar_event_id, "Calendar event is invalid")
-            calendar_event = (
-                db.query(CalendarEvent)
-                .options(
-                    joinedload(CalendarEvent.participants).joinedload(
-                        EventParticipant.person
+            with db_session() as db:
+                account_id = get_current_account_id()
+                event_uuid = normalize_uuid(calendar_event_id, "Calendar event is invalid")
+                calendar_event = (
+                    db.query(CalendarEvent)
+                    .options(
+                        joinedload(CalendarEvent.participants).joinedload(
+                            EventParticipant.person
+                        )
                     )
+                    .filter(
+                        CalendarEvent.id == event_uuid,
+                        CalendarEvent.account_id == account_id,
+                    )
+                    .first()
                 )
-                .filter(
-                    CalendarEvent.id == event_uuid,
-                    CalendarEvent.account_id == account_id,
-                )
-                .first()
-            )
-            if calendar_event is None:
-                self._delete_target_document(
-                    db=db,
-                    account_id=account_id,
-                    target_type=TARGET_CALENDAR_EVENT,
-                    target_id=event_uuid,
-                )
-                db.commit()
-                return
+                if calendar_event is None:
+                    self._delete_target_document(
+                        db=db,
+                        account_id=account_id,
+                        target_type=TARGET_CALENDAR_EVENT,
+                        target_id=event_uuid,
+                    )
+                    db.commit()
+                    return
 
-            self._index_calendar_event(db, account_id, calendar_event)
-            db.commit()
+                self._index_calendar_event(db, account_id, calendar_event)
+                db.commit()
         finally:
-            db.close()
             if account_id is not None:
                 self.invalidate_cache(account_id)
 
     def rebuild_account_index(self) -> dict[str, int]:
-        db: Session = SessionLocal()
         account_id: UUID | None = None
         try:
-            account_id = get_current_account_id()
-            db.execute(
-                sa_delete(SearchDocument).where(
-                    SearchDocument.account_id == account_id
-                )
-            )
-
-            people = (
-                db.query(Person)
-                .options(joinedload(Person.primary_community))
-                .filter(Person.account_id == account_id, Person.is_hidden.is_(False))
-                .all()
-            )
-            communities = (
-                db.query(Community)
-                .filter(Community.account_id == account_id, Community.is_hidden.is_(False))
-                .all()
-            )
-            topics = (
-                db.query(Topic)
-                .filter(Topic.account_id == account_id)
-                .all()
-            )
-            interactions = self._visible_interactions_query(db, account_id).all()
-            tasks = (
-                db.query(Task)
-                .options(joinedload(Task.links))
-                .filter(
-                    Task.account_id == account_id,
-                    Task.candidate_status != "dismissed",
-                )
-                .all()
-            )
-            calendar_events = (
-                db.query(CalendarEvent)
-                .options(
-                    joinedload(CalendarEvent.participants).joinedload(
-                        EventParticipant.person
+            with db_session() as db:
+                account_id = get_current_account_id()
+                db.execute(
+                    sa_delete(SearchDocument).where(
+                        SearchDocument.account_id == account_id
                     )
                 )
-                .filter(CalendarEvent.account_id == account_id)
-                .all()
-            )
 
-            interactions_by_person = self._group_interactions_by_field(
-                interactions,
-                "person_id",
-            )
-            interactions_by_community = self._group_interactions_by_field(
-                interactions,
-                "community_id",
-            )
-            interactions_by_topic = self._group_interactions_by_field(
-                interactions,
-                "topic_id",
-            )
-            people_by_primary_community = self._group_people_by_primary_community(
-                people
-            )
-            task_reference_maps = {
-                TARGET_PERSON: {person.id: person for person in people},
-                TARGET_COMMUNITY: {
-                    community.id: community for community in communities
-                },
-                TARGET_TOPIC: {topic.id: topic for topic in topics},
-            }
+                people = (
+                    db.query(Person)
+                    .options(joinedload(Person.primary_community))
+                    .filter(Person.account_id == account_id, Person.is_hidden.is_(False))
+                    .all()
+                )
+                communities = (
+                    db.query(Community)
+                    .filter(Community.account_id == account_id, Community.is_hidden.is_(False))
+                    .all()
+                )
+                topics = (
+                    db.query(Topic)
+                    .filter(Topic.account_id == account_id)
+                    .all()
+                )
+                interactions = self._visible_interactions_query(db, account_id).all()
+                tasks = (
+                    db.query(Task)
+                    .options(joinedload(Task.links))
+                    .filter(
+                        Task.account_id == account_id,
+                        Task.candidate_status != "dismissed",
+                    )
+                    .all()
+                )
+                calendar_events = (
+                    db.query(CalendarEvent)
+                    .options(
+                        joinedload(CalendarEvent.participants).joinedload(
+                            EventParticipant.person
+                        )
+                    )
+                    .filter(CalendarEvent.account_id == account_id)
+                    .all()
+                )
 
-            for person in people:
-                self._index_person(
-                    db,
-                    account_id,
-                    person,
-                    interactions=interactions_by_person.get(person.id, []),
+                interactions_by_person = self._group_interactions_by_field(
+                    interactions,
+                    "person_id",
                 )
-            for community in communities:
-                self._index_community(
-                    db,
-                    account_id,
-                    community,
-                    interactions=interactions_by_community.get(community.id, []),
-                    people=people_by_primary_community.get(community.id, []),
+                interactions_by_community = self._group_interactions_by_field(
+                    interactions,
+                    "community_id",
                 )
-            for topic in topics:
-                self._index_topic(
-                    db,
-                    account_id,
-                    topic,
-                    interactions=interactions_by_topic.get(topic.id, []),
+                interactions_by_topic = self._group_interactions_by_field(
+                    interactions,
+                    "topic_id",
                 )
-            for interaction in interactions:
-                self._index_interaction(db, account_id, interaction)
-            for task in tasks:
-                self._index_task(
-                    db,
-                    account_id,
-                    task,
-                    link_reference_maps=task_reference_maps,
+                people_by_primary_community = self._group_people_by_primary_community(
+                    people
                 )
-            for calendar_event in calendar_events:
-                self._index_calendar_event(db, account_id, calendar_event)
+                task_reference_maps = {
+                    TARGET_PERSON: {person.id: person for person in people},
+                    TARGET_COMMUNITY: {
+                        community.id: community for community in communities
+                    },
+                    TARGET_TOPIC: {topic.id: topic for topic in topics},
+                }
 
-            db.commit()
-            return {
-                "people": len(people),
-                "communities": len(communities),
-                "topics": len(topics),
-                "interactions": len(interactions),
-                "tasks": len(tasks),
-                "calendar_events": len(calendar_events),
-            }
+                for person in people:
+                    self._index_person(
+                        db,
+                        account_id,
+                        person,
+                        interactions=interactions_by_person.get(person.id, []),
+                    )
+                for community in communities:
+                    self._index_community(
+                        db,
+                        account_id,
+                        community,
+                        interactions=interactions_by_community.get(community.id, []),
+                        people=people_by_primary_community.get(community.id, []),
+                    )
+                for topic in topics:
+                    self._index_topic(
+                        db,
+                        account_id,
+                        topic,
+                        interactions=interactions_by_topic.get(topic.id, []),
+                    )
+                for interaction in interactions:
+                    self._index_interaction(db, account_id, interaction)
+                for task in tasks:
+                    self._index_task(
+                        db,
+                        account_id,
+                        task,
+                        link_reference_maps=task_reference_maps,
+                    )
+                for calendar_event in calendar_events:
+                    self._index_calendar_event(db, account_id, calendar_event)
+
+                db.commit()
+                return {
+                    "people": len(people),
+                    "communities": len(communities),
+                    "topics": len(topics),
+                    "interactions": len(interactions),
+                    "tasks": len(tasks),
+                    "calendar_events": len(calendar_events),
+                }
         finally:
-            db.close()
             if account_id is not None:
                 self.invalidate_cache(account_id)
 

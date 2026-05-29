@@ -4,7 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session, joinedload
 
-from backend.db.session import SessionLocal
+from backend.db.session import db_session
 from backend.models.base.enums import TaskStatus
 from backend.models.calendar.calendar_event import CalendarEvent
 from backend.models.calendar.event_participant import EventParticipant
@@ -73,8 +73,7 @@ class SearchDocumentCacheMixin:
         return cached
 
     def _build_cached_documents(self, account_id: UUID) -> tuple[CachedSearchDocument, ...]:
-        db: Session = SessionLocal()
-        try:
+        with db_session() as db:
             documents = self._load_candidate_documents(
                 db=db,
                 account_id=account_id,
@@ -166,8 +165,6 @@ class SearchDocumentCacheMixin:
                 )
 
             return tuple(cached_documents)
-        finally:
-            db.close()
 
     def _build_cached_reference_maps(
         self,
