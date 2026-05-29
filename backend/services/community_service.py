@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy import delete as sa_delete
 
 from backend.app.account_context import get_current_account_id
-from backend.db.session import SessionLocal
+from backend.db.session import db_session
 from backend.models.community.community import Community
 from backend.models.search.search_document import SearchDocument
 from backend.services.search import SearchService
@@ -20,8 +20,7 @@ class CommunityService:
         description: str | None = None,
         parent_id: str | None = None,
     ):
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             normalized_name = name.strip()
             if not normalized_name:
@@ -45,12 +44,9 @@ class CommunityService:
             db.refresh(community)
             SearchService.invalidate_cache(account_id)
             return community
-        finally:
-            db.close()
 
     def list_communities(self, include_hidden: bool = False):
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             all_communities = (
                 db.query(Community)
@@ -79,12 +75,9 @@ class CommunityService:
                 key=lambda item: self._path_cache[(include_hidden, str(item.id))]
             )
             return communities
-        finally:
-            db.close()
 
     def set_hidden(self, community_id: str, is_hidden: bool):
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             community = self._get_community(db, community_id)
             community.is_hidden = is_hidden
@@ -103,27 +96,21 @@ class CommunityService:
             db.refresh(community)
             SearchService.invalidate_cache(account_id)
             return community
-        finally:
-            db.close()
 
     def delete_community(self, community_id: str):
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             community = self._get_community(db, community_id)
             db.execute(sa_delete(Community).where(Community.id == community.id))
             db.commit()
             SearchService.invalidate_cache(account_id)
-        finally:
-            db.close()
 
     def get_path(self, community: Community, include_hidden: bool = False) -> str:
         cache_key = (include_hidden, str(community.id))
         if cache_key in self._path_cache:
             return self._path_cache[cache_key]
 
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             nodes = []
             current = db.get(Community, community.id)
             account_id = get_current_account_id()
@@ -134,8 +121,6 @@ class CommunityService:
                 nodes.append(current.name)
                 current = db.get(Community, current.parent_id) if current.parent_id else None
             return " / ".join(reversed(nodes))
-        finally:
-            db.close()
 
     def _build_path_from_map(
         self,

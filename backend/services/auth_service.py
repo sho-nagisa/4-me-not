@@ -10,9 +10,8 @@ import time
 from uuid import UUID
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
 
-from backend.db.session import SessionLocal
+from backend.db.session import db_session
 from backend.models.account.account import Account
 
 
@@ -26,8 +25,7 @@ class AuthService:
         normalized_email = self._normalize_email(email)
         self._validate_password(password)
 
-        db: Session = SessionLocal()
-        try:
+        with db_session() as db:
             existing = (
                 db.query(Account)
                 .filter(Account.email == normalized_email)
@@ -45,13 +43,10 @@ class AuthService:
             db.commit()
             db.refresh(account)
             return account
-        finally:
-            db.close()
 
     def authenticate(self, email: str, password: str) -> Account:
         normalized_email = self._normalize_email(email)
-        db: Session = SessionLocal()
-        try:
+        with db_session() as db:
             account = (
                 db.query(Account)
                 .filter(Account.email == normalized_email)
@@ -65,19 +60,14 @@ class AuthService:
             ):
                 raise HTTPException(status_code=401, detail="Invalid email or password")
             return account
-        finally:
-            db.close()
 
     def get_account(self, account_id: UUID) -> Account | None:
-        db: Session = SessionLocal()
-        try:
+        with db_session() as db:
             account = db.get(Account, account_id)
             if account is None or not account.is_active:
                 return None
             db.expunge(account)
             return account
-        finally:
-            db.close()
 
     def create_session_token(self, account: Account) -> str:
         payload = {

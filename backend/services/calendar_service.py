@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
 from backend.app.account_context import get_current_account_id
-from backend.db.session import SessionLocal
+from backend.db.session import db_session
 from backend.models.calendar.calendar_event import CalendarEvent
 from backend.models.calendar.event_participant import EventParticipant
 from backend.models.person.person import Person
@@ -16,8 +16,7 @@ from backend.models.person.person import Person
 
 class CalendarService:
     def list_events(self, limit: int = 100) -> list[dict]:
-        db: Session = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             events = (
                 db.query(CalendarEvent)
@@ -32,8 +31,6 @@ class CalendarService:
                 .all()
             )
             return [self.serialize_event(event) for event in events]
-        finally:
-            db.close()
 
     def create_event(
         self,
@@ -46,11 +43,10 @@ class CalendarService:
         external_id: str | None = None,
         participants: list[dict] | None = None,
     ) -> dict:
-        db: Session = SessionLocal()
         event: CalendarEvent | None = None
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
-            if end_at < start_at:
+            if end_at <= start_at:
                 raise HTTPException(status_code=400, detail="Event end must be after start")
             normalized_title = title.strip()
             if not normalized_title:
@@ -112,8 +108,6 @@ class CalendarService:
                 ) from exc
             db.refresh(event)
             payload = self.serialize_event(event)
-        finally:
-            db.close()
 
         from backend.services.search import SearchService
 

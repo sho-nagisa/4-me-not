@@ -10,7 +10,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
 from backend.app.account_context import get_current_account_id
-from backend.db.session import SessionLocal
+from backend.db.session import db_session
 from backend.models.base.enums import TaskStatus
 from backend.models.community.community import Community
 from backend.models.interaction.interaction import Interaction
@@ -78,9 +78,8 @@ class ExtractedTaskCandidate:
 
 class TaskService:
     def extract_candidates_from_interaction(self, interaction_id: str) -> list[str]:
-        db: Session = SessionLocal()
         created_task_ids: list[str] = []
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             interaction_uuid = self._normalize_uuid(interaction_id, "Interaction is invalid")
             interaction = (
@@ -175,8 +174,6 @@ class TaskService:
 
             db.commit()
             return created_task_ids
-        finally:
-            db.close()
 
     def list_tasks(
         self,
@@ -187,8 +184,7 @@ class TaskService:
         search: str | None = None,
         limit: int = 100,
     ) -> list[dict]:
-        db: Session = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             query = (
                 db.query(Task)
@@ -225,8 +221,6 @@ class TaskService:
                 self.serialize_task(task, link_label_maps=link_label_maps)
                 for task in tasks
             ]
-        finally:
-            db.close()
 
     def create_task(
         self,
@@ -235,9 +229,8 @@ class TaskService:
         due_at: str | datetime | None = None,
         priority: int | None = None,
     ) -> dict:
-        db: Session = SessionLocal()
         task_id: str | None = None
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             task = Task(
                 account_id=account_id,
@@ -257,8 +250,6 @@ class TaskService:
             db.refresh(task)
             task_id = str(task.id)
             payload = self.serialize_task(task)
-        finally:
-            db.close()
 
         if task_id:
             self._index_task(task_id)
@@ -269,9 +260,8 @@ class TaskService:
         task_id: str,
         changes: dict,
     ) -> dict:
-        db: Session = SessionLocal()
         normalized_task_id: str | None = None
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             task_uuid = self._normalize_uuid(task_id, "Task is invalid")
             task = (
@@ -298,8 +288,6 @@ class TaskService:
             db.refresh(task)
             normalized_task_id = str(task.id)
             payload = self.serialize_task(task)
-        finally:
-            db.close()
 
         if normalized_task_id:
             self._index_task(normalized_task_id)
@@ -419,9 +407,8 @@ class TaskService:
         candidate_status: str,
         is_candidate: bool,
     ) -> dict:
-        db: Session = SessionLocal()
         task: Task | None = None
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             task_uuid = self._normalize_uuid(task_id, "Task is invalid")
             task = (
@@ -438,8 +425,6 @@ class TaskService:
             db.commit()
             db.refresh(task)
             payload = self.serialize_task(task)
-        finally:
-            db.close()
 
         if task is not None:
             self._index_task(str(task.id))

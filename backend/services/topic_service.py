@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import HTTPException
 
 from backend.app.account_context import get_current_account_id
-from backend.db.session import SessionLocal
+from backend.db.session import db_session
 from backend.models.interaction.topic import Topic
 from backend.services.search import SearchService
 
@@ -18,8 +18,7 @@ class TopicService:
         description: str | None = None,
         parent_id: str | None = None,
     ):
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             normalized_parent_id = self._validate_parent_id(db, parent_id, account_id)
             topic = Topic(
@@ -34,12 +33,9 @@ class TopicService:
             db.refresh(topic)
             SearchService.invalidate_cache(account_id)
             return topic
-        finally:
-            db.close()
 
     def list_topics(self):
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             topics = (
                 db.query(Topic)
                 .filter(Topic.account_id == get_current_account_id())
@@ -55,16 +51,13 @@ class TopicService:
             }
             topics.sort(key=lambda item: self._path_cache[str(item.id)])
             return topics
-        finally:
-            db.close()
 
     def get_path(self, topic: Topic) -> str:
         cache_key = str(topic.id)
         if cache_key in self._path_cache:
             return self._path_cache[cache_key]
 
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             nodes = []
             current = db.get(Topic, topic.id)
@@ -72,8 +65,6 @@ class TopicService:
                 nodes.append(current.name)
                 current = db.get(Topic, current.parent_id) if current.parent_id else None
             return " / ".join(reversed(nodes))
-        finally:
-            db.close()
 
     def _build_path_from_map(
         self,

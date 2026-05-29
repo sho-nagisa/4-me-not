@@ -7,7 +7,7 @@ from sqlalchemy import and_, func
 from sqlalchemy.orm import Session, joinedload
 
 from backend.app.account_context import get_current_account_id
-from backend.db.session import SessionLocal
+from backend.db.session import db_session
 from backend.models.base.enums import InteractionType, ShareLevel
 from backend.models.community.community import Community
 from backend.models.interaction.interaction import Interaction
@@ -57,8 +57,7 @@ class InteractionService:
         occurred_at: datetime | None = None,
         tag_ids: list[str] | None = None,
     ):
-        db: Session = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             person_uuid = self._normalize_uuid(person_id, "Person is invalid")
             person = (
@@ -99,8 +98,6 @@ class InteractionService:
             db.commit()
             db.refresh(interaction)
             return interaction
-        finally:
-            db.close()
 
     def list_interactions(
         self,
@@ -115,8 +112,7 @@ class InteractionService:
         offset: int = 0,
         include_total: bool = False,
     ):
-        db: Session = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             query = self._base_query(db, account_id=account_id)
 
@@ -192,12 +188,9 @@ class InteractionService:
                 }
 
             return items
-        finally:
-            db.close()
 
     def get_interaction_overview(self, recent_limit: int = 4, person_limit: int = 7):
-        db: Session = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             visible_query = (
                 db.query(Interaction)
@@ -252,12 +245,9 @@ class InteractionService:
                     for row in person_counts
                 ],
             }
-        finally:
-            db.close()
 
     def list_person_interaction_counts(self, community_id: str | None = None):
-        db: Session = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             community_uuid = None
             if community_id:
@@ -317,12 +307,9 @@ class InteractionService:
                     ),
                 )
             ]
-        finally:
-            db.close()
 
     def get_person_dashboard(self, person_id: str):
-        db: Session = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             person_uuid = self._normalize_uuid(person_id, "Person is invalid")
             person = (
@@ -396,8 +383,6 @@ class InteractionService:
                     "recent_notes": self._collect_recent_notes(serialized),
                 },
             }
-        finally:
-            db.close()
 
     def serialize_interaction(self, interaction: Interaction, path_cache: dict | None = None):
         interaction_type = InteractionType(interaction.type)

@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
 from backend.app.account_context import get_current_account_id
-from backend.db.session import SessionLocal
+from backend.db.session import db_session
 from backend.models.community.community import Community
 from backend.models.person.person import Person
 from backend.models.search.search_document import SearchDocument
@@ -23,8 +23,7 @@ class PersonService:
         canonical_name: str | None = None,
         primary_community_id: str | None = None,
     ):
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             normalized_name = name.strip()
             if not normalized_name:
@@ -63,12 +62,9 @@ class PersonService:
             db.refresh(person)
             SearchService.invalidate_cache(account_id)
             return person
-        finally:
-            db.close()
 
     def list_people(self, include_hidden: bool = False):
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             query = (
                 db.query(Person)
@@ -106,12 +102,9 @@ class PersonService:
                     )
 
             return people
-        finally:
-            db.close()
 
     def set_hidden(self, person_id: str, is_hidden: bool):
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             person = self._get_person(db, person_id)
             person.is_hidden = is_hidden
@@ -130,19 +123,14 @@ class PersonService:
             db.refresh(person)
             SearchService.invalidate_cache(account_id)
             return person
-        finally:
-            db.close()
 
     def delete_person(self, person_id: str):
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             person = self._get_person(db, person_id)
             db.execute(sa_delete(Person).where(Person.id == person.id))
             db.commit()
             SearchService.invalidate_cache(account_id)
-        finally:
-            db.close()
 
     def update_profile(self, person_id, **kwargs):
         return None
@@ -159,8 +147,7 @@ class PersonService:
         if cache_key in self._primary_community_path_cache:
             return self._primary_community_path_cache[cache_key]
 
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             account_id = get_current_account_id()
             nodes = []
             current = db.get(Community, person.primary_community_id)
@@ -170,8 +157,6 @@ class PersonService:
                 nodes.append(current.name)
                 current = db.get(Community, current.parent_id) if current.parent_id else None
             return " / ".join(reversed(nodes))
-        finally:
-            db.close()
 
     def _build_community_path_from_map(
         self,
