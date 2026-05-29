@@ -128,6 +128,13 @@ class TaskWorkflowExpandedTest(unittest.TestCase):
         self.assertTrue(any("Accepted" in title for title in accepted_titles))
         self.assertFalse(any("Pending" in title for title in accepted_titles))
 
+    def test_list_tasks_rejects_limit_outside_supported_range(self) -> None:
+        too_small = self.client.get("/api/tasks", params={"limit": 0})
+        too_large = self.client.get("/api/tasks", params={"limit": 201})
+
+        self.assertEqual(too_small.status_code, 422, too_small.text)
+        self.assertEqual(too_large.status_code, 422, too_large.text)
+
     def test_create_manual_task_indexes_task_for_search(self) -> None:
         response = self.client.post(
             "/api/tasks",

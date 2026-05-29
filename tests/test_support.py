@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import os
 import time
 from uuid import UUID, uuid4
 
@@ -24,6 +25,9 @@ from backend.models.search.search_log import SearchLog
 from backend.models.task.task import Task
 from backend.models.task.task_link import TaskLink
 from backend.services.search import SearchService
+
+
+os.environ["OPENAI_API_KEY"] = ""
 
 
 def unique_prefix(label: str) -> str:

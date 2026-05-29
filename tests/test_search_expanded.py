@@ -2,15 +2,23 @@ import os
 import unittest
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
+from uuid import uuid4
 
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from backend.app.account_context import get_current_account_id
+from backend.app.account_context import (
+    get_current_account_id,
+    reset_current_account_id,
+    set_current_account_id,
+)
 from backend.app.main import app
 from backend.db.session import SessionLocal
+from backend.models.account.account import Account
 from backend.models.search.search_document import SearchDocument
 from backend.models.search.search_log import SearchLog
+from backend.services.calendar_service import CalendarService
+from backend.services.community_service import CommunityService
 from backend.services.person_service import PersonService
 from backend.services.search import SearchService
 from backend.services.search.answer import build_rag_answer
@@ -27,6 +35,8 @@ from backend.services.search.utils import (
     normalize_vector,
     parse_embedding,
 )
+from backend.services.task_service import TaskService
+from backend.services.topic_service import TopicService
 from tests.test_support import DbFixture, cleanup_test_data, unique_prefix
 
 
@@ -244,36 +254,64 @@ class SearchExpandedTest(unittest.TestCase):
         self.assertTrue(all(item["fuzzy_score"] == 0 for item in response.json()["results"]))
 
     def test_rebuild_account_index_indexes_all_supported_targets(self) -> None:
-        community = self.fixture.create_community("Rebuild Community")
-        topic = self.fixture.create_topic("Rebuild Topic")
-        person = self.fixture.create_person("Rebuild Person", primary_community=community)
-        interaction = self.fixture.create_interaction(
-            person=person,
-            community=community,
-            topic=topic,
-            content="rebuild-token",
-        )
-        task = self.fixture.create_task(
-            "Rebuild Task",
-            source_id=interaction.id,
-            links=[("person", person.id, "related", 0.9)],
-        )
-        self.fixture.create_calendar_event("Rebuild Event")
+        isolated_account_id = uuid4()
+        context_token = set_current_account_id(isolated_account_id)
+        try:
+            db = SessionLocal()
+            try:
+                db.add(
+                    Account(
+                        id=isolated_account_id,
+                        email=f"search-rebuild-{uuid4().hex}@example.test",
+                        is_active=True,
+                    )
+                )
+                db.commit()
+            finally:
+                db.close()
 
-        counts = SearchService().rebuild_account_index()
-        target_types = {doc.target_type for doc in self.fixture.search_documents()}
+            fixture = DbFixture(f"{self.prefix}:isolated")
+            community = fixture.create_community("Rebuild Community")
+            topic = fixture.create_topic("Rebuild Topic")
+            person = fixture.create_person("Rebuild Person", primary_community=community)
+            interaction = fixture.create_interaction(
+                person=person,
+                community=community,
+                topic=topic,
+                content="rebuild-token",
+            )
+            task = fixture.create_task(
+                "Rebuild Task",
+                source_id=interaction.id,
+                links=[("person", person.id, "related", 0.9)],
+            )
+            fixture.create_calendar_event("Rebuild Event")
 
-        self.assertGreaterEqual(counts["people"], 1)
-        self.assertGreaterEqual(counts["communities"], 1)
-        self.assertGreaterEqual(counts["topics"], 1)
-        self.assertGreaterEqual(counts["interactions"], 1)
-        self.assertGreaterEqual(counts["tasks"], 1)
-        self.assertGreaterEqual(counts["calendar_events"], 1)
-        self.assertTrue(
-            {"person", "community", "topic", "interaction", "task", "calendar_event"}
-            <= target_types
-        )
-        self.assertIsNotNone(task.id)
+            counts = SearchService().rebuild_account_index()
+            target_types = {doc.target_type for doc in fixture.search_documents()}
+
+            self.assertGreaterEqual(counts["people"], 1)
+            self.assertGreaterEqual(counts["communities"], 1)
+            self.assertGreaterEqual(counts["topics"], 1)
+            self.assertGreaterEqual(counts["interactions"], 1)
+            self.assertGreaterEqual(counts["tasks"], 1)
+            self.assertGreaterEqual(counts["calendar_events"], 1)
+            self.assertTrue(
+                {"person", "community", "topic", "interaction", "task", "calendar_event"}
+                <= target_types
+            )
+            self.assertIsNotNone(task.id)
+        finally:
+            reset_current_account_id(context_token)
+            db = SessionLocal()
+            try:
+                account = db.get(Account, isolated_account_id)
+                if account is not None:
+                    db.delete(account)
+                    db.commit()
+            finally:
+                db.close()
+            SearchService.invalidate_cache(isolated_account_id)
 
     def test_search_service_returns_empty_response_for_blank_query(self) -> None:
         payload = SearchService().search("   ")
@@ -433,6 +471,30 @@ class SearchExpandedTest(unittest.TestCase):
             canonical_name=f"{self.prefix}:cache-person",
         )
 
+        self.assertNotIn(account_id, SearchService._document_cache)
+
+    def test_search_cache_is_invalidated_after_supported_target_mutations(self) -> None:
+        account_id = get_current_account_id()
+
+        SearchService._document_cache[account_id] = tuple()
+        CommunityService().create_community(name=f"{self.prefix} Cache Community")
+        self.assertNotIn(account_id, SearchService._document_cache)
+
+        SearchService._document_cache[account_id] = tuple()
+        TopicService().create_topic(name=f"{self.prefix} Cache Topic")
+        self.assertNotIn(account_id, SearchService._document_cache)
+
+        SearchService._document_cache[account_id] = tuple()
+        TaskService().create_task(title=f"{self.prefix} Cache Task")
+        self.assertNotIn(account_id, SearchService._document_cache)
+
+        SearchService._document_cache[account_id] = tuple()
+        CalendarService().create_event(
+            title=f"{self.prefix} Cache Event",
+            start_at=datetime(2026, 5, 23, 10, 0, tzinfo=timezone.utc),
+            end_at=datetime(2026, 5, 23, 11, 0, tzinfo=timezone.utc),
+            external_id=f"{self.prefix}:cache-event",
+        )
         self.assertNotIn(account_id, SearchService._document_cache)
 
     def test_search_utils_vector_and_text_helpers(self) -> None:
