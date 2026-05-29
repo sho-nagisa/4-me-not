@@ -1,81 +1,26 @@
 import type {
+  AuthAccount,
   Community,
+  CreateCommunityPayload,
+  CreateInteractionPayload,
+  CreatePersonPayload,
+  CreateTaskPayload,
+  CreateTopicPayload,
+  HistoryFilters,
   InteractionOverview,
   InteractionPage,
   InteractionRecord,
-  InteractionType,
   Person,
   PersonDashboard,
   PersonInteractionCount,
+  SearchOptions,
   SearchResponse,
   SearchTargetType,
-  ShareLevel,
   TaskRecord,
   Topic,
+  UpdateTaskPayload,
 } from "./types";
 import { buildDateQuery } from "./utils";
-
-type HistoryFilters = {
-  personId: string;
-  communityId: string;
-  topicId: string;
-  shareLevel: ShareLevel | "";
-  search: string;
-  dateFrom: string;
-  dateTo: string;
-  limit?: number;
-  offset?: number;
-};
-
-export type CreateInteractionPayload = {
-  occurred_at: string;
-  person_id: string;
-  community_id: string | null;
-  topic_id: string | null;
-  interaction_type: InteractionType;
-  share_level: ShareLevel;
-  content: string;
-  note: string;
-};
-
-type CreatePersonPayload = {
-  name: string;
-  primary_community_id: string | null;
-};
-
-type CreateCommunityPayload = {
-  name: string;
-  parent_id: string | null;
-};
-
-type CreateTopicPayload = {
-  name: string;
-  parent_id: string | null;
-};
-
-export type CreateTaskPayload = {
-  title: string;
-  description?: string | null;
-  due_at?: string | null;
-  priority?: number | null;
-};
-
-export type UpdateTaskPayload = Partial<CreateTaskPayload> & {
-  status?: "TODO" | "DONE" | "SKIPPED";
-};
-
-export type SearchOptions = {
-  limit?: number;
-  dateFrom?: string | null;
-  dateTo?: string | null;
-  fuzzy?: boolean;
-};
-
-export type AuthAccount = {
-  id: string;
-  email: string;
-  is_active: boolean;
-};
 
 export class ApiError extends Error {
   status: number;

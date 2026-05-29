@@ -1,4 +1,4 @@
-import type { CreateInteractionPayload } from "./interactionsApi";
+import type { CreateInteractionPayload } from "./types";
 
 const RECORD_DRAFT_KEY = "4-me-not:record-draft:v1";
 const PENDING_INTERACTIONS_KEY = "4-me-not:pending-interactions:v1";

@@ -7,8 +7,8 @@ import {
   loginAccount,
   logoutAccount,
   registerAccount,
-  type AuthAccount,
 } from "./pages/interactionNew/interactionsApi";
+import type { AuthAccount } from "./pages/interactionNew/types";
 
 type AuthMode = "login" | "register";
 

@@ -15,6 +15,7 @@ from backend.models.interaction.topic import Topic
 from backend.models.person.person import Person
 from backend.models.search.search_document import SearchDocument
 from backend.models.task.task import Task
+from backend.services.hierarchy_path import build_hierarchy_path
 from backend.services.search.constants import (
     TARGET_CALENDAR_EVENT,
     TARGET_COMMUNITY,
@@ -541,15 +542,4 @@ class SearchIndexingMixin:
         )
 
     def _build_path(self, record) -> str | None:
-        if record is None:
-            return None
-
-        nodes = []
-        current = record
-        while current is not None:
-            if not getattr(current, "is_hidden", False):
-                nodes.append(current.name)
-            current = current.parent
-        if not nodes:
-            return None
-        return " / ".join(reversed(nodes))
+        return build_hierarchy_path(record)

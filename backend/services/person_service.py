@@ -10,6 +10,10 @@ from backend.db.session import db_session
 from backend.models.community.community import Community
 from backend.models.person.person import Person
 from backend.models.search.search_document import SearchDocument
+from backend.services.hierarchy_path import (
+    build_hierarchy_path,
+    build_hierarchy_path_from_map,
+)
 from backend.services.search import SearchService
 
 
@@ -95,10 +99,11 @@ class PersonService:
                         continue
                     self._primary_community_path_cache[
                         (include_hidden, str(community_id))
-                    ] = self._build_community_path_from_map(
-                        community=community,
-                        communities_by_id=communities_by_id,
+                    ] = build_hierarchy_path_from_map(
+                        community,
+                        communities_by_id,
                         include_hidden=include_hidden,
+                        hidden_mode="block",
                     )
 
             return people
@@ -149,29 +154,16 @@ class PersonService:
 
         with db_session() as db:
             account_id = get_current_account_id()
-            nodes = []
             current = db.get(Community, person.primary_community_id)
-            while current is not None and current.account_id == account_id:
-                if current.is_hidden and not include_hidden_community:
-                    return None
-                nodes.append(current.name)
-                current = db.get(Community, current.parent_id) if current.parent_id else None
-            return " / ".join(reversed(nodes))
-
-    def _build_community_path_from_map(
-        self,
-        community: Community,
-        communities_by_id: dict[UUID, Community],
-        include_hidden: bool = False,
-    ) -> str | None:
-        nodes = []
-        current: Community | None = community
-        while current is not None:
-            if current.is_hidden and not include_hidden:
-                return None
-            nodes.append(current.name)
-            current = communities_by_id.get(current.parent_id) if current.parent_id else None
-        return " / ".join(reversed(nodes))
+            return build_hierarchy_path(
+                current,
+                parent_getter=lambda item: (
+                    db.get(Community, item.parent_id) if item.parent_id else None
+                ),
+                include_hidden=include_hidden_community,
+                hidden_mode="block",
+                scope_filter=lambda item: item.account_id == account_id,
+            )
 
     def _validate_primary_community(
         self,

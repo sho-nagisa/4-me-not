@@ -2,7 +2,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { CreateInteractionPayload } from "./interactionsApi";
+import type { CreateInteractionPayload } from "./types";
 import {
   clearRecordDraft,
   enqueuePendingInteraction,

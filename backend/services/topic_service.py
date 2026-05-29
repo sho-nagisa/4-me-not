@@ -5,6 +5,10 @@ from fastapi import HTTPException
 from backend.app.account_context import get_current_account_id
 from backend.db.session import db_session
 from backend.models.interaction.topic import Topic
+from backend.services.hierarchy_path import (
+    build_hierarchy_path,
+    build_hierarchy_path_from_map,
+)
 from backend.services.search import SearchService
 
 
@@ -43,10 +47,7 @@ class TopicService:
             )
             topics_by_id = {topic.id: topic for topic in topics}
             self._path_cache = {
-                str(topic.id): self._build_path_from_map(
-                    topic=topic,
-                    topics_by_id=topics_by_id,
-                )
+                str(topic.id): build_hierarchy_path_from_map(topic, topics_by_id) or ""
                 for topic in topics
             }
             topics.sort(key=lambda item: self._path_cache[str(item.id)])
@@ -59,24 +60,17 @@ class TopicService:
 
         with db_session() as db:
             account_id = get_current_account_id()
-            nodes = []
             current = db.get(Topic, topic.id)
-            while current is not None and current.account_id == account_id:
-                nodes.append(current.name)
-                current = db.get(Topic, current.parent_id) if current.parent_id else None
-            return " / ".join(reversed(nodes))
-
-    def _build_path_from_map(
-        self,
-        topic: Topic,
-        topics_by_id: dict[UUID, Topic],
-    ) -> str:
-        nodes = []
-        current: Topic | None = topic
-        while current is not None:
-            nodes.append(current.name)
-            current = topics_by_id.get(current.parent_id) if current.parent_id else None
-        return " / ".join(reversed(nodes))
+            return (
+                build_hierarchy_path(
+                    current,
+                    parent_getter=lambda item: (
+                        db.get(Topic, item.parent_id) if item.parent_id else None
+                    ),
+                    scope_filter=lambda item: item.account_id == account_id,
+                )
+                or ""
+            )
 
     def _validate_parent_id(self, db, parent_id: str | None, account_id: UUID):
         if not parent_id:

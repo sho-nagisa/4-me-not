@@ -1,27 +1,12 @@
 from typing import Any
 
 from fastapi import APIRouter, Query
-from pydantic import BaseModel, Field
 
+from backend.app.schemas.task import TaskCreateRequest, TaskUpdateRequest
 from backend.services.task_service import TaskService
 
 
 router = APIRouter(prefix="/tasks", tags=["task"])
-
-
-class TaskCreateRequest(BaseModel):
-    title: str = Field(..., max_length=200)
-    description: str | None = None
-    due_at: str | None = None
-    priority: int | None = Field(default=None, ge=1, le=5)
-
-
-class TaskUpdateRequest(BaseModel):
-    title: str | None = Field(default=None, max_length=200)
-    description: str | None = None
-    due_at: str | None = None
-    priority: int | None = Field(default=None, ge=1, le=5)
-    status: str | None = None
 
 
 @router.get("")
