@@ -171,8 +171,7 @@
 
   .manage-community-header h2,
   .manage-entry__title strong,
-  .community-explorer__crumb,
-  .topic-tree__content strong {
+  .community-explorer__crumb {
     overflow-wrap: anywhere;
   }
 
@@ -329,7 +328,6 @@
   .filter-grid,
   .search-date-filter,
   .search-answer-card__people,
-  .task-candidate-list,
   .search-result-list--compact,
   .metric-grid--compact {
     grid-template-columns: 1fr;
@@ -480,74 +478,18 @@
     padding: 10px 12px;
   }
 
-  .task-page > .page-card:first-child {
-    padding-bottom: 14px;
-  }
-
-  .task-overview-grid {
-    align-items: start;
-  }
-
-  .task-overview-metrics {
-    grid-template-columns: repeat(4, minmax(74px, 1fr));
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: none;
-  }
-
-  .task-overview-metrics::-webkit-scrollbar {
-    display: none;
-  }
-
-  .task-list-panel,
-  .task-create-panel,
-  .task-candidate-panel,
-  .task-search-panel {
-    gap: 12px;
-  }
-
-  .task-edit-form__row {
-    grid-template-columns: 1fr;
-  }
-
-  .task-list-toolbar {
-    align-items: stretch;
-  }
-
-  .task-status-filter {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: 100%;
-  }
-
-  .task-status-filter .search-scope__item {
-    padding-inline: 10px;
-  }
-
-  .task-list,
-  .task-search-results,
-  .task-candidate-list {
-    gap: 10px;
-  }
-
-  .task-list-card,
-  .task-candidate-card,
   .search-result-card {
     gap: 10px;
     padding: 13px;
     border-radius: 16px;
   }
 
-  .task-list-card__top,
-  .task-candidate-card__top,
   .search-result-card__top,
   .search-answer-card__primary {
     gap: 10px;
     align-items: flex-start;
   }
 
-  .task-list-card__top h3,
-  .task-candidate-card__top h3,
   .search-result-card__top h3 {
     margin-top: 4px;
     font-size: 1rem;
@@ -555,45 +497,33 @@
     letter-spacing: 0;
   }
 
-  .task-list-card__top strong,
-  .task-candidate-card__top strong,
   .search-result-card__score {
     min-width: 40px;
     height: 34px;
     font-size: 0.8rem;
   }
 
-  .task-list-card > p,
-  .task-candidate-card__description,
   .search-result-card__snippet {
     font-size: 0.92rem;
     line-height: 1.55;
   }
 
-  .task-list-card__meta,
-  .task-candidate-card__meta,
   .search-result-card__meta {
     gap: 6px;
   }
 
-  .task-list-card__meta span,
-  .task-candidate-card__meta span,
   .search-result-card__meta span {
     border-radius: 12px;
     font-size: 0.78rem;
     line-height: 1.35;
   }
 
-  .task-card-actions,
-  .task-candidate-card__actions,
   .search-result-card__actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
 
-  .task-card-actions .button,
-  .task-candidate-card__actions .button,
   .search-result-card__actions .button {
     width: 100%;
   }
@@ -657,45 +587,6 @@
     scroll-padding-inline: 2px;
   }
 
-  .topic-tree .topic-tree {
-    margin-left: 6px;
-    padding-left: 12px;
-  }
-
-  .topic-tree .topic-tree > .topic-tree__item::before {
-    left: -12px;
-    width: 12px;
-  }
-
-  .topic-tree-panel {
-    margin-top: 14px;
-    overflow-x: visible;
-    padding: 2px 0;
-  }
-
-  .topic-tree {
-    gap: 8px;
-  }
-
-  .topic-tree__node {
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 8px;
-    padding: 10px;
-    border-radius: 14px;
-  }
-
-  .topic-tree__dot {
-    width: 10px;
-    height: 10px;
-  }
-
-  .topic-tree__count {
-    grid-column: 2;
-    justify-self: start;
-    min-width: 0;
-    padding: 4px 8px;
-    font-size: 0.72rem;
-  }
 }
 
 @media (max-width: 380px) {

@@ -1,8 +1,9 @@
 import os
 
 from fastapi import APIRouter, HTTPException, Request, Response
-from pydantic import BaseModel, Field
 
+from backend.app.schemas.auth import AuthAccountResponse, AuthRequest
+from backend.app.schemas.common import StatusResponse
 from backend.services.auth_service import (
     SESSION_COOKIE_NAME,
     SESSION_TTL_SECONDS,
@@ -11,11 +12,6 @@ from backend.services.auth_service import (
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-
-class AuthRequest(BaseModel):
-    email: str
-    password: str = Field(..., min_length=8, max_length=128)
 
 
 def _set_session_cookie(response: Response, token: str) -> None:
@@ -30,7 +26,7 @@ def _set_session_cookie(response: Response, token: str) -> None:
     )
 
 
-@router.post("/register")
+@router.post("/register", response_model=AuthAccountResponse)
 def register(payload: AuthRequest, response: Response):
     service = AuthService()
     account = service.register(email=payload.email, password=payload.password)
@@ -38,7 +34,7 @@ def register(payload: AuthRequest, response: Response):
     return service.serialize_account(account)
 
 
-@router.post("/login")
+@router.post("/login", response_model=AuthAccountResponse)
 def login(payload: AuthRequest, response: Response):
     service = AuthService()
     account = service.authenticate(email=payload.email, password=payload.password)
@@ -46,13 +42,13 @@ def login(payload: AuthRequest, response: Response):
     return service.serialize_account(account)
 
 
-@router.post("/logout")
-def logout(response: Response):
+@router.post("/logout", response_model=StatusResponse)
+def logout(response: Response) -> StatusResponse:
     response.delete_cookie(SESSION_COOKIE_NAME, path="/")
-    return {"status": "ok"}
+    return StatusResponse(status="ok")
 
 
-@router.get("/me")
+@router.get("/me", response_model=AuthAccountResponse)
 def me(request: Request):
     service = AuthService()
     account_id = service.account_id_from_token(

@@ -13,6 +13,7 @@ from backend.models.community.community import Community
 from backend.models.interaction.interaction import Interaction
 from backend.models.interaction.topic import Topic
 from backend.models.person.person import Person
+from backend.services.hierarchy_path import build_hierarchy_path
 
 
 class InteractionService:
@@ -438,15 +439,7 @@ class InteractionService:
         if path_cache is not None and cache_key in path_cache:
             return path_cache[cache_key]
 
-        nodes = []
-        current = record
-        while current is not None:
-            if hasattr(current, "is_hidden") and current.is_hidden:
-                current = current.parent
-                continue
-            nodes.append(current.name)
-            current = current.parent
-        path = " / ".join(reversed(nodes))
+        path = build_hierarchy_path(record)
         if path_cache is not None:
             path_cache[cache_key] = path
         return path

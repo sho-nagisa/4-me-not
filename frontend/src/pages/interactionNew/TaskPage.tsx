@@ -1,8 +1,13 @@
 import { useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 
 import { EmptyState, MetricCard, SectionTabs } from "./components";
-import type { CreateTaskPayload, UpdateTaskPayload } from "./interactionsApi";
-import type { SearchResponse, SearchResultItem, TaskRecord } from "./types";
+import type {
+  CreateTaskPayload,
+  SearchResponse,
+  SearchResultItem,
+  TaskRecord,
+  UpdateTaskPayload,
+} from "./types";
 import { formatDateTime } from "./utils";
 import { TaskCandidatePanel } from "./SearchPage";
 

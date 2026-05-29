@@ -7,10 +7,9 @@ import {
   dismissTaskCandidate,
   reopenTask,
   updateTask,
-  type CreateTaskPayload,
-  type UpdateTaskPayload,
 } from "../interactionsApi";
 import type { SearchScope } from "../SearchPage";
+import type { CreateTaskPayload, UpdateTaskPayload } from "../types";
 
 type UseTaskActionsParams = {
   setTaskActionId: Dispatch<SetStateAction<string | null>>;

@@ -66,6 +66,71 @@ export type SearchTargetType =
   | "community"
   | "topic";
 
+export type AuthAccount = {
+  id: string;
+  email: string;
+  is_active: boolean;
+};
+
+export type HistoryFilters = {
+  personId: string;
+  communityId: string;
+  topicId: string;
+  shareLevel: ShareLevel | "";
+  search: string;
+  dateFrom: string;
+  dateTo: string;
+  limit?: number;
+  offset?: number;
+};
+
+export type CreateInteractionPayload = {
+  occurred_at: string;
+  person_id: string;
+  community_id: string | null;
+  topic_id: string | null;
+  interaction_type: InteractionType;
+  share_level: ShareLevel;
+  content: string;
+  note: string;
+};
+
+export type CreatePersonPayload = {
+  name: string;
+  canonical_name?: string | null;
+  primary_community_id: string | null;
+};
+
+export type CreateCommunityPayload = {
+  name: string;
+  description?: string | null;
+  parent_id: string | null;
+};
+
+export type CreateTopicPayload = {
+  name: string;
+  description?: string | null;
+  parent_id: string | null;
+};
+
+export type CreateTaskPayload = {
+  title: string;
+  description?: string | null;
+  due_at?: string | null;
+  priority?: number | null;
+};
+
+export type UpdateTaskPayload = Partial<CreateTaskPayload> & {
+  status?: "TODO" | "DONE" | "SKIPPED";
+};
+
+export type SearchOptions = {
+  limit?: number;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  fuzzy?: boolean;
+};
+
 export type InteractionRecord = {
   id: string;
   person_id: string;

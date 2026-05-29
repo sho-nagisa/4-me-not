@@ -1,8 +1,11 @@
 from datetime import datetime
 
 from fastapi import APIRouter, BackgroundTasks, Query
-from pydantic import BaseModel
 
+from backend.app.schemas.interaction import (
+    InteractionCreateRequest,
+    InteractionRecordedResponse,
+)
 from backend.services.interaction_service import InteractionService
 from backend.services.interaction_processing_service import (
     process_interaction_after_save,
@@ -10,17 +13,6 @@ from backend.services.interaction_processing_service import (
 
 
 router = APIRouter(prefix="/interactions", tags=["interaction"])
-
-
-class InteractionCreateRequest(BaseModel):
-    occurred_at: datetime | None = None
-    person_id: str
-    community_id: str | None = None
-    topic_id: str | None = None
-    interaction_type: str
-    share_level: str = "SHARED"
-    content: str
-    note: str | None = None
 
 
 @router.get("")
@@ -63,11 +55,11 @@ def get_interaction_overview(
     )
 
 
-@router.post("")
+@router.post("", response_model=InteractionRecordedResponse)
 def record_interaction(
     payload: InteractionCreateRequest,
     background_tasks: BackgroundTasks,
-):
+) -> InteractionRecordedResponse:
     interaction_service = InteractionService()
 
     interaction = interaction_service.record_interaction(
@@ -90,7 +82,4 @@ def record_interaction(
         account_id=str(interaction_account_id) if interaction_account_id is not None else None,
     )
 
-    return {
-        "status": "ok",
-        "interaction_id": interaction_id,
-    }
+    return InteractionRecordedResponse(status="ok", interaction_id=interaction_id)

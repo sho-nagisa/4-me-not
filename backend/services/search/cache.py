@@ -13,6 +13,7 @@ from backend.models.interaction.topic import Topic
 from backend.models.person.person import Person
 from backend.models.search.search_document import SearchDocument
 from backend.models.task.task import Task
+from backend.services.hierarchy_path import build_hierarchy_path_from_map
 from backend.services.search.constants import (
     TARGET_CALENDAR_EVENT,
     TARGET_COMMUNITY,
@@ -279,21 +280,7 @@ class SearchDocumentCacheMixin:
         }
 
     def _build_cached_path(self, record, records_by_id: dict[UUID, object]) -> str | None:
-        if record is None:
-            return None
-
-        nodes = []
-        current = record
-        seen_ids = set()
-        while current is not None and current.id not in seen_ids:
-            seen_ids.add(current.id)
-            if not getattr(current, "is_hidden", False):
-                nodes.append(current.name)
-            parent_id = getattr(current, "parent_id", None)
-            current = records_by_id.get(parent_id) if parent_id else None
-        if not nodes:
-            return None
-        return " / ".join(reversed(nodes))
+        return build_hierarchy_path_from_map(record, records_by_id)
 
     def _build_reference_maps(
         self,

@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
-import type { CreateInteractionPayload } from "../interactionsApi";
 import {
   clearRecordDraft,
   loadRecordDraft,
   saveRecordDraft,
 } from "../offlineInteractions";
-import type { InteractionType, ShareLevel } from "../types";
+import type { CreateInteractionPayload, InteractionType, ShareLevel } from "../types";
 import { toDateTimeLocalValue } from "../utils";
 
 export function useRecordForm() {

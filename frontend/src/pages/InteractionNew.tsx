@@ -7,6 +7,8 @@ import {
   shareLevelOptions,
 } from "./interactionNew/constants";
 import type {
+  AuthAccount,
+  CreateInteractionPayload,
   HomeViewProps,
   ManagePanelId,
   PageId,
@@ -18,8 +20,6 @@ import { HistoryPage } from "./interactionNew/HistoryPage";
 import {
   createInteraction,
   getPersonDashboard,
-  type AuthAccount,
-  type CreateInteractionPayload,
 } from "./interactionNew/interactionsApi";
 import { ManagePage } from "./interactionNew/ManagePage";
 import {
