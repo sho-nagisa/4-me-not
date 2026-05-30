@@ -33,6 +33,45 @@ export class ApiError extends Error {
 }
 
 const jsonHeaders = { "Content-Type": "application/json" };
+const csrfCookieName = "forme_not_csrf";
+const csrfHeaderName = "X-CSRF-Token";
+const unsafeMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+const getCookieValue = (name: string) => {
+  if (typeof document === "undefined" || !document.cookie) {
+    return null;
+  }
+
+  const cookies = document.cookie.split("; ");
+  for (const cookie of cookies) {
+    const separatorIndex = cookie.indexOf("=");
+    const cookieName =
+      separatorIndex >= 0 ? cookie.slice(0, separatorIndex) : cookie;
+    if (decodeURIComponent(cookieName) === name) {
+      const value = separatorIndex >= 0 ? cookie.slice(separatorIndex + 1) : "";
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+};
+
+const withCsrfHeader = (init?: RequestInit): RequestInit | undefined => {
+  const method = (init?.method ?? "GET").toUpperCase();
+  if (!unsafeMethods.has(method)) {
+    return init;
+  }
+
+  const csrfToken = getCookieValue(csrfCookieName);
+  if (!csrfToken) {
+    return init;
+  }
+
+  const headers = new Headers(init?.headers);
+  if (!headers.has(csrfHeaderName)) {
+    headers.set(csrfHeaderName, csrfToken);
+  }
+  return { ...init, headers };
+};
 
 const parseErrorMessage = (responseText: string, fallbackMessage: string) => {
   if (!responseText) {
@@ -65,7 +104,8 @@ export const fetchJson = async <T,>(
   init?: RequestInit,
   fallbackMessage = "データ取得に失敗しました。"
 ): Promise<T> => {
-  const response = await fetch(url, { credentials: "include", ...init });
+  const securedInit = withCsrfHeader(init);
+  const response = await fetch(url, { ...securedInit, credentials: "include" });
   if (!response.ok) {
     const message = parseErrorMessage(await response.text(), fallbackMessage);
     throw new ApiError(message, response.status);

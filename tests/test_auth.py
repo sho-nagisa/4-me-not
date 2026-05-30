@@ -9,6 +9,7 @@ os.environ.setdefault("APP_ENV", "dev")
 os.environ.setdefault("AUTH_LOGIN_RATE_LIMIT_IP_MAX_FAILURES", "0")
 
 from backend.app.main import app
+from backend.app.http_security import CSRF_COOKIE_NAME, CSRF_HEADER_NAME
 from backend.app.security_config import auth_cookie_secure, validate_auth_configuration
 from backend.db.session import SessionLocal
 from backend.models.account.account import Account
@@ -58,6 +59,7 @@ class AuthAPITest(unittest.TestCase):
 
             self.assertEqual(registered["email"], email)
             self.assertIn(SESSION_COOKIE_NAME, client.cookies)
+            self.assertIn(CSRF_COOKIE_NAME, client.cookies)
 
             me = client.get("/api/auth/me")
             self.assertEqual(me.status_code, 200, me.text)
@@ -66,6 +68,7 @@ class AuthAPITest(unittest.TestCase):
             logout = client.post("/api/auth/logout")
             self.assertEqual(logout.status_code, 200, logout.text)
             self.assertNotIn(SESSION_COOKIE_NAME, client.cookies)
+            self.assertNotIn(CSRF_COOKIE_NAME, client.cookies)
 
             logged_out_me = client.get("/api/auth/me")
             self.assertEqual(logged_out_me.status_code, 401, logged_out_me.text)
@@ -76,12 +79,67 @@ class AuthAPITest(unittest.TestCase):
             )
             self.assertEqual(login.status_code, 200, login.text)
             self.assertEqual(login.json()["id"], registered["id"])
+            self.assertIn(CSRF_COOKIE_NAME, client.cookies)
 
             invalid_login = client.post(
                 "/api/auth/login",
                 json={"email": email, "password": "not-the-password"},
             )
             self.assertEqual(invalid_login.status_code, 401, invalid_login.text)
+        finally:
+            client.close()
+
+    def test_security_headers_are_added_to_api_responses(self) -> None:
+        client = TestClient(app)
+        try:
+            response = client.get("/api/health")
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(response.headers["x-content-type-options"], "nosniff")
+            self.assertEqual(response.headers["x-frame-options"], "DENY")
+            self.assertEqual(response.headers["referrer-policy"], "no-referrer")
+            self.assertEqual(
+                response.headers["cross-origin-resource-policy"],
+                "same-origin",
+            )
+            self.assertIn(
+                "frame-ancestors 'none'",
+                response.headers["content-security-policy"],
+            )
+        finally:
+            client.close()
+
+    def test_csrf_protection_rejects_authenticated_unsafe_requests(self) -> None:
+        client = TestClient(app)
+        email = f"auth-csrf-{uuid4().hex}@example.test"
+        try:
+            with patch.dict(
+                os.environ,
+                {"APP_ENV": "dev", "AUTH_CSRF_PROTECTION": "true"},
+                clear=False,
+            ):
+                self._register(client, email)
+                csrf_token = client.cookies.get(CSRF_COOKIE_NAME)
+                self.assertIsNotNone(csrf_token)
+
+                missing = client.post(
+                    "/api/communities",
+                    json={"name": f"csrf blocked {uuid4().hex}"},
+                )
+                self.assertEqual(missing.status_code, 403, missing.text)
+
+                invalid = client.post(
+                    "/api/communities",
+                    json={"name": f"csrf invalid {uuid4().hex}"},
+                    headers={CSRF_HEADER_NAME: "not-the-token"},
+                )
+                self.assertEqual(invalid.status_code, 403, invalid.text)
+
+                created = client.post(
+                    "/api/communities",
+                    json={"name": f"csrf allowed {uuid4().hex}"},
+                    headers={CSRF_HEADER_NAME: csrf_token},
+                )
+                self.assertEqual(created.status_code, 200, created.text)
         finally:
             client.close()
 

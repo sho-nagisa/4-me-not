@@ -27,6 +27,7 @@ const emptySearchResponse = {
 
 describe("interactions API client", () => {
   afterEach(() => {
+    document.cookie = "forme_not_csrf=; Max-Age=0; path=/";
     vi.unstubAllGlobals();
   });
 
@@ -83,5 +84,25 @@ describe("interactions API client", () => {
     expect(params.get("date_from")).toBe("2026-05-01T00:00:00.000Z");
     expect(params.get("fuzzy")).toBe("false");
     expect(params.getAll("target_type")).toEqual(["person", "task"]);
+  });
+
+  it("adds the CSRF token header to unsafe requests", async () => {
+    document.cookie = "forme_not_csrf=token-123; path=/";
+    const fetchMock = vi.fn<[RequestInfo | URL, RequestInit?], Promise<Response>>(
+      async () => new Response(JSON.stringify({ status: "ok" }), { status: 200 })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchJson<{ status: string }>("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+
+    const init = fetchMock.mock.calls[0][1];
+    const headers = new Headers(init?.headers);
+    expect(init).toMatchObject({ credentials: "include" });
+    expect(headers.get("X-CSRF-Token")).toBe("token-123");
+    expect(headers.get("Content-Type")).toBe("application/json");
   });
 });
