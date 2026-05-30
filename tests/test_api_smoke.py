@@ -1,5 +1,9 @@
+import os
 import unittest
 from uuid import uuid4
+
+os.environ.setdefault("APP_ENV", "dev")
+os.environ.setdefault("AUTH_LOGIN_RATE_LIMIT_IP_MAX_FAILURES", "0")
 
 from fastapi.testclient import TestClient
 

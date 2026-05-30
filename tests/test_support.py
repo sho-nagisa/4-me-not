@@ -28,6 +28,8 @@ from backend.services.search import SearchService
 
 
 os.environ["OPENAI_API_KEY"] = ""
+os.environ.setdefault("APP_ENV", "dev")
+os.environ.setdefault("AUTH_LOGIN_RATE_LIMIT_IP_MAX_FAILURES", "0")
 
 
 def unique_prefix(label: str) -> str:

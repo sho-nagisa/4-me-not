@@ -9,6 +9,12 @@ from urllib.parse import quote
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 
+# Tests exercise the API without logging in, so keep the dev account fallback on.
+os.environ.setdefault("APP_ENV", "dev")
+# TestClient reports one constant client host, so disable IP-based login
+# throttling by default; tests that exercise it opt in explicitly.
+os.environ.setdefault("AUTH_LOGIN_RATE_LIMIT_IP_MAX_FAILURES", "0")
+
 
 class StopAfterSuccessesResult(unittest.TextTestResult):
     def __init__(
