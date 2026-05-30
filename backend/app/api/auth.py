@@ -1,5 +1,10 @@
 from fastapi import APIRouter, HTTPException, Request, Response
 
+from backend.app.http_security import (
+    CSRF_COOKIE_NAME,
+    clear_csrf_cookie,
+    set_csrf_cookie,
+)
 from backend.app.security_config import auth_cookie_secure
 from backend.app.schemas.auth import AuthAccountResponse, AuthRequest
 from backend.app.schemas.common import StatusResponse
@@ -34,6 +39,7 @@ def _set_session_cookie(response: Response, token: str) -> None:
         samesite="lax",
         path="/",
     )
+    set_csrf_cookie(response)
 
 
 @router.post("/register", response_model=AuthAccountResponse)
@@ -59,11 +65,12 @@ def login(payload: AuthRequest, request: Request, response: Response):
 @router.post("/logout", response_model=StatusResponse)
 def logout(response: Response) -> StatusResponse:
     response.delete_cookie(SESSION_COOKIE_NAME, path="/")
+    clear_csrf_cookie(response)
     return StatusResponse(status="ok")
 
 
 @router.get("/me", response_model=AuthAccountResponse)
-def me(request: Request):
+def me(request: Request, response: Response):
     service = AuthService()
     account_id = service.account_id_from_token(
         request.cookies.get(SESSION_COOKIE_NAME)
@@ -74,4 +81,5 @@ def me(request: Request):
     account = service.get_account(account_id)
     if account is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
+    set_csrf_cookie(response, request.cookies.get(CSRF_COOKIE_NAME))
     return service.serialize_account(account)

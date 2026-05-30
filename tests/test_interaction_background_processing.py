@@ -27,7 +27,7 @@ class InteractionBackgroundProcessingTest(unittest.TestCase):
             response = record_interaction(payload, background_tasks)
 
         self.assertEqual(
-            response,
+            response.model_dump(),
             {
                 "status": "ok",
                 "interaction_id": str(interaction_id),

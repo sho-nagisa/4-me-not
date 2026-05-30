@@ -7,6 +7,7 @@ from backend.app.account_context import (
     set_current_account_id,
 )
 from backend.app.api import auth, calendar, interaction, reference, reminder, search, task
+from backend.app.http_security import add_security_headers, validate_csrf_request
 from backend.app.security_config import validate_auth_configuration
 from backend.db.session import engine
 from backend.services.auth_service import SESSION_COOKIE_NAME, AuthService
@@ -31,6 +32,11 @@ app.include_router(calendar.router, prefix="/api", dependencies=authenticated)
 
 @app.middleware("http")
 async def bind_account_context(request: Request, call_next):
+    csrf_response = validate_csrf_request(request)
+    if csrf_response is not None:
+        add_security_headers(csrf_response)
+        return csrf_response
+
     # Binds the account context but never rejects a request, so public routes
     # (health, auth) stay reachable. Authorization is enforced per-router by the
     # get_authenticated_account_id dependency.
@@ -42,10 +48,12 @@ async def bind_account_context(request: Request, call_next):
         context_token = set_current_account_id(account_id)
 
     try:
-        return await call_next(request)
+        response = await call_next(request)
     finally:
         if context_token is not None:
             reset_current_account_id(context_token)
+    add_security_headers(response, include_csp=request.url.path.startswith("/api/"))
+    return response
 
 
 @app.get("/api/health")
