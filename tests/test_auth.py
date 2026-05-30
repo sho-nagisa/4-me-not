@@ -5,9 +5,14 @@ from uuid import UUID, uuid4
 
 from fastapi.testclient import TestClient
 
+os.environ.setdefault("APP_ENV", "dev")
+os.environ.setdefault("AUTH_LOGIN_RATE_LIMIT_IP_MAX_FAILURES", "0")
+
 from backend.app.main import app
+from backend.app.security_config import auth_cookie_secure, validate_auth_configuration
 from backend.db.session import SessionLocal
 from backend.models.account.account import Account
+from backend.models.auth.login_attempt import LoginAttempt
 from backend.services.auth_service import (
     SESSION_COOKIE_NAME,
     SESSION_TTL_SECONDS,
@@ -18,10 +23,15 @@ from backend.services.auth_service import (
 class AuthAPITest(unittest.TestCase):
     def setUp(self) -> None:
         self.account_ids: list[str] = []
+        self.login_attempt_emails: list[str] = []
 
     def tearDown(self) -> None:
         db = SessionLocal()
         try:
+            if self.login_attempt_emails:
+                db.query(LoginAttempt).filter(
+                    LoginAttempt.email.in_(self.login_attempt_emails)
+                ).delete(synchronize_session=False)
             for account_id in self.account_ids:
                 account = db.get(Account, UUID(account_id))
                 if account is not None:
@@ -137,6 +147,137 @@ class AuthAPITest(unittest.TestCase):
         ):
             self.assertIsNone(service.account_id_from_token(token))
 
+    def test_production_requires_strong_auth_secret(self) -> None:
+        service = AuthService()
+        account = Account(
+            id=uuid4(),
+            email=f"secret-{uuid4().hex}@example.test",
+            is_active=True,
+        )
+
+        with patch.dict(os.environ, {"APP_ENV": "production"}, clear=True):
+            with self.assertRaisesRegex(RuntimeError, "AUTH_SECRET_KEY"):
+                service.create_session_token(account)
+
+        with patch.dict(
+            os.environ,
+            {
+                "APP_ENV": "production",
+                "AUTH_SECRET_KEY": "change-this-local-secret",
+            },
+            clear=True,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "AUTH_SECRET_KEY"):
+                service.create_session_token(account)
+
+        with patch.dict(
+            os.environ,
+            {
+                "APP_ENV": "production",
+                "AUTH_SECRET_KEY": "x" * 32,
+            },
+            clear=True,
+        ):
+            token = service.create_session_token(account)
+            self.assertEqual(service.account_id_from_token(token), account.id)
+
+    def test_auth_cookie_secure_defaults_to_production(self) -> None:
+        with patch.dict(os.environ, {"APP_ENV": "production"}, clear=True):
+            self.assertTrue(auth_cookie_secure())
+
+        with patch.dict(os.environ, {"APP_ENV": "dev"}, clear=True):
+            self.assertFalse(auth_cookie_secure())
+
+        with patch.dict(
+            os.environ,
+            {
+                "APP_ENV": "production",
+                "AUTH_COOKIE_SECURE": "false",
+            },
+            clear=True,
+        ):
+            self.assertTrue(auth_cookie_secure())
+
+    def test_production_rejects_insecure_cookie_configuration(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "APP_ENV": "production",
+                "AUTH_SECRET_KEY": "x" * 32,
+                "AUTH_COOKIE_SECURE": "false",
+            },
+            clear=True,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "AUTH_COOKIE_SECURE"):
+                validate_auth_configuration()
+
+    def test_login_rate_limit_blocks_repeated_failures(self) -> None:
+        client = TestClient(app)
+        email = f"auth-rate-{uuid4().hex}@example.test"
+        self.login_attempt_emails.append(email)
+        try:
+            with patch.dict(
+                os.environ,
+                {
+                    "AUTH_LOGIN_RATE_LIMIT_MAX_FAILURES": "2",
+                    "AUTH_LOGIN_RATE_LIMIT_WINDOW_SECONDS": "300",
+                },
+                clear=False,
+            ):
+                self._register(client, email)
+
+                for _ in range(2):
+                    failed_login = client.post(
+                        "/api/auth/login",
+                        json={"email": email, "password": "wrong-password"},
+                    )
+                    self.assertEqual(failed_login.status_code, 401, failed_login.text)
+
+                blocked_login = client.post(
+                    "/api/auth/login",
+                    json={"email": email, "password": "wrong-password"},
+                )
+                self.assertEqual(blocked_login.status_code, 429, blocked_login.text)
+        finally:
+            client.close()
+
+    def test_login_rate_limit_blocks_repeated_failures_by_ip(self) -> None:
+        client = TestClient(app)
+        email = f"auth-rate-ip-{uuid4().hex}@example.test"
+        # A unique forwarded IP isolates this test's IP counter from the constant
+        # host TestClient reports for every other request.
+        client_ip = f"198.51.100.{uuid4().int % 250 + 1}"
+        headers = {"X-Forwarded-For": client_ip}
+        self.login_attempt_emails.append(email)
+        try:
+            with patch.dict(
+                os.environ,
+                {
+                    "AUTH_LOGIN_RATE_LIMIT_MAX_FAILURES": "0",
+                    "AUTH_LOGIN_RATE_LIMIT_IP_MAX_FAILURES": "2",
+                    "AUTH_LOGIN_RATE_LIMIT_WINDOW_SECONDS": "300",
+                },
+                clear=False,
+            ):
+                self._register(client, email)
+
+                for _ in range(2):
+                    failed_login = client.post(
+                        "/api/auth/login",
+                        json={"email": email, "password": "wrong-password"},
+                        headers=headers,
+                    )
+                    self.assertEqual(failed_login.status_code, 401, failed_login.text)
+
+                blocked_login = client.post(
+                    "/api/auth/login",
+                    json={"email": email, "password": "wrong-password"},
+                    headers=headers,
+                )
+                self.assertEqual(blocked_login.status_code, 429, blocked_login.text)
+        finally:
+            client.close()
+
     def test_authenticated_requests_use_account_scope(self) -> None:
         client_a = TestClient(app)
         client_b = TestClient(app)
@@ -172,6 +313,38 @@ class AuthAPITest(unittest.TestCase):
         finally:
             client_a.close()
             client_b.close()
+
+    def test_protected_endpoints_reject_unauthenticated_requests_in_production(
+        self,
+    ) -> None:
+        with patch.dict(os.environ, {"APP_ENV": "production"}, clear=False):
+            client = TestClient(app)
+            try:
+                self.assertEqual(client.get("/api/health").status_code, 200)
+
+                for path in ("/api/persons", "/api/interactions", "/api/tasks"):
+                    response = client.get(path)
+                    self.assertEqual(response.status_code, 401, f"{path}: {response.text}")
+
+                search = client.get("/api/search", params={"q": "anything"})
+                self.assertEqual(search.status_code, 401, search.text)
+
+                created = client.post(
+                    "/api/persons",
+                    json={"name": "should not be created"},
+                )
+                self.assertEqual(created.status_code, 401, created.text)
+            finally:
+                client.close()
+
+    def test_protected_endpoints_allow_unauthenticated_requests_in_dev(self) -> None:
+        with patch.dict(os.environ, {"APP_ENV": "dev"}, clear=False):
+            client = TestClient(app)
+            try:
+                response = client.get("/api/persons")
+                self.assertEqual(response.status_code, 200, response.text)
+            finally:
+                client.close()
 
     def test_search_results_do_not_cross_account_boundary(self) -> None:
         client_a = TestClient(app)

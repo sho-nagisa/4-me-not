@@ -1,7 +1,6 @@
-import os
-
 from fastapi import APIRouter, HTTPException, Request, Response
 
+from backend.app.security_config import auth_cookie_secure
 from backend.app.schemas.auth import AuthAccountResponse, AuthRequest
 from backend.app.schemas.common import StatusResponse
 from backend.services.auth_service import (
@@ -14,13 +13,24 @@ from backend.services.auth_service import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+def _client_ip(request: Request) -> str | None:
+    forwarded_for = request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        client_ip = forwarded_for.split(",")[0].strip()
+        if client_ip:
+            return client_ip
+    if request.client is not None:
+        return request.client.host
+    return None
+
+
 def _set_session_cookie(response: Response, token: str) -> None:
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
         value=token,
         max_age=SESSION_TTL_SECONDS,
         httponly=True,
-        secure=os.environ.get("AUTH_COOKIE_SECURE", "").lower() == "true",
+        secure=auth_cookie_secure(),
         samesite="lax",
         path="/",
     )
@@ -35,9 +45,13 @@ def register(payload: AuthRequest, response: Response):
 
 
 @router.post("/login", response_model=AuthAccountResponse)
-def login(payload: AuthRequest, response: Response):
+def login(payload: AuthRequest, request: Request, response: Response):
     service = AuthService()
-    account = service.authenticate(email=payload.email, password=payload.password)
+    account = service.authenticate(
+        email=payload.email,
+        password=payload.password,
+        ip_address=_client_ip(request),
+    )
     _set_session_cookie(response, service.create_session_token(account))
     return service.serialize_account(account)
 

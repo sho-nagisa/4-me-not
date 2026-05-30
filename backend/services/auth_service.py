@@ -5,19 +5,24 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import secrets
 import time
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from fastapi import HTTPException
 
+from backend.app.security_config import auth_secret_key
 from backend.db.session import db_session
 from backend.models.account.account import Account
+from backend.models.auth.login_attempt import LoginAttempt
 
 
 SESSION_COOKIE_NAME = "forme_not_session"
 SESSION_TTL_SECONDS = int(os.environ.get("AUTH_SESSION_TTL_SECONDS", "2592000"))
 PASSWORD_ITERATIONS = int(os.environ.get("AUTH_PASSWORD_ITERATIONS", "260000"))
+_EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class AuthService:
@@ -44,8 +49,15 @@ class AuthService:
             db.refresh(account)
             return account
 
-    def authenticate(self, email: str, password: str) -> Account:
+    def authenticate(
+        self,
+        email: str,
+        password: str,
+        ip_address: str | None = None,
+    ) -> Account:
         normalized_email = self._normalize_email(email)
+        self._enforce_login_rate_limit(normalized_email, ip_address)
+
         with db_session() as db:
             account = (
                 db.query(Account)
@@ -58,7 +70,9 @@ class AuthService:
                 or not account.password_hash
                 or not self.verify_password(password, account.password_hash)
             ):
+                self._record_failed_login(normalized_email, ip_address)
                 raise HTTPException(status_code=401, detail="Invalid email or password")
+            self._clear_failed_login(normalized_email)
             return account
 
     def get_account(self, account_id: UUID) -> Account | None:
@@ -135,7 +149,7 @@ class AuthService:
 
     def _normalize_email(self, email: str) -> str:
         normalized = email.strip().lower()
-        if not normalized or "@" not in normalized:
+        if not _EMAIL_PATTERN.fullmatch(normalized):
             raise HTTPException(status_code=400, detail="Email is invalid")
         if len(normalized) > 255:
             raise HTTPException(status_code=400, detail="Email is too long")
@@ -156,9 +170,7 @@ class AuthService:
         return self._base64url_encode(digest)
 
     def _secret_key(self) -> bytes:
-        return os.environ.get("AUTH_SECRET_KEY", "dev-auth-secret-change-me").encode(
-            "utf-8"
-        )
+        return auth_secret_key()
 
     def _base64url_encode(self, value: bytes) -> str:
         return base64.urlsafe_b64encode(value).rstrip(b"=").decode("ascii")
@@ -166,3 +178,80 @@ class AuthService:
     def _base64url_decode(self, value: str) -> bytes:
         padding = "=" * (-len(value) % 4)
         return base64.urlsafe_b64decode(f"{value}{padding}")
+
+    def _enforce_login_rate_limit(self, email: str, ip_address: str | None) -> None:
+        email_max = self._login_rate_limit_max_failures()
+        ip_max = self._login_rate_limit_ip_max_failures()
+        check_ip = ip_address is not None and ip_max > 0
+        if email_max <= 0 and not check_ip:
+            return
+
+        cutoff = self._rate_limit_cutoff()
+        with db_session() as db:
+            if email_max > 0:
+                email_failures = (
+                    db.query(LoginAttempt)
+                    .filter(
+                        LoginAttempt.email == email,
+                        LoginAttempt.created_at >= cutoff,
+                    )
+                    .count()
+                )
+                if email_failures >= email_max:
+                    raise HTTPException(
+                        status_code=429,
+                        detail="Too many failed login attempts",
+                    )
+
+            if check_ip:
+                ip_failures = (
+                    db.query(LoginAttempt)
+                    .filter(
+                        LoginAttempt.ip_address == ip_address,
+                        LoginAttempt.created_at >= cutoff,
+                    )
+                    .count()
+                )
+                if ip_failures >= ip_max:
+                    raise HTTPException(
+                        status_code=429,
+                        detail="Too many failed login attempts",
+                    )
+
+    def _record_failed_login(self, email: str, ip_address: str | None) -> None:
+        if (
+            self._login_rate_limit_max_failures() <= 0
+            and self._login_rate_limit_ip_max_failures() <= 0
+        ):
+            return
+
+        with db_session() as db:
+            # Opportunistic cleanup bounds the table to the active window so a
+            # sustained attack cannot grow it without limit.
+            db.query(LoginAttempt).filter(
+                LoginAttempt.created_at < self._rate_limit_cutoff()
+            ).delete(synchronize_session=False)
+            db.add(LoginAttempt(email=email, ip_address=ip_address))
+            db.commit()
+
+    def _clear_failed_login(self, email: str) -> None:
+        # Clears the email counter only; the IP counter persists so one valid
+        # login cannot reset throttling for other accounts behind that IP.
+        with db_session() as db:
+            db.query(LoginAttempt).filter(
+                LoginAttempt.email == email
+            ).delete(synchronize_session=False)
+            db.commit()
+
+    def _rate_limit_cutoff(self) -> datetime:
+        window_seconds = self._login_rate_limit_window_seconds()
+        return datetime.now(timezone.utc) - timedelta(seconds=window_seconds)
+
+    def _login_rate_limit_max_failures(self) -> int:
+        return int(os.environ.get("AUTH_LOGIN_RATE_LIMIT_MAX_FAILURES", "5"))
+
+    def _login_rate_limit_ip_max_failures(self) -> int:
+        return int(os.environ.get("AUTH_LOGIN_RATE_LIMIT_IP_MAX_FAILURES", "20"))
+
+    def _login_rate_limit_window_seconds(self) -> int:
+        return int(os.environ.get("AUTH_LOGIN_RATE_LIMIT_WINDOW_SECONDS", "300"))

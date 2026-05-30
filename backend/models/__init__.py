@@ -1,6 +1,7 @@
 import backend.models.account.account  # noqa: F401
 import backend.models.ai.ai_metadata  # noqa: F401
 import backend.models.ai.parsed_note  # noqa: F401
+import backend.models.auth.login_attempt  # noqa: F401
 import backend.models.calendar.calendar_event  # noqa: F401
 import backend.models.calendar.event_participant  # noqa: F401
 import backend.models.calendar.meeting_snapshot  # noqa: F401
