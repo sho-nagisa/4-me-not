@@ -411,6 +411,9 @@ class AuthAPITest(unittest.TestCase):
                     "AUTH_LOGIN_RATE_LIMIT_MAX_FAILURES": "0",
                     "AUTH_LOGIN_RATE_LIMIT_IP_MAX_FAILURES": "2",
                     "AUTH_LOGIN_RATE_LIMIT_WINDOW_SECONDS": "300",
+                    # Simulate deployment behind exactly one trusted reverse
+                    # proxy so the forwarded client IP is honored.
+                    "AUTH_TRUSTED_PROXY_COUNT": "1",
                 },
                 clear=False,
             ):
@@ -553,6 +556,47 @@ class AuthAPITest(unittest.TestCase):
         finally:
             client_a.close()
             client_b.close()
+
+
+class ClientIpResolutionTest(unittest.TestCase):
+    """_client_ip must never trust client-controlled X-Forwarded-For unless the
+    deployment explicitly declares how many reverse proxies sit in front."""
+
+    def _make_request(self, *, forwarded_for: str | None, peer: str | None):
+        from starlette.datastructures import Headers
+
+        header_values = (
+            {"x-forwarded-for": forwarded_for} if forwarded_for is not None else {}
+        )
+
+        class _StubClient:
+            host = peer
+
+        class _StubRequest:
+            headers = Headers(header_values)
+            client = _StubClient() if peer is not None else None
+
+        return _StubRequest()
+
+    def test_forwarded_for_ignored_without_trusted_proxies(self) -> None:
+        from backend.app.api import auth as auth_api
+
+        request = self._make_request(forwarded_for="1.2.3.4", peer="10.0.0.9")
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("AUTH_TRUSTED_PROXY_COUNT", None)
+            self.assertEqual(auth_api._client_ip(request), "10.0.0.9")
+
+    def test_spoofed_prefix_stripped_behind_one_proxy(self) -> None:
+        from backend.app.api import auth as auth_api
+
+        # Client tries to spoof a leading entry; the single trusted proxy appends
+        # the real peer IP on the right, which is what must be used.
+        request = self._make_request(
+            forwarded_for="9.9.9.9, 203.0.113.7",
+            peer="10.0.0.9",
+        )
+        with patch.dict(os.environ, {"AUTH_TRUSTED_PROXY_COUNT": "1"}, clear=False):
+            self.assertEqual(auth_api._client_ip(request), "203.0.113.7")
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ from backend.models.auth.login_attempt import LoginAttempt
 
 SESSION_COOKIE_NAME = "forme_not_session"
 SESSION_TTL_SECONDS = int(os.environ.get("AUTH_SESSION_TTL_SECONDS", "2592000"))
-PASSWORD_ITERATIONS = int(os.environ.get("AUTH_PASSWORD_ITERATIONS", "260000"))
+PASSWORD_ITERATIONS = int(os.environ.get("AUTH_PASSWORD_ITERATIONS", "600000"))
 _EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 

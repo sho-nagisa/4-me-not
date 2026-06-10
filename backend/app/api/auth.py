@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from backend.app.http_security import (
@@ -18,12 +20,27 @@ from backend.services.auth_service import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+def _trusted_proxy_count() -> int:
+    try:
+        return max(int(os.environ.get("AUTH_TRUSTED_PROXY_COUNT", "0")), 0)
+    except ValueError:
+        return 0
+
+
 def _client_ip(request: Request) -> str | None:
-    forwarded_for = request.headers.get("x-forwarded-for")
-    if forwarded_for:
-        client_ip = forwarded_for.split(",")[0].strip()
-        if client_ip:
-            return client_ip
+    # X-Forwarded-For is fully client-controllable, so the leftmost entry must
+    # never be trusted. Only honor the hops appended by our own reverse proxies,
+    # counting AUTH_TRUSTED_PROXY_COUNT entries from the right. With the default
+    # of 0 the header is ignored entirely and the direct peer address is used,
+    # which is the safe choice for a directly exposed deployment.
+    trusted_proxies = _trusted_proxy_count()
+    if trusted_proxies > 0:
+        forwarded_for = request.headers.get("x-forwarded-for")
+        if forwarded_for:
+            hops = [item.strip() for item in forwarded_for.split(",") if item.strip()]
+            if hops:
+                index = max(len(hops) - trusted_proxies, 0)
+                return hops[index]
     if request.client is not None:
         return request.client.host
     return None
