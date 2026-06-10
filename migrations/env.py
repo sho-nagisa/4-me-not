@@ -17,6 +17,7 @@ target_metadata = Base.metadata
 import backend.models.account.account
 
 # auth
+import backend.models.auth.auth_session
 import backend.models.auth.login_attempt
 
 # person

@@ -16,6 +16,7 @@ from fastapi import HTTPException
 from backend.app.security_config import auth_secret_key
 from backend.db.session import db_session
 from backend.models.account.account import Account
+from backend.models.auth.auth_session import AuthSession
 from backend.models.auth.login_attempt import LoginAttempt
 
 
@@ -83,9 +84,32 @@ class AuthService:
             db.expunge(account)
             return account
 
-    def create_session_token(self, account: Account) -> str:
+    def create_session_token(
+        self,
+        account: Account,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> str:
+        self._secret_key()
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            seconds=SESSION_TTL_SECONDS
+        )
+        with db_session() as db:
+            self._delete_expired_sessions(db)
+            session = AuthSession(
+                account_id=account.id,
+                expires_at=expires_at,
+                ip_address=ip_address,
+                user_agent=user_agent[:512] if user_agent else None,
+            )
+            db.add(session)
+            db.flush()
+            session_id = session.id
+            db.commit()
+
         payload = {
             "sub": str(account.id),
+            "sid": str(session_id),
             "exp": int(time.time()) + SESSION_TTL_SECONDS,
         }
         payload_text = json.dumps(payload, separators=(",", ":")).encode("utf-8")
@@ -94,22 +118,57 @@ class AuthService:
         return f"{payload_part}.{signature}"
 
     def account_id_from_token(self, token: str | None) -> UUID | None:
-        if not token or "." not in token:
-            return None
-
-        payload_part, signature = token.rsplit(".", 1)
-        expected_signature = self._sign(payload_part)
-        if not hmac.compare_digest(signature, expected_signature):
+        payload = self._payload_from_token(token)
+        if payload is None:
             return None
 
         try:
-            payload = json.loads(self._base64url_decode(payload_part))
             expires_at = int(payload.get("exp", 0))
             if expires_at < int(time.time()):
                 return None
-            return UUID(str(payload["sub"]))
-        except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+            account_id = UUID(str(payload["sub"]))
+            session_id = UUID(str(payload["sid"]))
+        except (ValueError, KeyError, TypeError):
             return None
+
+        now = datetime.now(timezone.utc)
+        with db_session() as db:
+            session = db.get(AuthSession, session_id)
+            if (
+                session is None
+                or session.account_id != account_id
+                or session.revoked_at is not None
+                or self._as_aware_utc(session.expires_at) < now
+            ):
+                return None
+        return account_id
+
+    def revoke_session_token(self, token: str | None) -> None:
+        payload = self._payload_from_token(token)
+        if payload is None:
+            return
+
+        try:
+            session_id = UUID(str(payload["sid"]))
+        except (ValueError, KeyError, TypeError):
+            return
+
+        with db_session() as db:
+            session = db.get(AuthSession, session_id)
+            if session is not None and session.revoked_at is None:
+                session.revoked_at = datetime.now(timezone.utc)
+                db.commit()
+
+    def revoke_account_sessions(self, account_id: UUID) -> None:
+        with db_session() as db:
+            db.query(AuthSession).filter(
+                AuthSession.account_id == account_id,
+                AuthSession.revoked_at.is_(None),
+            ).update(
+                {"revoked_at": datetime.now(timezone.utc)},
+                synchronize_session=False,
+            )
+            db.commit()
 
     def hash_password(self, password: str) -> str:
         salt = secrets.token_urlsafe(16)
@@ -178,6 +237,31 @@ class AuthService:
     def _base64url_decode(self, value: str) -> bytes:
         padding = "=" * (-len(value) % 4)
         return base64.urlsafe_b64decode(f"{value}{padding}")
+
+    def _payload_from_token(self, token: str | None) -> dict | None:
+        if not token or "." not in token:
+            return None
+
+        payload_part, signature = token.rsplit(".", 1)
+        expected_signature = self._sign(payload_part)
+        if not hmac.compare_digest(signature, expected_signature):
+            return None
+
+        try:
+            payload = json.loads(self._base64url_decode(payload_part))
+            return payload if isinstance(payload, dict) else None
+        except (ValueError, TypeError, json.JSONDecodeError):
+            return None
+
+    def _delete_expired_sessions(self, db) -> None:
+        db.query(AuthSession).filter(
+            AuthSession.expires_at < datetime.now(timezone.utc)
+        ).delete(synchronize_session=False)
+
+    def _as_aware_utc(self, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
 
     def _enforce_login_rate_limit(self, email: str, ip_address: str | None) -> None:
         email_max = self._login_rate_limit_max_failures()

@@ -1,5 +1,7 @@
 from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from backend.app.account_context import (
     get_authenticated_account_id,
@@ -8,12 +10,26 @@ from backend.app.account_context import (
 )
 from backend.app.api import auth, calendar, interaction, reference, reminder, search, task
 from backend.app.http_security import add_security_headers, validate_csrf_request
-from backend.app.security_config import validate_auth_configuration
+from backend.app.security_config import (
+    cors_allowed_origins,
+    trusted_hosts,
+    validate_auth_configuration,
+)
 from backend.db.session import engine
 from backend.services.auth_service import SESSION_COOKIE_NAME, AuthService
 
 
 app = FastAPI()
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=trusted_hosts())
+_cors_allowed_origins = cors_allowed_origins()
+if _cors_allowed_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_allowed_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+        allow_headers=["*"],
+    )
 
 # Public router: registration, login, logout, and /me must stay reachable
 # without an existing session.

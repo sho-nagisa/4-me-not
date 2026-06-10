@@ -43,10 +43,17 @@ def _set_session_cookie(response: Response, token: str) -> None:
 
 
 @router.post("/register", response_model=AuthAccountResponse)
-def register(payload: AuthRequest, response: Response):
+def register(payload: AuthRequest, request: Request, response: Response):
     service = AuthService()
     account = service.register(email=payload.email, password=payload.password)
-    _set_session_cookie(response, service.create_session_token(account))
+    _set_session_cookie(
+        response,
+        service.create_session_token(
+            account,
+            ip_address=_client_ip(request),
+            user_agent=request.headers.get("user-agent"),
+        ),
+    )
     return service.serialize_account(account)
 
 
@@ -58,12 +65,34 @@ def login(payload: AuthRequest, request: Request, response: Response):
         password=payload.password,
         ip_address=_client_ip(request),
     )
-    _set_session_cookie(response, service.create_session_token(account))
+    _set_session_cookie(
+        response,
+        service.create_session_token(
+            account,
+            ip_address=_client_ip(request),
+            user_agent=request.headers.get("user-agent"),
+        ),
+    )
     return service.serialize_account(account)
 
 
 @router.post("/logout", response_model=StatusResponse)
-def logout(response: Response) -> StatusResponse:
+def logout(request: Request, response: Response) -> StatusResponse:
+    AuthService().revoke_session_token(request.cookies.get(SESSION_COOKIE_NAME))
+    response.delete_cookie(SESSION_COOKIE_NAME, path="/")
+    clear_csrf_cookie(response)
+    return StatusResponse(status="ok")
+
+
+@router.post("/logout-all", response_model=StatusResponse)
+def logout_all(request: Request, response: Response) -> StatusResponse:
+    service = AuthService()
+    account_id = service.account_id_from_token(
+        request.cookies.get(SESSION_COOKIE_NAME)
+    )
+    if account_id is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    service.revoke_account_sessions(account_id)
     response.delete_cookie(SESSION_COOKIE_NAME, path="/")
     clear_csrf_cookie(response)
     return StatusResponse(status="ok")

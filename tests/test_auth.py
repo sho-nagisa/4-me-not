@@ -10,9 +10,15 @@ os.environ.setdefault("AUTH_LOGIN_RATE_LIMIT_IP_MAX_FAILURES", "0")
 
 from backend.app.main import app
 from backend.app.http_security import CSRF_COOKIE_NAME, CSRF_HEADER_NAME
-from backend.app.security_config import auth_cookie_secure, validate_auth_configuration
+from backend.app.security_config import (
+    auth_cookie_secure,
+    cors_allowed_origins,
+    trusted_hosts,
+    validate_auth_configuration,
+)
 from backend.db.session import SessionLocal
 from backend.models.account.account import Account
+from backend.models.auth.auth_session import AuthSession
 from backend.models.auth.login_attempt import LoginAttempt
 from backend.services.auth_service import (
     SESSION_COOKIE_NAME,
@@ -41,6 +47,23 @@ class AuthAPITest(unittest.TestCase):
         finally:
             db.close()
 
+    def _create_account(self, email_prefix: str) -> Account:
+        account = Account(
+            id=uuid4(),
+            email=f"{email_prefix}-{uuid4().hex}@example.test",
+            is_active=True,
+        )
+        db = SessionLocal()
+        try:
+            db.add(account)
+            db.commit()
+            db.refresh(account)
+            db.expunge(account)
+        finally:
+            db.close()
+        self.account_ids.append(str(account.id))
+        return account
+
     def _register(self, client: TestClient, email: str) -> dict:
         response = client.post(
             "/api/auth/register",
@@ -65,10 +88,12 @@ class AuthAPITest(unittest.TestCase):
             self.assertEqual(me.status_code, 200, me.text)
             self.assertEqual(me.json()["id"], registered["id"])
 
+            old_session_token = client.cookies.get(SESSION_COOKIE_NAME)
             logout = client.post("/api/auth/logout")
             self.assertEqual(logout.status_code, 200, logout.text)
             self.assertNotIn(SESSION_COOKIE_NAME, client.cookies)
             self.assertNotIn(CSRF_COOKIE_NAME, client.cookies)
+            self.assertIsNone(AuthService().account_id_from_token(old_session_token))
 
             logged_out_me = client.get("/api/auth/me")
             self.assertEqual(logged_out_me.status_code, 401, logged_out_me.text)
@@ -185,11 +210,7 @@ class AuthAPITest(unittest.TestCase):
 
     def test_session_token_rejects_tampering_and_expiration(self) -> None:
         service = AuthService()
-        account = Account(
-            id=uuid4(),
-            email=f"token-{uuid4().hex}@example.test",
-            is_active=True,
-        )
+        account = self._create_account("token")
 
         with patch("backend.services.auth_service.time.time", return_value=1000):
             token = service.create_session_token(account)
@@ -205,13 +226,35 @@ class AuthAPITest(unittest.TestCase):
         ):
             self.assertIsNone(service.account_id_from_token(token))
 
+    def test_session_tokens_are_backed_by_revocable_db_sessions(self) -> None:
+        service = AuthService()
+        account = self._create_account("revocable-token")
+
+        token = service.create_session_token(
+            account,
+            ip_address="203.0.113.10",
+            user_agent="test-agent",
+        )
+        self.assertEqual(service.account_id_from_token(token), account.id)
+
+        db = SessionLocal()
+        try:
+            session = (
+                db.query(AuthSession)
+                .filter(AuthSession.account_id == account.id)
+                .one()
+            )
+            self.assertEqual(session.ip_address, "203.0.113.10")
+            self.assertEqual(session.user_agent, "test-agent")
+        finally:
+            db.close()
+
+        service.revoke_session_token(token)
+        self.assertIsNone(service.account_id_from_token(token))
+
     def test_production_requires_strong_auth_secret(self) -> None:
         service = AuthService()
-        account = Account(
-            id=uuid4(),
-            email=f"secret-{uuid4().hex}@example.test",
-            is_active=True,
-        )
+        account = self._create_account("secret")
 
         with patch.dict(os.environ, {"APP_ENV": "production"}, clear=True):
             with self.assertRaisesRegex(RuntimeError, "AUTH_SECRET_KEY"):
@@ -238,6 +281,60 @@ class AuthAPITest(unittest.TestCase):
         ):
             token = service.create_session_token(account)
             self.assertEqual(service.account_id_from_token(token), account.id)
+
+    def test_trusted_host_and_cors_defaults_are_restrictive(self) -> None:
+        with patch.dict(os.environ, {"APP_ENV": "dev"}, clear=True):
+            self.assertIn("testserver", trusted_hosts())
+            self.assertIn("http://localhost:5173", cors_allowed_origins())
+
+        with patch.dict(
+            os.environ,
+            {
+                "APP_ENV": "production",
+                "AUTH_SECRET_KEY": "x" * 32,
+                "APP_CORS_ALLOWED_ORIGINS": "*",
+            },
+            clear=True,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "APP_TRUSTED_HOSTS"):
+                validate_auth_configuration()
+
+        with patch.dict(
+            os.environ,
+            {
+                "APP_ENV": "production",
+                "AUTH_SECRET_KEY": "x" * 32,
+                "APP_TRUSTED_HOSTS": "app.example.com",
+                "APP_CORS_ALLOWED_ORIGINS": "*",
+            },
+            clear=True,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "APP_CORS_ALLOWED_ORIGINS"):
+                validate_auth_configuration()
+
+    def test_trusted_host_and_cors_middleware_are_applied(self) -> None:
+        client = TestClient(app)
+        try:
+            rejected_host = client.get(
+                "/api/health",
+                headers={"Host": "evil.example"},
+            )
+            self.assertEqual(rejected_host.status_code, 400, rejected_host.text)
+
+            preflight = client.options(
+                "/api/health",
+                headers={
+                    "Origin": "http://localhost:5173",
+                    "Access-Control-Request-Method": "GET",
+                },
+            )
+            self.assertEqual(preflight.status_code, 200, preflight.text)
+            self.assertEqual(
+                preflight.headers["access-control-allow-origin"],
+                "http://localhost:5173",
+            )
+        finally:
+            client.close()
 
     def test_auth_cookie_secure_defaults_to_production(self) -> None:
         with patch.dict(os.environ, {"APP_ENV": "production"}, clear=True):
