@@ -1,0 +1,77 @@
+[
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\requirements.txt:1",
+    "added": 1,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\memory_contracts.py:1",
+    "added": 23,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\schema_roles.py:1",
+    "added": 43,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\memory\\test_schema_roles.py:1",
+    "added": 67,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\validate_local_tasks.py:1",
+    "added": 115,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\test_local_validation.py:1",
+    "added": 17,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W43-01-active-19_vouds.log:1",
+    "added": 119,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W43-01-baselines-19_vouds.log:1",
+    "added": 48,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W43-01-contract.md:1",
+    "added": 37,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W43-01-local-19_vouds.log:1",
+    "added": 10,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W43-01-report.md:1",
+    "added": 38,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W43-01-runner-19_vouds.log:1",
+    "added": 8,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W43-01-start.json:1",
+    "added": 1155,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W43-01-validation-19_vouds.json:1",
+    "added": 151,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W43-01-whitespace-19_vouds.log:1",
+    "added": 0,
+    "deleted": 0
+  }
+]

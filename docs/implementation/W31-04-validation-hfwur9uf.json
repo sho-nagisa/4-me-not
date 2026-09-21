@@ -1,0 +1,145 @@
+{
+  "task": "W31-04",
+  "passed": true,
+  "baseline": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-start.json",
+  "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W31-04-hfwur9uf\\4-me-not-collab-v0.4",
+  "zip_sha256": "811A9B2E19FE4CFF7C3AE106D4B2115D40B83A67E429D3F8C8509B64FA307C5E",
+  "zip_unchanged": true,
+  "planned_changes": [
+    "backend/services/content_ledger.py",
+    "docs/implementation/W31-04-active-hfwur9uf.log",
+    "docs/implementation/W31-04-baselines-hfwur9uf.log",
+    "docs/implementation/W31-04-contract.md",
+    "docs/implementation/W31-04-local-hfwur9uf.log",
+    "docs/implementation/W31-04-runner-hfwur9uf.log",
+    "docs/implementation/W31-04-start.json",
+    "docs/implementation/W31-04-whitespace-hfwur9uf.log",
+    "tests/memory/test_content_ledger.py"
+  ],
+  "unexpected_changes": [],
+  "unexpected_during_run": [],
+  "results": [
+    {
+      "layer": "local",
+      "cwd": "C:\\Users\\keima\\Desktop\\4-me-not",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/memory",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "counts": [
+        60
+      ],
+      "log": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-local-hfwur9uf.log"
+    },
+    {
+      "layer": "runner",
+      "cwd": "C:\\Users\\keima\\Desktop\\4-me-not",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "docs/implementation",
+        "-p",
+        "test_local_validation.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "counts": [
+        3
+      ],
+      "log": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-runner-hfwur9uf.log"
+    },
+    {
+      "layer": "active",
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W31-04-hfwur9uf\\4-me-not-collab-v0.4",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "counts": [
+        114
+      ],
+      "log": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-active-hfwur9uf.log"
+    },
+    {
+      "layer": "baselines",
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W31-04-hfwur9uf\\4-me-not-collab-v0.4",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-X",
+        "utf8",
+        "scripts/check_baselines.py"
+      ],
+      "exit_code": 0,
+      "counts": [
+        25,
+        11
+      ],
+      "log": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-baselines-hfwur9uf.log"
+    },
+    {
+      "layer": "whitespace",
+      "cwd": "C:\\Users\\keima\\Desktop\\4-me-not",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "counts": [],
+      "log": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-whitespace-hfwur9uf.log"
+    }
+  ],
+  "tested_files": {
+    "backend/services/content_ledger.py": "585168948579B60B34D28045EBF6D04514779F964BC0AE22E6AF62BC15F21B26",
+    "docs/implementation/W31-04-contract.md": "0FD6EC5C56995D0ACBED69538DAEFB8DDD0ADD5DD7A72A0FE235DE62155A33BC",
+    "docs/implementation/W31-04-start.json": "6B467841D81553BF2CEF72B4532C6E8519C26BBFB18067ECB0817502BCE6D42F",
+    "tests/memory/test_content_ledger.py": "9C31EE4C4D548FE6FB1F6A8C764DD333B1540517BA6B974D3C103154C86B8E02"
+  },
+  "overlay_hashes": {
+    "contracts/authority-boundary.schema.json": "EF5012D8E5AF2C24E70443A6933713F2E365D0C31E9B74ADC408F4DA874A123E",
+    "contracts/authority_boundary.py": "CF479879C93B9127AFD3D8A9DB4B08ADB506AA6F684B152DFEE819B67529722E",
+    "contracts/memory.schema.json": "5925F0F1780BB18FD08B1770D94DC9A06A945D156FDF6BB87BBE20194876426C",
+    "contracts/migration_examples.py": "956CD9F1FC24F347C371C1B0DBB141A06573DF58AA3A950CE0DF30119FC95A19",
+    "docs/authority-boundary.md": "831649B9D2B8009AF0D29720B5E66E0832A4FF99F360D171691512FAD665E112",
+    "docs/authority-matrix.md": "9999B0E7D9F55AA6EF522FB6CB1C8EB6ED2AF05EA70D5D879AE08C64CE748E9B",
+    "docs/migration.md": "9DFA54BC4FCF3EC3D3A95399CA89D1FBC293EBBB573C5EFB414EF52F09362E7B",
+    "docs/state-model.md": "21624C4B39F480DE2A7FD7168774889033BF4B2D935CD7BB09BCFD8C455B5657",
+    "docs/w30-05-mapping-audit.md": "A178887F728BC89D74F864AAF88B0D414295D74486CC8B943C216D94146E62B1",
+    "docs/w30-review.md": "78F13605E3DB2AE0BAC2BDD3C905261BBEF3B60A56CF13C4AAC1436840CA3BF7",
+    "fixtures/w30-02-state-cases.json": "12BDDC46C7505F890F8C9634D80B17983D5DD83EC70ECC4261541ABD116346D9",
+    "fixtures/w30-03-use-cases.json": "3A991F79011561FEF8CD25469AA7C1C43C94F49B5EDFA322F886C8AC8E9B0749",
+    "fixtures/w30-04-authority-cases.json": "0D5B5BAA16DE426E79353170F32AB2A3728ED038543C9B55D7D9C4550202E2A7",
+    "tests/test_contract_assets.py": "AF7F9D604EDF624751684CC47C2C6D9970577876C050D9328FE277A2D7CCA35E",
+    "tests/test_w30_02_state_axes.py": "AAEF7D78653C1FC7111EEBD6BF6CD98DB8F227B1F5DED923E121AE29CCAE46C5",
+    "tests/test_w30_03_use_conditions.py": "26F1837214374DC3B9101A9DAF8CE9D63185BA532529A81BE44D0CAD63054DF1",
+    "tests/test_w30_04_authority_boundary.py": "2470A8933010B8CD8554004D7D27D591455C415F77DCC953060505E6022D26EA",
+    "tests/test_w30_05_mapping.py": "10538A5DB5650B03FDFC1F85B6CC7C3324DFBC08168F5F13680B035FAB622F89",
+    "tests/test_w30_06_migration.py": "ED3954DECA1243D26BC1A39EE219B6720A9CA27D307E15A4898560ADF41806D5"
+  },
+  "acceptance": "local/spec only; no app, DB, Gate or authentication integration"
+}

@@ -1,0 +1,48 @@
+=== Archived tests: 4-me-not-collab-v0.3 ===
+test_all_active_refs_are_local_and_resolvable (test_contract_assets.ContractAssetsTest.test_all_active_refs_are_local_and_resolvable) ... ok
+test_api_inventory_matches_paths_methods_and_schemas (test_contract_assets.ContractAssetsTest.test_api_inventory_matches_paths_methods_and_schemas) ... ok
+test_authority_csv_matches_registry (test_contract_assets.ContractAssetsTest.test_authority_csv_matches_registry) ... ok
+test_cognitive_fixture_kinds_evidence_and_state (test_contract_assets.ContractAssetsTest.test_cognitive_fixture_kinds_evidence_and_state) ... ok
+test_every_named_definition_has_a_valid_example (test_contract_assets.ContractAssetsTest.test_every_named_definition_has_a_valid_example) ... ok
+test_feedback_silence_and_producer_authority_not_accepted (test_contract_assets.ContractAssetsTest.test_feedback_silence_and_producer_authority_not_accepted) ... ok
+test_invalid_examples_are_rejected (test_contract_assets.ContractAssetsTest.test_invalid_examples_are_rejected) ... ok
+test_json_files_have_no_duplicate_keys (test_contract_assets.ContractAssetsTest.test_json_files_have_no_duplicate_keys) ... ok
+test_mermaid_document_blocks_match_sources (test_contract_assets.ContractAssetsTest.test_mermaid_document_blocks_match_sources) ... ok
+test_owner_adoption_preserves_hypothesis_kind (test_contract_assets.ContractAssetsTest.test_owner_adoption_preserves_hypothesis_kind) ... ok
+test_requirements_acceptance_and_api_ids_are_consistent (test_contract_assets.ContractAssetsTest.test_requirements_acceptance_and_api_ids_are_consistent) ... ok
+test_schema_is_well_formed (test_contract_assets.ContractAssetsTest.test_schema_is_well_formed) ... ok
+test_binding_is_order_independent_but_content_sensitive (test_policy_reference.PolicyReferenceTest.test_binding_is_order_independent_but_content_sensitive) ... ok
+test_binding_rejects_floats (test_policy_reference.PolicyReferenceTest.test_binding_rejects_floats) ... ok
+test_confirmation_never_bypasses_hard_boundaries (test_policy_reference.PolicyReferenceTest.test_confirmation_never_bypasses_hard_boundaries) ... ok
+test_deployment_promotion_and_emergency_stop (test_policy_reference.PolicyReferenceTest.test_deployment_promotion_and_emergency_stop) ... ok
+test_grant_cannot_include_nondelegable_operation (test_policy_reference.PolicyReferenceTest.test_grant_cannot_include_nondelegable_operation) ... ok
+test_grant_collection_is_explicit_not_wildcard (test_policy_reference.PolicyReferenceTest.test_grant_collection_is_explicit_not_wildcard) ... ok
+test_grant_rejects_expiry_revocation_and_budget_excess (test_policy_reference.PolicyReferenceTest.test_grant_rejects_expiry_revocation_and_budget_excess) ... ok
+test_grant_rejects_scope_destination_and_actor_changes (test_policy_reference.PolicyReferenceTest.test_grant_rejects_scope_destination_and_actor_changes) ... ok
+test_narrow_grant_matches_exact_scope (test_policy_reference.PolicyReferenceTest.test_narrow_grant_matches_exact_scope) ... ok
+test_reference_does_not_mutate_facts (test_policy_reference.PolicyReferenceTest.test_reference_does_not_mutate_facts) ... ok
+test_reported_confidence_does_not_change_authorization (test_policy_reference.PolicyReferenceTest.test_reported_confidence_does_not_change_authorization) ... ok
+test_reviewed_gate_scenarios (test_policy_reference.PolicyReferenceTest.test_reviewed_gate_scenarios) ... ok
+test_unknown_stage_is_fail_closed (test_policy_reference.PolicyReferenceTest.test_unknown_stage_is_fail_closed) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 1.286s
+
+OK
+=== Archived tests: v0.1 ===
+test_all_json_files_parse_without_duplicate_keys (test_spec_assets.SpecificationAssetsTest.test_all_json_files_parse_without_duplicate_keys) ... ok
+test_correction_fixture_attribution_and_receipts_agree (test_spec_assets.SpecificationAssetsTest.test_correction_fixture_attribution_and_receipts_agree) ... ok
+test_correction_fixture_quote_bytes_and_vault (test_spec_assets.SpecificationAssetsTest.test_correction_fixture_quote_bytes_and_vault) ... ok
+test_feedback_does_not_accept_silence_or_immediate_training (test_spec_assets.SpecificationAssetsTest.test_feedback_does_not_accept_silence_or_immediate_training) ... ok
+test_invalid_examples_are_rejected (test_spec_assets.SpecificationAssetsTest.test_invalid_examples_are_rejected) ... ok
+test_json_schema_is_well_formed (test_spec_assets.SpecificationAssetsTest.test_json_schema_is_well_formed) ... ok
+test_mermaid_sources_match_document_blocks (test_spec_assets.SpecificationAssetsTest.test_mermaid_sources_match_document_blocks) ... ok
+test_openapi_paths_ids_security_and_samples (test_spec_assets.SpecificationAssetsTest.test_openapi_paths_ids_security_and_samples) ... ok
+test_openapi_refs_resolve_locally (test_spec_assets.SpecificationAssetsTest.test_openapi_refs_resolve_locally) ... ok
+test_requirements_reference_existing_acceptance_ids (test_spec_assets.SpecificationAssetsTest.test_requirements_reference_existing_acceptance_ids) ... ok
+test_valid_examples_match_their_named_schemas (test_spec_assets.SpecificationAssetsTest.test_valid_examples_match_their_named_schemas) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.152s
+
+OK

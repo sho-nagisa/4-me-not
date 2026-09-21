@@ -1,0 +1,30 @@
+test_control_and_snapshot_shapes_do_not_change_registry (test_memory_features.FeatureRegistryTest.test_control_and_snapshot_shapes_do_not_change_registry) ... ok
+test_v04_001_three_tiers_and_independent_axes (test_memory_features.FeatureRegistryTest.test_v04_001_three_tiers_and_independent_axes) ... ok
+test_v04_002_extension_defaults_and_candidate_rejection (test_memory_features.FeatureRegistryTest.test_v04_002_extension_defaults_and_candidate_rejection) ... ok
+test_v04_004_core_import_boundary_with_negative_fixture (test_memory_features.FeatureRegistryTest.test_v04_004_core_import_boundary_with_negative_fixture) ... ok
+test_v04_004_core_requires_no_experimental_or_study (test_memory_features.FeatureRegistryTest.test_v04_004_core_requires_no_experimental_or_study) ... ok
+test_v04_004_optional_composition_starts_without_prediction (test_memory_features.FeatureRegistryTest.test_v04_004_optional_composition_starts_without_prediction) ... ok
+test_v04_004_unknown_feature_tier_duplicate_and_cycle (test_memory_features.FeatureRegistryTest.test_v04_004_unknown_feature_tier_duplicate_and_cycle) ... ok
+test_v04_035_study_cannot_enter_live (test_memory_features.FeatureRegistryTest.test_v04_035_study_cannot_enter_live) ... ok
+test_all_roles_positive_and_negative (test_schema_roles.SchemaRolesTest.test_all_roles_positive_and_negative) ... ok
+test_direct_principle_and_missing_model_scope (test_schema_roles.SchemaRolesTest.test_direct_principle_and_missing_model_scope) ... ok
+test_explicit_legacy_map_preserves_id_text_and_fields (test_schema_roles.SchemaRolesTest.test_explicit_legacy_map_preserves_id_text_and_fields) ... ok
+test_new_fields_or_reverse_migration_are_not_silently_accepted (test_schema_roles.SchemaRolesTest.test_new_fields_or_reverse_migration_are_not_silently_accepted) ... ok
+test_unknown_time_and_invalid_time_shape (test_schema_roles.SchemaRolesTest.test_unknown_time_and_invalid_time_shape) ... ok
+test_auto_001_input_and_snapshot_mutations_do_not_change_raw (test_source_evidence.SourceEvidenceTest.test_auto_001_input_and_snapshot_mutations_do_not_change_raw) ... ok
+test_auto_001_multilingual_exact_utf8_roundtrip (test_source_evidence.SourceEvidenceTest.test_auto_001_multilingual_exact_utf8_roundtrip) ... ok
+test_composite_source_message_and_vault_boundary (test_source_evidence.SourceEvidenceTest.test_composite_source_message_and_vault_boundary) ... ok
+test_contract_two_and_relabelled_source_are_rejected (test_source_evidence.SourceEvidenceTest.test_contract_two_and_relabelled_source_are_rejected) ... ok
+test_core_source_has_no_prediction_import (test_source_evidence.SourceEvidenceTest.test_core_source_has_no_prediction_import) ... ok
+test_explicit_selection_resolves_duplicate_without_picking_first (test_source_evidence.SourceEvidenceTest.test_explicit_selection_resolves_duplicate_without_picking_first) ... ok
+test_invalid_byte_boundaries_ranges_and_quote (test_source_evidence.SourceEvidenceTest.test_invalid_byte_boundaries_ranges_and_quote) ... ok
+test_media_union_shape_only_and_unknown_locator (test_source_evidence.SourceEvidenceTest.test_media_union_shape_only_and_unknown_locator) ... ok
+test_new_version_refs_are_shapes_not_media_or_existence_proof (test_source_evidence.SourceEvidenceTest.test_new_version_refs_are_shapes_not_media_or_existence_proof) ... ok
+test_no_normalization_or_newline_replacement (test_source_evidence.SourceEvidenceTest.test_no_normalization_or_newline_replacement) ... ok
+test_non_utf8_surrogate_is_rejected_without_raw_exception (test_source_evidence.SourceEvidenceTest.test_non_utf8_surrogate_is_rejected_without_raw_exception) ... ok
+test_zero_and_multiple_matches_including_overlaps (test_source_evidence.SourceEvidenceTest.test_zero_and_multiple_matches_including_overlaps) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 1.250s
+
+OK

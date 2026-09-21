@@ -1,0 +1,38 @@
+# W31-03 不変Revision・現在版の局所契約
+
+機械可読正本のMemoryDraft/MemoryRevision/ItemViewを変更せず再利用する。
+stable MemoryItemは(vault,item)とroot_revision_idだけの内部記録。
+本文はmemory_revisionsにinsert-only、current pointerはmemory_currentへ別保存する。
+親は同じvault/itemの期待現在版のみ。新規itemだけparent=None。
+既存Itemでcurrent欠落を新規扱いしない。同じRevision IDの上書き・古いcurrentからの更新・自己親を拒否する。
+
+project_inは外側transactionに参加する内部関数。独立したapproveChange APIや本人承認処理ではない。
+W31-04のCommit coordinatorが同一取引に参加させる。今回の試験は決定的fake transaction内で実行。
+basis_headは外側取引から受けるprojection基準UUIDで、Commitの存在/CASはW31-04。
+get_itemはcurrent projectionを返し、get_revisionは具体版を返す。どちらも現在AccessPortを適用する。
+get_itemのbasis_headはそのprojection作成時点。現在のvault全体HEADを伴う読取はW31-04のcoordinatorで組み立てる。
+
+review_state=confirmed_by_userという既存wire名を保持し、provisionalをMemoryRevisionとして受理しない。
+approved_byはDTOであり本人確認の証明でない。storeConfirmedRevisionに対する実認可portが未接続なら拒否する。
+この内部操作名はHTTP operation registryへの追加ではなく、後続のapproveChange/UsePlan接続先を表す。
+Actor/owner対応、確認receipt、現在の用途/ACL/消去/失効を検証する実adapterはW33等で接続する。
+
+## 根拠と依存
+
+content.evidenceとevidence_spansを同順・同数で対応付け、Source/Message/quoteが一致することを検査する。
+SourceStorageで同vaultの原本を読み、SourceEvidenceで実byte区間を検査する。byte一致は意味支持ではない。
+訂正は新Revision。元Source、元Revision、epistemic_kind、発言者/対象者の意味を自動変更しない。
+
+additional_dependency_refsは必須で、未知/不正refはSchemaで拒否する。
+derived_from_revision_idsは同vaultで存在を照合し、現在読取許可を検査する。
+全追加refの存在/具体版/vault/現在利用可能性とtrusted producerからの推移的required_featuresはDependencyPort.resolveの責務。
+未接続/不明(None)なら空配列にもフォールバックせずDEPENDENCIES_UNRESOLVED。
+入力のrequired_featuresと信頼済み結果が不一致なら拒否。登録済みfeatureを検査し、算出値を保存する。
+採用によって印や追加依存を削除しない。履歴読取も同portで再確認する。
+テストFakeDependenciesは明示したref/featureだけを返すoracleであり、実DAG計算ではない。W42-03で接続する。
+
+## 保留事項
+
+DB/認証/Gate/失効barrier/実closureは未接続。実運用の採用・復元・無効化を完成扱いしない。
+既存models/MemoryProposalや旧知識の自動移行なし。D1/D2/D3とM1〜M4等は未承認のまま。
+Revision/Item/currentの内部テーブル名はportの論理名で、実DBスキーマ採用の決定ではない。

@@ -1,0 +1,379 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "baseline": "W31-02",
+      "allowed_this_and_later_authorized_tasks": [
+        "W31-02",
+        "W31-03",
+        "W31-04"
+      ],
+      "changed_paths": [
+        "backend/services/content_ledger.py",
+        "backend/services/memory_revisions.py",
+        "backend/services/memory_storage.py",
+        "backend/services/source_storage.py",
+        "docs/implementation/W31-02-active-izz7377f.log",
+        "docs/implementation/W31-02-baselines-izz7377f.log",
+        "docs/implementation/W31-02-contract.md",
+        "docs/implementation/W31-02-local-izz7377f.log",
+        "docs/implementation/W31-02-report.md",
+        "docs/implementation/W31-02-runner-izz7377f.log",
+        "docs/implementation/W31-02-start.json",
+        "docs/implementation/W31-02-validation-izz7377f.json",
+        "docs/implementation/W31-02-whitespace-izz7377f.log",
+        "docs/implementation/W31-03-active-3e0fdepk.log",
+        "docs/implementation/W31-03-active-k_hc17bg.log",
+        "docs/implementation/W31-03-baselines-3e0fdepk.log",
+        "docs/implementation/W31-03-baselines-k_hc17bg.log",
+        "docs/implementation/W31-03-contract.md",
+        "docs/implementation/W31-03-local-3e0fdepk.log",
+        "docs/implementation/W31-03-local-k_hc17bg.log",
+        "docs/implementation/W31-03-report.md",
+        "docs/implementation/W31-03-runner-3e0fdepk.log",
+        "docs/implementation/W31-03-runner-k_hc17bg.log",
+        "docs/implementation/W31-03-start.json",
+        "docs/implementation/W31-03-validation-3e0fdepk.json",
+        "docs/implementation/W31-03-validation-k_hc17bg.json",
+        "docs/implementation/W31-03-whitespace-3e0fdepk.log",
+        "docs/implementation/W31-03-whitespace-k_hc17bg.log",
+        "docs/implementation/W31-04-active-hfwur9uf.log",
+        "docs/implementation/W31-04-baselines-hfwur9uf.log",
+        "docs/implementation/W31-04-contract.md",
+        "docs/implementation/W31-04-local-hfwur9uf.log",
+        "docs/implementation/W31-04-report.md",
+        "docs/implementation/W31-04-runner-hfwur9uf.log",
+        "docs/implementation/W31-04-start.json",
+        "docs/implementation/W31-04-validation-hfwur9uf.json",
+        "docs/implementation/W31-04-whitespace-hfwur9uf.log",
+        "docs/implementation/validate_storage_tasks.py",
+        "tests/memory/storage_fakes.py",
+        "tests/memory/test_content_ledger.py",
+        "tests/memory/test_memory_revisions.py",
+        "tests/memory/test_source_storage.py"
+      ],
+      "unexpected": [],
+      "baseline_file_count": 328
+    },
+    {
+      "baseline": "W31-03",
+      "allowed_this_and_later_authorized_tasks": [
+        "W31-03",
+        "W31-04"
+      ],
+      "changed_paths": [
+        "backend/services/content_ledger.py",
+        "backend/services/memory_revisions.py",
+        "docs/implementation/W31-03-active-3e0fdepk.log",
+        "docs/implementation/W31-03-active-k_hc17bg.log",
+        "docs/implementation/W31-03-baselines-3e0fdepk.log",
+        "docs/implementation/W31-03-baselines-k_hc17bg.log",
+        "docs/implementation/W31-03-contract.md",
+        "docs/implementation/W31-03-local-3e0fdepk.log",
+        "docs/implementation/W31-03-local-k_hc17bg.log",
+        "docs/implementation/W31-03-report.md",
+        "docs/implementation/W31-03-runner-3e0fdepk.log",
+        "docs/implementation/W31-03-runner-k_hc17bg.log",
+        "docs/implementation/W31-03-start.json",
+        "docs/implementation/W31-03-validation-3e0fdepk.json",
+        "docs/implementation/W31-03-validation-k_hc17bg.json",
+        "docs/implementation/W31-03-whitespace-3e0fdepk.log",
+        "docs/implementation/W31-03-whitespace-k_hc17bg.log",
+        "docs/implementation/W31-04-active-hfwur9uf.log",
+        "docs/implementation/W31-04-baselines-hfwur9uf.log",
+        "docs/implementation/W31-04-contract.md",
+        "docs/implementation/W31-04-local-hfwur9uf.log",
+        "docs/implementation/W31-04-report.md",
+        "docs/implementation/W31-04-runner-hfwur9uf.log",
+        "docs/implementation/W31-04-start.json",
+        "docs/implementation/W31-04-validation-hfwur9uf.json",
+        "docs/implementation/W31-04-whitespace-hfwur9uf.log",
+        "tests/memory/test_content_ledger.py",
+        "tests/memory/test_memory_revisions.py"
+      ],
+      "unexpected": [],
+      "baseline_file_count": 342
+    },
+    {
+      "baseline": "W31-04",
+      "allowed_this_and_later_authorized_tasks": [
+        "W31-04"
+      ],
+      "changed_paths": [
+        "backend/services/content_ledger.py",
+        "docs/implementation/W31-04-active-hfwur9uf.log",
+        "docs/implementation/W31-04-baselines-hfwur9uf.log",
+        "docs/implementation/W31-04-contract.md",
+        "docs/implementation/W31-04-local-hfwur9uf.log",
+        "docs/implementation/W31-04-report.md",
+        "docs/implementation/W31-04-runner-hfwur9uf.log",
+        "docs/implementation/W31-04-start.json",
+        "docs/implementation/W31-04-validation-hfwur9uf.json",
+        "docs/implementation/W31-04-whitespace-hfwur9uf.log",
+        "tests/memory/test_content_ledger.py"
+      ],
+      "unexpected": [],
+      "baseline_file_count": 359
+    }
+  ],
+  "zip_sha256": "811A9B2E19FE4CFF7C3AE106D4B2115D40B83A67E429D3F8C8509B64FA307C5E",
+  "new_files": [
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\content_ledger.py:1",
+      "added": 137,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\memory_revisions.py:1",
+      "added": 125,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\memory_storage.py:1",
+      "added": 49,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\source_storage.py:1",
+      "added": 73,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-02-active-izz7377f.log:1",
+      "added": 119,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-02-baselines-izz7377f.log:1",
+      "added": 48,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-02-contract.md:1",
+      "added": 40,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-02-local-izz7377f.log:1",
+      "added": 40,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-02-report.md:1",
+      "added": 36,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-02-runner-izz7377f.log:1",
+      "added": 8,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-02-start.json:1",
+      "added": 1317,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-02-validation-izz7377f.json:1",
+      "added": 151,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-02-whitespace-izz7377f.log:1",
+      "added": 0,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-active-3e0fdepk.log:1",
+      "added": 119,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-active-k_hc17bg.log:1",
+      "added": 119,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-baselines-3e0fdepk.log:1",
+      "added": 48,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-baselines-k_hc17bg.log:1",
+      "added": 48,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-contract.md:1",
+      "added": 38,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-local-3e0fdepk.log:1",
+      "added": 60,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-local-k_hc17bg.log:1",
+      "added": 51,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-report.md:1",
+      "added": 33,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-runner-3e0fdepk.log:1",
+      "added": 8,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-runner-k_hc17bg.log:1",
+      "added": 8,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-start.json:1",
+      "added": 1373,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-validation-3e0fdepk.json:1",
+      "added": 145,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-validation-k_hc17bg.json:1",
+      "added": 152,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-whitespace-3e0fdepk.log:1",
+      "added": 0,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-03-whitespace-k_hc17bg.log:1",
+      "added": 0,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-active-hfwur9uf.log:1",
+      "added": 119,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-baselines-hfwur9uf.log:1",
+      "added": 48,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-contract.md:1",
+      "added": 55,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-local-hfwur9uf.log:1",
+      "added": 65,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-report.md:1",
+      "added": 38,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-runner-hfwur9uf.log:1",
+      "added": 8,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-start.json:1",
+      "added": 1441,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-validation-hfwur9uf.json:1",
+      "added": 145,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-04-whitespace-hfwur9uf.log:1",
+      "added": 0,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\validate_storage_tasks.py:1",
+      "added": 14,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\memory\\storage_fakes.py:1",
+      "added": 68,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\memory\\test_content_ledger.py:1",
+      "added": 177,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\memory\\test_memory_revisions.py:1",
+      "added": 155,
+      "deleted": 0
+    },
+    {
+      "path": "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\memory\\test_source_storage.py:1",
+      "added": 112,
+      "deleted": 0
+    }
+  ],
+  "final_hashes": {
+    "backend/services/content_ledger.py": "585168948579B60B34D28045EBF6D04514779F964BC0AE22E6AF62BC15F21B26",
+    "backend/services/memory_revisions.py": "70301C35CA9DF9F0F5CB90F9570F74F95FABE0A1BCB6C0972C38E1BC15E2990D",
+    "backend/services/memory_storage.py": "BF44B03A87F86BEBF82E7AC3B812650D056D93F52A6281D21A4861135E9F9741",
+    "backend/services/source_storage.py": "AECB4D6088A09A4D2E5455ADCAF553004402335436F0D91DECB0D36B2212F847",
+    "docs/implementation/W31-02-active-izz7377f.log": "22266EA16C81C85D79166BA3ED7B41B6DAAA51C67C2F34DD8583E4F9F295F3EB",
+    "docs/implementation/W31-02-baselines-izz7377f.log": "301D409032AE09EE1A4E3B5091F6FE0850FC52D13D06BE070F41A8DB92374011",
+    "docs/implementation/W31-02-contract.md": "0F4F248A558241D1EC1FB230B09B63309F22B6A6AC79C7559A3865A5EA31B75E",
+    "docs/implementation/W31-02-local-izz7377f.log": "A47BDF9E454BAB52F48787A591DF847B66B1FB6D7EA9FB1DCD5FA4974B47DA8E",
+    "docs/implementation/W31-02-report.md": "233E62CEB91A47B717920AA6F5A596AC0C52C0B84030E4DB92D02C0A1C37F1F9",
+    "docs/implementation/W31-02-runner-izz7377f.log": "E0B1A8A21AF5163BCBCD5AB8BD92081D8A4E497539E490E1A46C643AAB870AAC",
+    "docs/implementation/W31-02-start.json": "82121E84E36B4CA471B1D07CB41EE37AA6617B88DB3F97EC155B18900779824B",
+    "docs/implementation/W31-02-validation-izz7377f.json": "1FE0D5EFEB42E28C62612F870B7A01A7C13F43CA41B383FBFBEC423993369D90",
+    "docs/implementation/W31-02-whitespace-izz7377f.log": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "docs/implementation/W31-03-active-3e0fdepk.log": "2F3A3686DBEEDE148ACF8A29B6ABD7C0A92DF26946465219467E4D4B608DCE69",
+    "docs/implementation/W31-03-active-k_hc17bg.log": "77AD567DABF829454315C59CC981240D1BC285840D4C07A7F45CBCA0180BCA54",
+    "docs/implementation/W31-03-baselines-3e0fdepk.log": "4E8CD4EDEFC39E73DC9A0CAC0B566E459647824F869281E34BFA5D8512D932AB",
+    "docs/implementation/W31-03-baselines-k_hc17bg.log": "6D0E1377DED0D3EAE9A1CF19FB19DA25BF301CB12039D1507E520E24A062E0F8",
+    "docs/implementation/W31-03-contract.md": "FA79B5AF7554935B693640F8FF0EF92AACCD6954C1853B7F9787980644C4C281",
+    "docs/implementation/W31-03-local-3e0fdepk.log": "66FD79EA242000A4086E6ECC23E168573901C87C6B0E75B337FFCB1A4D6A727D",
+    "docs/implementation/W31-03-local-k_hc17bg.log": "DF3F257FBAECF81E339B85F0A413213F516EA0817BE0BE87EC04090EBA7F7D78",
+    "docs/implementation/W31-03-report.md": "49F4FF32C1666999D9605B04D9C2E430C14B0587E45133684833099BA5A6C214",
+    "docs/implementation/W31-03-runner-3e0fdepk.log": "E0B1A8A21AF5163BCBCD5AB8BD92081D8A4E497539E490E1A46C643AAB870AAC",
+    "docs/implementation/W31-03-runner-k_hc17bg.log": "42416050730622A7B86E19BD188507CA206C9C27B92F7626B05C422CE8BACF31",
+    "docs/implementation/W31-03-start.json": "FF0699F390E969F777B79CFC6445BC13E0CC8A38DA55D763BFC23A550C59A997",
+    "docs/implementation/W31-03-validation-3e0fdepk.json": "E7682F1F152CB16D50EF1D14D26E4188B013D758A79C19D85D6016D13578F4A1",
+    "docs/implementation/W31-03-validation-k_hc17bg.json": "1F168BD1AEBB8F118ECF15B517733A873D6C8A4C1E712D0E2AFE44E05134D88A",
+    "docs/implementation/W31-03-whitespace-3e0fdepk.log": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "docs/implementation/W31-03-whitespace-k_hc17bg.log": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "docs/implementation/W31-04-active-hfwur9uf.log": "493A75BE07855BC1C80854726E7F6772A12B3FAB13CDC7E85DA024FE943D834A",
+    "docs/implementation/W31-04-baselines-hfwur9uf.log": "78794EC0453117E422E0D4346396D7A70A1D38C54EE9772A2819FCEC90415204",
+    "docs/implementation/W31-04-contract.md": "0FD6EC5C56995D0ACBED69538DAEFB8DDD0ADD5DD7A72A0FE235DE62155A33BC",
+    "docs/implementation/W31-04-local-hfwur9uf.log": "879F3A3E5794F419AAE0890E6DDF459A2A7CF739C4C3FFB4D4C338B6483F147E",
+    "docs/implementation/W31-04-report.md": "EDC28783BB278C49094E8AA564D91F3A2F4016B7B46FFDBE59FCF87DBBD9AF21",
+    "docs/implementation/W31-04-runner-hfwur9uf.log": "E0B1A8A21AF5163BCBCD5AB8BD92081D8A4E497539E490E1A46C643AAB870AAC",
+    "docs/implementation/W31-04-start.json": "6B467841D81553BF2CEF72B4532C6E8519C26BBFB18067ECB0817502BCE6D42F",
+    "docs/implementation/W31-04-validation-hfwur9uf.json": "08EA3F0141933AE29C00F6288C21DFCA3CD21630D642EB5B70E3B50FC7875E03",
+    "docs/implementation/W31-04-whitespace-hfwur9uf.log": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "docs/implementation/validate_storage_tasks.py": "A381E71E2018E9B1F2E099BA2A8FDFF5101E808A96A1D96BC0B589C0F5FEC0FA",
+    "tests/memory/storage_fakes.py": "6814D319ED3AD9803DFEAD6421B117544E0DAD3C6F03CCD5C3C335093C76578D",
+    "tests/memory/test_content_ledger.py": "9C31EE4C4D548FE6FB1F6A8C764DD333B1540517BA6B974D3C103154C86B8E02",
+    "tests/memory/test_memory_revisions.py": "B2BEB0CEF33DC8590FD9DA90569954BF2EDF3EF592F597C9836EC77A516FBE68",
+    "tests/memory/test_source_storage.py": "B340666C71F296A35E8D59041223B3F4C9BFDF7A3072B7AE45BD85BD4C9F5C0F"
+  },
+  "tests": "60 local + 3 validator; spec 114, baselines 25+11; no app acceptance",
+  "next": "W33-01",
+  "review": "self only, independent review not performed"
+}

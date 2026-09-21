@@ -1,0 +1,8 @@
+test_per_task_baseline_and_during_run_are_separate (test_local_validation.BaselineTest.test_per_task_baseline_and_during_run_are_separate) ... ok
+test_unchanged_and_intended_change (test_local_validation.BaselineTest.test_unchanged_and_intended_change) ... ok
+test_unrelated_changes_additions_and_deletions_fail (test_local_validation.BaselineTest.test_unrelated_changes_additions_and_deletions_fail) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.000s
+
+OK

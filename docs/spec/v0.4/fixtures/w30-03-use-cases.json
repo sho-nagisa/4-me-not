@@ -1,0 +1,28 @@
+{
+  "synthetic": true,
+  "cases": [
+    {"id":"shadow-live","operation":"recall_internal","facts":{"stage":"shadow","live_use":true},"outcome":"defer","reason":"SHADOW_ONLY"},
+    {"id":"adopted-shadow","operation":"recall_internal","facts":{"stage":"shadow","live_use":true,"provisional":false},"outcome":"defer","reason":"SHADOW_ONLY"},
+    {"id":"shadow-evaluation","operation":"recall_internal","facts":{"stage":"shadow","live_use":false},"outcome":"allow_provisional","reason":"WITHIN_POLICY"},
+    {"id":"internal-hypothesis","operation":"recall_internal","facts":{"stage":"internal","live_use":true},"outcome":"allow_provisional","reason":"WITHIN_POLICY"},
+    {"id":"internal-no-display","operation":"present_reflection","facts":{"stage":"internal","live_use":true},"outcome":"defer","reason":"PRESENTATION_NOT_ENABLED"},
+    {"id":"reflection-hypothesis","operation":"present_reflection","facts":{"stage":"presentation","live_use":true},"outcome":"allow_provisional","reason":"WITHIN_POLICY"},
+    {"id":"reflection-sensitive","operation":"present_reflection","facts":{"stage":"presentation","live_use":true,"sensitive":true},"outcome":"require_confirmation","reason":"INTERACTIVE_REQUIRED"},
+    {"id":"attention-blocked","operation":"present_reflection","facts":{"stage":"enabled","live_use":true,"attention_permitted":false},"outcome":"defer","reason":"ATTENTION_BLOCKED"},
+    {"id":"exact-needs-original","operation":"present_exact","facts":{"stage":"presentation","live_use":true,"source_detail_verified":false},"outcome":"defer","reason":"MISSING_DETAIL"},
+    {"id":"presentation-no-send","operation":"external_ai_send","facts":{"stage":"presentation","live_use":true,"valid_confirmation":true},"outcome":"defer","reason":"ACTION_NOT_ENABLED"},
+    {"id":"enabled-needs-grant","operation":"external_ai_send","facts":{"stage":"enabled","live_use":true},"outcome":"require_confirmation","reason":"NO_MATCHING_GRANT"},
+    {"id":"enabled-confirmed-send-plan","operation":"external_ai_send","facts":{"stage":"enabled","live_use":true,"valid_confirmation":true},"outcome":"allow","reason":"CONFIRMED_EXACT_PLAN"},
+    {"id":"suspended","operation":"recall_internal","facts":{"stage":"suspended","live_use":true},"outcome":"deny","reason":"UNSUPPORTED_STAGE"},
+    {"id":"dependency-off","operation":"recall_internal","facts":{"stage":"enabled","live_use":true,"feature_dependencies_current":false},"outcome":"defer","reason":"FEATURE_DEPENDENCY_UNAVAILABLE"},
+    {"id":"evaluation-only","operation":"recall_internal","facts":{"stage":"enabled","live_use":true,"evaluation_only_material":true},"outcome":"defer","reason":"EVALUATION_ONLY"}
+  ],
+  "route_mutations": [
+    {"field":"review_status","value":"user_adopted"},
+    {"field":"epistemic_kind","value":"direct_record"},
+    {"field":"evidence_refs","value":[]},
+    {"field":"route_refs","value":[]},
+    {"field":"conditions","value":[]},
+    {"field":"uncertainties","value":[]}
+  ]
+}

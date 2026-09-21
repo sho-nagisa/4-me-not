@@ -1,0 +1,78 @@
+{
+  "task": "W30-02",
+  "timestamp": "2026-09-07T09:58:10.5752837+09:00",
+  "repo": "C:\\Users\\keima\\Desktop\\4-me-not",
+  "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-58c93a9223bf4bfb885185e231575e63\\4-me-not-collab-v0.4",
+  "source_zip": "C:/Users/keima/.codex/.chatgpt-projects/g-p-696486f280d081918418aa6ea3658d1c/deliverables/4-me-not-v0.4-codex-task-pack/reference/4-me-not-collab-v0.4.zip",
+  "source_zip_sha256": "811A9B2E19FE4CFF7C3AE106D4B2115D40B83A67E429D3F8C8509B64FA307C5E",
+  "source_zip_unchanged": true,
+  "runtime": [
+    "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+    "jsonschema=4.26.0"
+  ],
+  "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+  "environment": {
+    "PYTHONUTF8": "1",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "overlay_files": [
+    {
+      "path": "contracts/memory.schema.json",
+      "sha256": "5925F0F1780BB18FD08B1770D94DC9A06A945D156FDF6BB87BBE20194876426C"
+    },
+    {
+      "path": "docs/state-model.md",
+      "sha256": "DB2DAB443522E3013630A5127516044DC6A784401880BAAAD1AEA2A8C2C4272A"
+    },
+    {
+      "path": "fixtures/w30-02-state-cases.json",
+      "sha256": "12BDDC46C7505F890F8C9634D80B17983D5DD83EC70ECC4261541ABD116346D9"
+    },
+    {
+      "path": "tests/test_w30_02_state_axes.py",
+      "sha256": "AAEF7D78653C1FC7111EEBD6BF6CD98DB8F227B1F5DED923E121AE29CCAE46C5"
+    }
+  ],
+  "results": [
+    {
+      "name": "active",
+      "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-58c93a9223bf4bfb885185e231575e63\\4-me-not-collab-v0.4",
+      "executable": "C:/Users/keima/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe",
+      "arguments": [
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "unittest_counts": [
+        93
+      ],
+      "log": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-02-active.log"
+    },
+    {
+      "name": "baselines",
+      "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-58c93a9223bf4bfb885185e231575e63\\4-me-not-collab-v0.4",
+      "executable": "C:/Users/keima/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe",
+      "arguments": [
+        "scripts/check_baselines.py"
+      ],
+      "exit_code": 0,
+      "unittest_counts": [
+        25,
+        11
+      ],
+      "log": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-02-baselines.log"
+    }
+  ],
+  "existing_code_files_checked": 196,
+  "code_changed_during_run": [],
+  "code_changed_since_W30_01": [],
+  "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+}

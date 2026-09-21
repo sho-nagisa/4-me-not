@@ -1,0 +1,67 @@
+[
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\source_evidence.py:1",
+    "added": 92,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\memory\\test_source_evidence.py:1",
+    "added": 146,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-active-7rrf2ayv.log:1",
+    "added": 119,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-baselines-7rrf2ayv.log:1",
+    "added": 48,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-contract.md:1",
+    "added": 45,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-final-evidence.json:1",
+    "added": 61,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-local-7rrf2ayv.log:1",
+    "added": 30,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-local-final.log:1",
+    "added": 31,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-report.md:1",
+    "added": 40,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-runner-7rrf2ayv.log:1",
+    "added": 8,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-start.json:1",
+    "added": 1261,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-validation-7rrf2ayv.json:1",
+    "added": 143,
+    "deleted": 0
+  },
+  {
+    "path": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-whitespace-7rrf2ayv.log:1",
+    "added": 0,
+    "deleted": 0
+  }
+]

@@ -1,0 +1,27 @@
+# W42-01 registry・任意portの局所契約
+
+入力正本は参照ZIP＋docs/spec/v0.4のcontracts/feature-registry.json（25機能）。
+FeatureRegistryは配列を受け、独立したtier/decision_status/implementation_status/default_control/default_stageを保持する。
+implementation_statusは設計正本の記録で、実repoの進捗を自動更新しない。
+Featureは凍結dataclass、依存はtuple。呼出側の配列更新で検証済みregistryが変わらない。
+
+未知tier、未知依存、重複ID/依存、循環を拒否する。coreはcore以外を必須依存にできない。
+experimental/evaluation_onlyはdisabled/shadowが既定。candidateもdisabled/shadowを要求する。
+check_live_classificationはevaluation_only/candidateを拒否する必要条件検査。
+戻り値から許可を発行しない。合意・実装済み・FeatureControl enabledのいずれもGateを代替しない。
+
+OptionalFeaturePortはコア側のProtocol。CoreCompositionへ既存拡張インスタンスを任意注入できるが、
+コアはimport/生成/実行しない。未登録でも構築できる。has_extensionは登録有無だけ。
+拡張の有効化・呼出し・現FeatureControl/Deployment照合はW42-02以降の接続で行う。
+CoreCompositionの構築試験はFastAPI全体やDBの起動受入ではない。
+
+FeatureControlView/Snapshotは既存JSON Schemaを再利用。viewの検証は形状と登録IDのみ。
+changed_byやsnapshotを本人認証・現在の許可・現在epochの証拠と扱わない。
+実停止barrier・epoch更新・復元・workerの競合は実装していない。
+
+test_memory_features.pyは合成したregistry異常fixture・無応答portと既存25行を検査する。
+ASTの明示import許可リストで今回コア3モジュールの静的依存を検査し、prediction importと動的ロード入口の負例も検出。
+この検査はPython全般の動的依存を証明するものではない。以後の新コアモジュールも検査対象へ追加する。
+W31-01以降のモジュールはそのタスク自身で同じ検査関数を再利用する。
+
+wire契約・registry原本・合意・DRAFTは変更なし。M1〜M4/D1〜D9は依存接続前の判断待ち。

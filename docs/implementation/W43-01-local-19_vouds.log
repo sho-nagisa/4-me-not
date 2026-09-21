@@ -1,0 +1,10 @@
+test_all_roles_positive_and_negative (test_schema_roles.SchemaRolesTest.test_all_roles_positive_and_negative) ... ok
+test_direct_principle_and_missing_model_scope (test_schema_roles.SchemaRolesTest.test_direct_principle_and_missing_model_scope) ... ok
+test_explicit_legacy_map_preserves_id_text_and_fields (test_schema_roles.SchemaRolesTest.test_explicit_legacy_map_preserves_id_text_and_fields) ... ok
+test_new_fields_or_reverse_migration_are_not_silently_accepted (test_schema_roles.SchemaRolesTest.test_new_fields_or_reverse_migration_are_not_silently_accepted) ... ok
+test_unknown_time_and_invalid_time_shape (test_schema_roles.SchemaRolesTest.test_unknown_time_and_invalid_time_shape) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.895s
+
+OK

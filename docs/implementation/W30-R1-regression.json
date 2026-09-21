@@ -1,0 +1,2783 @@
+{
+  "review": "R1",
+  "scope": "Synthetic runner regression only; no application acceptance",
+  "synthetic_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f",
+  "cases_passed": 18,
+  "protected_files_unchanged": true,
+  "protected_file_hashes": {
+    "C:\\Users\\keima\\.codex\\.chatgpt-projects\\g-p-696486f280d081918418aa6ea3658d1c\\deliverables\\4-me-not-v0.4-codex-task-pack\\reference\\4-me-not-collab-v0.4.zip": "811a9b2e19fe4cff7c3ae106d4b2115d40b83a67e429d3f8c8509b64fa307c5e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\account_context.py": "fb2d7547b6eecbb08a4aa4bed7d75fac8bc437624fc40f0b0c8907790cf0438b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\api\\auth.py": "74f896b98d0177a566648dbd6750e46a4f435593443f42232cb0da691f60bfc5",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\api\\calendar.py": "b51966137eac2b18a550e91c8b7e56450d12ba0d9edb14e0e831dedfa5414663",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\api\\interaction.py": "279222136f4464a86e4a5ba4a60064ba7f01a052e6597944803940fb5f0c6387",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\api\\memory.py": "668df1858667ab5c851b129d465e069d35d1a729a1047bc1749cad3252260c62",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\api\\reference.py": "bd6f9330fdd3071475c6dcae9222055741d6d60d2d8f24449c6a5027fdace4bd",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\api\\reminder.py": "cde9a6ab66d5c661a66024ec67d5d67877378206f30e5742c251c39e4e59e0fc",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\api\\search.py": "6d92415318e2cebf34bfa86c1673b4e951c40ffaf49ddfecf15ed2a02e62c77a",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\api\\task.py": "e967c2e0efab69874dd2a0ad813292079b38314751cb3bf7a989badcc712da62",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\http_security.py": "db1a4dc7611dade42fc3bcce3640ea16c102214dd187e1972f7cfde6b4cbc96c",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\main.py": "0e5ce1e7bf8bf8bcd3876bc602ca082137f5ccd053ec568ef78cc4183e901de0",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\schemas\\__init__.py": "0946be857fe7e40e2040c2cc066823bdc1765f26b0e8dcc6e2c9e2c59e9552ef",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\schemas\\auth.py": "a87c4a052a677c118dab79cea4843465f3dab6396639182a51864ea96f6010f2",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\schemas\\calendar.py": "84e7ade4bb35e1a64fbbdcfbbb76bc77fed8097ba809cea7f41d1b38ba57a0d7",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\schemas\\common.py": "a92dd23775dd8878cef77d762b5ea20785b346f3f8fe34dccd8e5fb95365d19e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\schemas\\interaction.py": "4e44d68479967041552f3c9e5989bbd5edd48855c2d9fe58a20a7cc252a70a9c",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\schemas\\memory.py": "554a60b87d07a47652385adb6c7a05fb7e355fb8c536165d31cbed47b2470bf2",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\schemas\\reference.py": "8091c15ee7ac891ea776df70368c20f1a8672cdd6a08824b4661a8b7f74e3e60",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\schemas\\reminder.py": "06b27b6d5f85c94e0d062daf5b62fd51f2a4efeb8fbe94b479afffbccae9a1c0",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\schemas\\task.py": "8696af80dac1f6c629d4d29f4b5f0222cb1fcd7abaccf42d2d8e37547c84dce8",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\security_config.py": "b17cb503ec91ea0741005b4ab4bbf72dbe742f33ec184b924757ce214647717b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\serializers\\__init__.py": "0aa077ebdcf47ff8a68d63ed50fa042f6d41ca293750cb438123cf0641d7e275",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\app\\serializers\\reference.py": "5be42d4fb45ac0e845674674940362e0bc427d9b181df3aedc65f936f672e9ed",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\db\\base.py": "6821fc2d1d26e2367ec082a401fd6a5c0696b7895c904d219aa592885881edad",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\db\\session.py": "b4ce6455753128167e078a2f0746815e293d59af678c54f5a2715b17d5a9f81f",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\Dockerfile": "681a04bb174789307c1d103c0b037b00ebe72759df8f05624f172757382b37f5",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\__init__.py": "2a098a59fa0fd09642b2ffeb0bbc7bdda55f38bda33805aa15277b643f929d69",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\account\\account.py": "f74dc2a4d54e8aafbe2bc3ae295b77a5fc1df535ef1e2675299538f4872d3062",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\ai\\__init__.py": "4e5e775ab25274eee388516bedff4f5b688ede166cc44c32a53535507f050fe7",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\ai\\ai_metadata.py": "84136b02dd2bca74c12d08a93cc8d714eee652b10efe639857f66862549e8cce",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\ai\\parsed_note.py": "74e8685a1e45e6dea2b16d2b2b1f95412c80f81face3056dde663aea444facda",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\auth\\auth_session.py": "f8ecb6116b602cfca2f8db03357011c2ae0640d308486c28b03ead3f272f2d8b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\auth\\login_attempt.py": "57c3c89b2f318defaf2629df4c67661aa23e6c85f9a43609a0bc521d39553962",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\base\\__init__.py": "1f43199d4e63d136b5ce437d69cf571b6ad2f27e53cc222cdd80cc0cbdeae72e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\base\\base.py": "84e2d594e4b392254555476a241ca8ccd5d3c3351c084d43d373c8ca24ce29c0",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\base\\enums.py": "fb98e2ed0795e2cf4aa8c5f15e01f5e0f40e62f8deb4fb7a08dc695286d345cc",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\calendar\\__init__.py": "4db1790b4da5a473f7bcc09e3af7b9442580cf1f9df4a80654f9645c489a7bc7",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\calendar\\calendar_event.py": "10065a0d1a653b557b1cfda78972ce422644a3fec5f0b3dd9afd1e7bf73e851a",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\calendar\\event_participant.py": "097232f264e369281ce41528b368a43e081f23f66d173028b674e75faf7c4629",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\calendar\\meeting_snapshot.py": "7793ab0d4576e1c6a01d18622d59c57ba3cca1ddc46dd2e1160cf3b99af72f92",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\community\\__init__.py": "5de23d51be99a1b07a426b75894aff7a4cd12c4a807280836c4f96d5fe4f81df",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\community\\community.py": "1868e02c4a7c92207f1fa0f932be3aaa550da4953b1202513453218c9a631cc1",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\community\\community_tree.py": "d9ad675597bca0028e402040e22218094b972ec1261fceb62084ac8217a24807",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\insight\\__init__.py": "475785be78b21b87f85a82d4bde2da060271498c5a39fb38853965d296819299",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\insight\\insight.py": "29495a30cba40bd7f5ad7a81ef3b13f894a2433b03d3e1c068d53c190814a685",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\interaction\\__init__.py": "c907204a6b6cda735a7eb426ad5f83fe245d1e6f27f42897e5a5ab567f3794f5",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\interaction\\interaction.py": "3aa859384a63a96df7c6b5d069b5ffd2c302723599b19f3aff3535dd6353be04",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\interaction\\interaction_tag.py": "7588a7f7f0a796d710a2273b26deb84f7beffdd0ed3e6bbb8bc1b75a2a7f3c94",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\interaction\\topic.py": "703883d0a96ec00ca275f2802e968bb8c6ffd8b664641a7a9174d0d3b036f8bb",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\membership\\__init__.py": "768f4cb868ff00c717da756825131c547cb923204508190b295ccb16014004c6",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\membership\\membership.py": "c55824d09603e2a1379ae427b1ab5d79dfcb2ac09a3f44b169d35ce886eeaf8e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\memory\\__init__.py": "c06333f25a3cffdab804f32018dbde574dcaf4ddb19cee9fbfabbe960855e987",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\memory\\memory_artifact.py": "945c6122b3a440667ac578a8db213d117f38d6320a54af84464731ecc243225e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\memory\\memory_entity.py": "e0f48ab7768609dba2b97801e063905ffa712628b2d46ea604a9353ae440091c",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\memory\\memory_entry.py": "bb48256ca70967eaa43b541d981dd6adc61e230bd29de64964b08336463525d1",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\memory\\memory_proposal.py": "3f8302c926c38c5af840f2a47b609f5f65039fd102a14b0cafc3fc0b56a78423",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\network\\__init__.py": "76c6dce4d7a278b13dbd8ae68fcaf752eef8926bbd5ad0464705c4a56fa48399",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\network\\relation.py": "685e5bd2cfced3a3b96798e9d8833fd6557e6f72ee7102c7f52ca8e83ea4a736",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\person\\__init__.py": "ec08a24b5976cf15e01ca16b5b7be5a0f8c10745d400466f45fe9bcf44fa2cd4",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\person\\person.py": "30d9f1b2b5d787b12ff10db35be7ce52d91866953fd3ebf70f78cd604fe61da8",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\person\\person_profile.py": "7608ce32bad8e05a76c8159ae90dd6d64a4f439cde3a965e13c026754832fbae",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\person\\person_tag.py": "fd747bbc90d2a754a746e89f9b635256db879365c438728cf2c7a9a519d9e0a9",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\reminder\\__init__.py": "7de5895834a6cb4762e9c5e693bb208849f2c1c79d3552142ebd86c2bd1fcc9a",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\reminder\\reminder.py": "08d98b1f9f982c5181128d70a342b3b13f6136a040d34895f2088eeb4ac3afbd",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\reminder\\trigger.py": "7d89d657e5b96ef64e5ce8529ec41d1c5f2fe71e821ecdc0cf2d40d3c60a1a1f",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\search\\__init__.py": "e823ecba532c0abd03504aa445d14b4d612197565d8d78518f8730675d5815e4",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\search\\search_document.py": "ca884047a61fd72ac3356b37734719e36fc8721203ea1be9fa507dccefc889db",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\search\\search_log.py": "b1aa06ac37c114f2f9c333ab17f6fd38457cb56d2a3d1c4c7601f67986c641ad",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\tag\\__init__.py": "71bec1aa59d312b55a2c06faf44295327e3a6276efe11ae0dc771ce15f645cbc",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\tag\\tag.py": "4e29c1aeeba39a4b7e21c1d45d35f691c99a68ef32d95d69480ff56e89fd40c9",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\task\\__init__.py": "a6865718241df3fa976d1230149d6cf5c17fc9470e74d411be882bbb11e4b86f",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\task\\relationship_task.py": "f64d5c91064939c0b4133ee9137289e06c3ef6018c6edfd95f2e79573bc32c1f",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\task\\task.py": "0ef62144b76b6268e6284f7f653481517d72586479b466eb9e9961d1fd7ea11c",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\task\\task_history.py": "da8891c7ff5cc118e0b1db877723beaf90dacccdb204b2c442b55dbe4640dbc5",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\models\\task\\task_link.py": "0b07a5346c62aa7188494f874cce9a7e17c164cd9ae6957b12f67022ba72af9a",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\requirements.txt": "3659a70d51e76690fd4aa888c5579d9a68d42f1a01106bfab866b9b9583af5aa",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\ai_service.py": "379e14d4222eeb3e00c964a5cfcf86dcfc4881e39c547d79107f34507e6b7f2e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\auth_service.py": "293ba018b03bd76f5766795baa2988836fa436110311bb4f00e91ff9d325e13e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\calendar_service.py": "099e9e5d79861e02c911afc021fb5274c6d72f7d338ca343c00d7a0aed99173c",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\community_service.py": "4f6bff422466d2d4581084d3f6bbb80fa7907799ea59dbf10b1357083d82f510",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\hierarchy_path.py": "c8fbec42870b668c2ddc0ffdebf5f0e92e9de7ac6d8843a2f733d591e775c3ff",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\insight_service.py": "bf9e822e1b787accd157df4c13fa18c07e09709fc7e23f0dee800c03171ae629",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\interaction_processing_service.py": "bad12fd00f835c67cf706b21a714212a1dfbf54ab8925c163a7420e9acde7c89",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\interaction_service.py": "daf7ffe04ef835fce34ef102b5eb2b50250f12e14208914158fbaefd2477f83b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\memory_history.py": "bf2e693a23a5a2602c4d783608fcc8113af770f9c73d2fdbd3046c54bb5e3dfe",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\memory_screenshot_analyzer.py": "5bec794d8a96eea3bf3659f67b333def50f6e6c0c646ecfcd05bec0ab4ac3dfb",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\memory_service.py": "c6120c331182f9514fd406d1dce57fae2d8ee0e8060131491fb5f47a1c1b25e9",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\person_service.py": "3d8387975d45495415cd808019cdc7367ad3a605e12b7b39ad42d4cba50f42a3",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\relation_service.py": "7f33bf30f5a5ff658220eaa3189ab6ca954e95c1eec123d922f5fc28e34ef31f",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\reminder_service.py": "3d8472b4b7dc4f67f49d7a016dd06da5844b6e73fad782fe01f2264cda351e41",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\__init__.py": "eb76c393eb0d4b6ff60e354a319de8e1efcc2d686393b6fa1c7b40a2fa16fbac",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\answer.py": "120a51ee89fc01b5f3f3b32dc55f1e8a707417d0dff6ac8314685f7c40a1877a",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\cache.py": "9d4500c36e50ba2702e3048c2bfb2778f65b8622559ebeb3dcbf5dd334598534",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\constants.py": "2e07f6d7aa3759e645c94d5fcc456ab0341495e5cab3df7326d543f8a97057c2",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\embedding.py": "6cf7e359af8d6abe1620a842d7a20581ff08d9f8ed649c6de090506209533c9b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\indexing.py": "66e6bdb40f5b175079eb8060a7b23eca488f897ace97d86c0a334ef6125f8aa5",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\operations.py": "463a20f688cdb8fb2fb6de8be3c8f1c9b403b9eb9a88c3ba8d77f061b8acf0a7",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\query.py": "f3a77ee8ec7f2c3152e46c659b97641b9147eb1e58c01888eb2713b717804260",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\results.py": "71ec112ac42141ebd52745299f4891767617c11670c602732cb91031a12ef58e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\service.py": "8146f7e7ae2aff7c053ad268372e78b274c6d28ba7f15a90a5b817717f742567",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\types.py": "9968928006c7a9a6f8460a31acb7eee5e80fd642a7aea3845d15c473d44c6ef9",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search\\utils.py": "a38da975dc63efcc82631f8df64c8b787f31d3ede48803ec4ffd60ac136b00e7",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\search_service.py": "eb76c393eb0d4b6ff60e354a319de8e1efcc2d686393b6fa1c7b40a2fa16fbac",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\task_service.py": "a81759501b911213f5e9baaba78d02fcbfa29149c1c9d3679e7b755c53dc7720",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\services\\topic_service.py": "30c2cbb0298d1f7529b16ae64f06e8b5eb2bf5b799c908cb55875975306b633d",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\testing\\__init__.py": "8d2e25250d1841effa0943aeb4a6989a018879ca2c7c71fd3b253fefd4a990f1",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\backend\\testing\\demo_data.py": "0db174637b61398e3f933a56fde3f646370eb7ed21ace9045a51ac2b087eb8c4",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-01-evidence.json": "ab538f6474f56bd6b746c214b7b82c0ad60d8fdf1a120cca3d63508906eae50e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-01-inventory.md": "83fdd75e0b001cec93e87b033ccf16f085286c655d09ede54678121b7149f280",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-02-active.log": "3c88991da15e6babddc4452113d1d5502cf6648baabea80ef85ba0c500ddf2d0",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-02-baselines.log": "f3c7f542e83c42dd3c6df133b8a02d4dc4a146bc71829392ac637d8c9872f929",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-02-state-contract.md": "6090a6cf3729d11adc0a3bd090202cb15a4e1314c927cd3b48af225e167286b7",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-02-validation.json": "70f7465430dd487aacd64e65ada5226f05cfb8dd3180e07616cd31eb66d84c93",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-03-active.log": "fa1a41015f021f141a663ef83d86cd4811463f3f40e9ba39bf07eb89a6e95d09",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-03-baselines.log": "73047bc54d0941bfdab85039e58a6397394d5070326492991d11a0ca5c0e62a1",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-03-first-active.log": "a81ab0ee3f0a6f1b6d8913d7b42cb60b902e2408b155022d5b55ddc3b4d3223e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-03-first-validation.json": "a6aa7abe7ac9a50da1073301a87b99e9a2444b07f726f5c771c0d1728cfdf209",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-03-use-contract.md": "e629aac61842f534fedd01dbd45052485d39ce64b4e7d25c2115d07aa6ce8fa8",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-03-validation.json": "ebbc49a4e639e8aadc30c0b3b0dad815145d0004b2bbe8464f056ef5102be632",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-04-active.log": "3a7d768c5061747c32e4d0815d048e43c8a179f6f38851d2a1b2ff3ab01368cc",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-04-authority-contract.md": "bf4a214ba079237a2613f73dc9da52a79b1c9027caa0d508e5db6df262e6432d",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-04-baselines.log": "a1ab4cbe0d7724cd7d9d87c59a1647a28e672da33a101eaff15844042a9eba04",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-04-validation.json": "6853e467cb42d2d4b873a8f3a2542abbf249e8404c93295d41473d6b3aa87d84",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-05-active.log": "0dde115c68cfc8d7ccec856c47f1ed8833d03a89180f61483ff1b2ebe4ce2e54",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-05-baselines.log": "2ce91680ea065ef46282c97bb7235ec8c4839d777f216948672853c0792b67e2",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-05-first-active.log": "2d033b1055d27a10895c7c52d4a7b316e7da39bec3256f39bf6a5da6dfe93881",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-05-report.md": "c2ae1323a9ed432ad2a675639f66841d857b18fcdc76ea16eeb0882670dc0a87",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-05-validation.json": "ebe3dfc8f4fcda7670fbf6f71d790be250ef23625c6a9cb44a9d1be88190017f",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-06-active.log": "d38f44d3b933beb44f229780c0463dc2255654332faf5dc86e423702ba04938e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-06-baselines.log": "59ebfac829ac90cc8bf995a3b5cb1af220fc4edd0b602e85cc8d6a15a50ae7d2",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-06-report.md": "9378bf7ee006f7d4cb596fb42fb087459e2eaf31c1ba04334505e989c8962502",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-06-validation.json": "506d6040f89e60a2d3721af2519b85dc10044e735424e4f91688e7555a212692",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-07-active.log": "64a1457119f49ee907fcf1c73958e2912efba9a890e56c625c44f1458c702c21",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-07-baselines.log": "64f0f77b9464f421729b900bf2aad2ef5ddc198912a15ec5a9b57bac3496aa19",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-07-published.log": "db6952881c85dacccbaeb9275c9e242161a3f2f98c0c0b19585443e9b3bd4607",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-07-report.md": "40d28d83ca2b09465cffa28626d9d6309446c6b16437e51266ea4551dc245be1",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W30-07-validation.json": "a4a4cfc1adcb8d42bf298ac8fc9244f3e45133f9751077433fd702248ad96dcd",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\contracts\\authority-boundary.schema.json": "ef5012d8e5af2c24e70443a6933713f2e365d0c31e9b74adc408f4da874a123e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\contracts\\authority_boundary.py": "cf479879c93b9127afd3d8a9db4b08adb506aa6f684b152dfee819b67529722e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\contracts\\memory.schema.json": "5925f0f1780bb18fd08b1770d94dc9a06a945d156fdf6bb87bbe20194876426c",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\contracts\\migration_examples.py": "956cd9f1fc24f347c371c1b0dbb141a06573df58aa3a950ce0df30119fc95a19",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\docs\\authority-boundary.md": "831649b9d2b8009af0d29720b5e66e0832a4ff99f360d171691512fad665e112",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\docs\\authority-matrix.md": "9999b0e7d9f55aa6ef522fb6cb1c8eb6ed2af05ea70d5d879ae08c64ce748e9b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\docs\\migration.md": "9dfa54bc4fcf3ec3d3a95399ca89d1fbc293ebbb573c5efb414ef52f09362e7b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\docs\\state-model.md": "21624c4b39f480de2a7fd7168774889033bf4b2d935cd7bb09bcfd8c455b5657",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\docs\\w30-05-mapping-audit.md": "a178887f728bc89d74f864aaf88b0d414295d74486cc8b943c216d94146e62b1",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\docs\\w30-review.md": "78f13605e3db2ae0bac2bdd3c905261bbef3b60a56cf13c4aac1436840ca3bf7",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\fixtures\\w30-02-state-cases.json": "12bddc46c7505f890f8c9634d80b17983d5dd83ec70ecc4261541abd116346d9",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\fixtures\\w30-03-use-cases.json": "3a991f79011561fef8cd25469aa7c1c43c94f49b5edfa322f886c8ac8e9b0749",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\fixtures\\w30-04-authority-cases.json": "0d5b5baa16de426e79353170f32ab2a3728ed038543c9b55d7d9c4550202e2a7",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\tests\\test_contract_assets.py": "af7f9d604edf624751684cc47c2c6d9970577876c050d9328fe277a2d7cca35e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\tests\\test_w30_02_state_axes.py": "aaef7d78653c1fc7111eebd6bf6cd98db8f227b1f5ded923e121ae29ccae46c5",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\tests\\test_w30_03_use_conditions.py": "26f1837214374dc3b9101a9daf8ce9d63185ba532529a81be44d0cad63054df1",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\tests\\test_w30_04_authority_boundary.py": "2470a8933010b8cd8554004d7d27d591455c415f77dcc953060505e6022d26ea",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\tests\\test_w30_05_mapping.py": "10538a5db5650b03fdfc1f85b6cc7c3324dfbc08168f5f13680b035fab622f89",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\spec\\v0.4\\tests\\test_w30_06_migration.py": "ed3954deca1243d26bc1a39ee219b6720a9ca27d307e15a4898560adf41806d5",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\App.tsx": "a59deb57b8f2ec639f738ed2b8ecb8d6606056eccd906573b23dc1836cd38d64",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\AuthGate.tsx": "497f69c2702f7e1cb019346b360f6fbe789e9587c22e41e7b0b003133782b6e0",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\hooks\\useIsMobile.ts": "8c2d364df0425107d1d48881d2c2dc3fbfa71570d7d4a84fee0a65ad1d071546",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\hooks\\useOnlineStatus.ts": "1c0c15a413d1d8955d118b2614bcb453ac19f6233f413d57c60014f5f2232535",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\main.tsx": "a80dcb91da9f1dd02e8b64c31d056e8b5894c2e08efe3500d2ef03f996293d30",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\mocks\\api.ts": "5b84f69afcebe00f9924d114e4691dfa60d80d1a0f781645e92f430e10ce0dfb",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\mocks\\data.ts": "8994c3f1cf433965b826be79c8fda8d6e5ae24b59bc9f10b6059662564c7b77c",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\BrandSwitch.tsx": "2410d9b1ee12775350911689a54817c373a095eba1cbae73d76478749c9c117f",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\components.tsx": "8192e72c20aa086f7a48016184ffc7216e6d50ff8551c256f97dae16c9385cd7",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\constants.ts": "5a2d409e43b939eb6b51bfac3549ef26843f8f7a8c760f2453160b8f93f638a0",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\HistoryPage.tsx": "047e99ab86a85adb570f77271b566c56ced4a6847b918c64018de4f31d13cb9d",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\hooks\\useInteractionHistory.ts": "75899ca3bb468069765f5a5c86d7da46c9259f291cc735e224f3c3950f0c0568",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\hooks\\useManageReferenceActions.ts": "36269c721843d836eb5005a89420117c523bba15442422b89cc8283b94043503",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\hooks\\useMemorySearch.ts": "b7d5acb7d7f3ac2cd1ec3fb71a8b14630904a26034f21f2eb480845ec6e380ef",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\hooks\\usePersonExplorer.ts": "b85ef78a21c357cc32c4d17da1dd3450e54404182348dbfe3e4a9a9b8d1740a4",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\hooks\\useRecordForm.ts": "898f7820313e8a151e0b2939815b20214367c5bbc7b2f30527169b543e9aede0",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\hooks\\useRelationData.ts": "bb927bcc5842c3eed095da7463e667b318ac0174cfd7afef30bbc4039db520da",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\hooks\\useTaskActions.ts": "90a4afd6eabd4c35a6d979d1e40c2dce0faaaef0caa8fa3da582ea8feab0ce77",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\hooks\\useTaskWorkspace.ts": "6e48992d0c76719d619911cb6eb5a175cc188cabaff3ca92c3d76a8b1a738312",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\InteractionNewLayout.tsx": "5079f2abbd0a1b2ade2fc3c326bed8bc9262c01c39f197c2b0d90b13676aee91",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\interactionsApi.test.ts": "0d91042b2c4808d38f66e2399e6252abebefd8515b6368c0e1fe0468b5ab8c37",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\interactionsApi.ts": "d999ddfc66b1ce27876608a3ef87fb36fd62071f5fd8efb77db5444b783b9ec2",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\ManagePage.tsx": "8e7fafbb4ab528f641732e1ed0da56bccae3eacaf781151adad2c03a4943ef0a",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\navigation.ts": "f0cc820adce2785956f5fc7d23381cf3e04f2abcf16308530bab7b46aa5f963b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\offlineInteractions.test.ts": "69cbc63effb9389ce8373f30d14aadd17a78ed807b79a35512415f4ec365bfdc",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\offlineInteractions.ts": "1b4b8cba00bbbe930b1952322b56c60d527b84f91d70b620e37504267401c1dd",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\PersonPage.tsx": "fe8c9edc19bb829de7d3c86da9cd683c213aac007ba87050555d842cc3d1e400",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\RecordPage.tsx": "adee0b2858239347366878770da8e5572ce91f3345dc7dcf49ead71e55979a88",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\ScreenshotInboxPanel.tsx": "b3bd737f733b7a4cc97382f01f9fa3e62a11ddcfc659cf839298666e9210bb2b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\SearchPage.tsx": "090d33ef4b124c0116000c62ac61e4fb1c56f2a2a5b8a5b3044a9367e19fc631",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\TaskPage.tsx": "007cf96407e0371e43d337242b8117f35bb2dcf92626bb4bddb7151bd868c6d2",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\types.ts": "55b8377a1d308eee4c9023f530bdb8ed202e5c83c4ce5502a96c93e52c70cd85",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\utils.test.ts": "2fc25235bf23e5f45bbd725170d3267cdea9c3565d1b22c01c7d39120bc682ca",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\interactionNew\\utils.ts": "a48ea583ce908655163d9182283cb0b0b388f2a4d9aa5d49c6ba3df72e884028",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\pages\\InteractionNew.tsx": "5261741226b74e70865cabc87b2fc79005c08ae2d7b5f5bb2ea96c6c1de1d606",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\auth.css": "c009e360fabc489f82167bd32141de54ae77b90556cd3fe8329769fd68a515f2",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\components.css": "b6861b7d1e457a15b4d4150e307eaf0489909cc8b1b675a6306f9a0166039b0a",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\feedback.css": "1c0162407dc88952f500df9d678002f0f30edbffef6314a21f97ef4b753ce50c",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\foundation.css": "6bcdbc215143fedd2ea7e268cea91f03bae8e9ee25cf1f1b12bef0fa94fb3fc5",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\history.css": "bf73d15420ac3eec21023d1bfa1c7014237cf1bf2a7d6e4fedd54830863d2d36",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\home.css": "ed53087b6f01e02cafb599599d9e039b9d08287a8be5ee77451ac9f83233449c",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\manage.css": "a84110b3d37592561742222dabad0418690ca0dce798989f5f96cf29ae9b7278",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\page.css": "60bd19d8e5262c54fa90e8a1ef84525c8eafec3f4cbdcadf0a775cfca97c7845",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\people.css": "9dad1742d0ef5a13ddd21abee37d10c7873c082519d2bc27ec0aa6b5f4e347b2",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\record.css": "7afda02d2bef3760a03e74f545f982decbe37a9610922f90ea1fb766e6f6fb8e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\responsive.css": "80e4bfa4c58971a744dc8aaec3645f1ba12577f294e5cb89432bf939d8b9f7da",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\search.css": "733dbab7e16520bd61798c99241b0b3b802b6eac738266d7c5b37e6ede572033",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles\\task.css": "5887554483a71fdacd03001f890265dbec1ddc9cdc3abb9b787882c07b74585b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\frontend\\src\\styles.css": "bbc6137e9d769216c01f542ae8b62f0ea846c2105272e6d60bb8209373d480d5",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\env.py": "554fefb33df2f5209523782c3f3e48b38d8fcdd58dfedfb9ffb58c6232e9908f",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\README": "31595cf53626af9ed16e15c44fa43183209cc163fbc3ebcb904b22ac436a8884",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\script.py.mako": "d38920781b4d31ae1c0a71bc09f41c2ade8feab9e5a087e3f30cb4bbf0c1c9d3",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\2c5f9e7b1a0d_add_overview_performance_indexes.py": "c839c734bf195951bfec3efe1abc9356b235ae0c2ddcd96ce043ba322478f114",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\3d8a9c1f2b7e_add_search_documents.py": "e4d6b40c2933ac468ae05cb0025fcb6b42c89c1f4ed708955f2f32a15f08832b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\4f1c2e9a8d30_cascade_search_documents_person.py": "3803930168eef3a4a1481f1f00bce4f02b3721edde0b409d3c08c92298f81788",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\564b90ad7175_initial.py": "6cc48741a6c340606aeea993f10730cc737a829327f8baa1bdcb2efb2b7249a3",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\6b7d8e9f0a12_add_memory_tasks_and_calendar_participants.py": "a3ee564e0561ba8efbbc8f33d01366423725cc57e3a858869b5802e2548a104a",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\7615aa79d0ae_add_initial_models.py": "dafe67d9e4222d14767fee97e3cab2d7d8d45f93c55d979838eae70fddf59b4a",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\7f6a4e2b1c55_add_hidden_flags_to_people_and_communities.py": "15503bc119ce61968f359c14d1afc78666fff0c3b643be7f6c1626732d043f2b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\9ac2d7f1b4e8_add_account_scope_foundation.py": "5655fa931b9c34506dca45b207d4b4f1f700395dfb55ccdfa7eb8f6d830dd62e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\a84f0d5c91e2_person_primary_community.py": "d2427c0a90653b5f2de8815dc39942d8d66e80458e4dd4ba4d50e6c0257cdae9",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\b2c7d8e9f104_add_search_logs.py": "03899bbab279a69e9a85434627ac8e9c732352a5314a71c8a5a9e3fa4aa6b829",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\c4e5f6a7b8c9_add_account_password_hash.py": "0d90b54db77632fadfaf1fa2a96a0a9fd1292ee21a2c91f8e56aeefee65b939f",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\d5f6a7b8c9d0_add_login_attempts.py": "3e5f9afd149583923e97e50d41d7d3dc14943a13e84f1deeeffc387db08ab15b",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\e1b8f992b7f1_phase1_topics_share_level.py": "036f59fac0331c88029bd65c77891c33d973774dc91c5679379359adcbd3ac06",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\e6f7a8b9c0d1_add_auth_sessions.py": "661637166ff0c5ed15ebcfa1d1ef8d5b30f2e8f6f824a6582686a13c41abccb6",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\migrations\\versions\\f7a8b9c0d1e2_add_memory_inbox.py": "6aefe3d74b948bfc870f215e7d38afd83779f957d3a2fe6ae377b87eee4741e2",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\scripts\\__init__.py": "33eb0a872b3ab21a359dce122d746218cf1b51f99194894877378363a1e61de5",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\scripts\\import_raw_entries_to_db.py": "584d070e1fc9c82eb69fe5c2421bf9affb761e99806abe2421a75a2851a2cbd9",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\scripts\\parse_raw_entry_import.py": "0a3f836f0359cb753e4a4ad393cb02a881ebfc883f5b73f35fd18a0a71aebf83",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\scripts\\rebuild_search_index.py": "6652eea26effe682b3999309af9b9891b4397d726c24e1675f5dea6429f1a5cc",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\scripts\\run_smoke_tests.py": "a24fe9506fd559ac6593d69d6b9e4c17964af657a002af18945fc677c2083655",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\scripts\\run_tests.py": "f42bb754b4a6d00cca94543fabfb7c9d76917f36a2659568fa72fd652084de03",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\scripts\\run_tests_local.ps1": "9a817d7bae6a779bf16970bf73396f428115a9b41de00b5760c11300624f68eb",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\scripts\\seed_demo_data.py": "965e7090753dfbb3686c5302b4cc6ff4d086b1ca5389ccf23457d224b23f7a9f",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\scripts\\seed_search_demo_data.py": "3e79b4dd17949d2b017b73898ccfd1028c25622ced2846afd050c2516189eb91",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\scripts\\setup_local.ps1": "6a15a891b9511050281e95866b31b065c33e17bd240cf7aa2f24674a085412d6",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\scripts\\setup_local.sh": "45a8c0f4d1424d9b1e45c5f4e0fb8173529925191c57249f8d277bb0b087f858",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\test_api_smoke.py": "9217668f6ba016f7f26528c34b46f2da1cf8cc3200e1109e4bbd9ee7b9fefab7",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\test_auth.py": "f9ce1a04b2597c1686e7b9af4b8c3b7b0db5d23eac9fcbb5bab7412dc5832a11",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\test_calendar_reminder_expanded.py": "2150555c15bdb5867bb48a3e83c6c17ff1b8ca906aaec96e866f8bd029513523",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\test_hierarchy_path.py": "b625ac4bb32c338ef74dd014ff66988695bce69b8a120474d1afb8555fbee7a5",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\test_interaction_background_processing.py": "7e9346a538ed6e67378af7170c0a0ae815c51a4ac2e41d5bf12363674d5ac685",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\test_memory_screenshot_analyzer.py": "2330270e4fa164001753222da1c413abdd67762228f4cc885646bd7d4279d34a",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\test_reference_interaction_expanded.py": "1fc1d219cc70d1cb17ce3ade8fb796cd88c22d58dedfde86efbf22af283cd9a7",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\test_search_expanded.py": "33baf36f5338a5ac41bfdde861de8dc0a396cf2066f5184256f70ef17831564e",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\test_support.py": "cc8c772aeaf715626c4fe327b77861c9ecf2fdd7de0894e3be2651b01af44bd1",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\test_task_candidate_extraction.py": "99a944dcc6a3c058b369bb7eee62c52e2a0b25ae569769f341f076d4e42d4e69",
+    "C:\\Users\\keima\\Desktop\\4-me-not\\tests\\test_task_workflow_expanded.py": "280b292f252e223d1284b7633f0711dc3119a5c207f884387d67328d6a7461ce"
+  },
+  "results": [
+    {
+      "task": "W30-02",
+      "case": "clean",
+      "exit_code": 0,
+      "historical_count": 0,
+      "during_count": 0,
+      "runner_sha256": "f3d7775e4e7293b117c72deb1020cd3ba60a88c9426771888f5d65f992702c1b",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\clean\\docs\\implementation\\W30-02-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\clean\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\clean",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\clean\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-856455b4843d4502b0e2cdf9386d9917\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 0\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\clean\\docs\\implementation\\W30-02-validation.json",
+      "evidence": {
+        "task": "W30-02",
+        "timestamp": "2026-09-08T08:07:37.8972366+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\clean",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-856455b4843d4502b0e2cdf9386d9917\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\clean\\synthetic-spec.zip",
+        "source_zip_sha256": "4709AA9AA37BA1B512983BA3585E20C0899DECF557BEABE4935E86F288C90D61",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-856455b4843d4502b0e2cdf9386d9917\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\clean\\docs\\implementation\\W30-02-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-856455b4843d4502b0e2cdf9386d9917\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\clean\\docs\\implementation\\W30-02-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-02",
+      "case": "before",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 0,
+      "runner_sha256": "f3d7775e4e7293b117c72deb1020cd3ba60a88c9426771888f5d65f992702c1b",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\before\\docs\\implementation\\W30-02-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\before\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\before",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\before\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-c28d870a06d04de6aaec76a418236dbe\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\before\\docs\\implementation\\W30-02-validation.json",
+      "evidence": {
+        "task": "W30-02",
+        "timestamp": "2026-09-08T08:07:40.4354933+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\before",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-c28d870a06d04de6aaec76a418236dbe\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\before\\synthetic-spec.zip",
+        "source_zip_sha256": "F903166D6239EF6378FDA81D9465FFDE5E5F0B248CCC46B031A29685F8FF56A5",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-c28d870a06d04de6aaec76a418236dbe\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\before\\docs\\implementation\\W30-02-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-c28d870a06d04de6aaec76a418236dbe\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\before\\docs\\implementation\\W30-02-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-02",
+      "case": "during",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 1,
+      "runner_sha256": "f3d7775e4e7293b117c72deb1020cd3ba60a88c9426771888f5d65f992702c1b",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\during\\docs\\implementation\\W30-02-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\during\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\during",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\during\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-d563f785a51b414a97838cdaff970f2c\\4-me-not-collab-v0.4\nExisting code changed during run: 1\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\nChanged during run: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\during\\docs\\implementation\\W30-02-validation.json",
+      "evidence": {
+        "task": "W30-02",
+        "timestamp": "2026-09-08T08:07:42.8833731+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\during",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-d563f785a51b414a97838cdaff970f2c\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\during\\synthetic-spec.zip",
+        "source_zip_sha256": "1F174B64A7A5BBECE7CE8EAA9073C3310023020322D38BD80C9B80B95E08DF86",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-d563f785a51b414a97838cdaff970f2c\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\during\\docs\\implementation\\W30-02-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-run-d563f785a51b414a97838cdaff970f2c\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-02\\during\\docs\\implementation\\W30-02-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [
+          {
+            "path": "sample.py",
+            "sha256": "F05A65413338D4D74CC2E7115DB156601CFCB7838936E091CB74C7ECF0609277"
+          }
+        ],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-03",
+      "case": "clean",
+      "exit_code": 0,
+      "historical_count": 0,
+      "during_count": 0,
+      "runner_sha256": "e2a018f9491a638ae4ee2a198e5c91a8baeb546c0285ebf642aa80b316689cc8",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\clean\\docs\\implementation\\W30-03-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\clean\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\clean",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\clean\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-f9fce93fb6334b15beb774be66260753\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 0\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\clean\\docs\\implementation\\W30-03-validation.json",
+      "evidence": {
+        "task": "W30-03",
+        "timestamp": "2026-09-08T08:07:45.2884878+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\clean",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-f9fce93fb6334b15beb774be66260753\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\clean\\synthetic-spec.zip",
+        "source_zip_sha256": "991ABE65851C114D27443D73F77F687D5F02237FE4FCDD4238E5E61E051CD749",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-f9fce93fb6334b15beb774be66260753\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\clean\\docs\\implementation\\W30-03-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-f9fce93fb6334b15beb774be66260753\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\clean\\docs\\implementation\\W30-03-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-03",
+      "case": "before",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 0,
+      "runner_sha256": "e2a018f9491a638ae4ee2a198e5c91a8baeb546c0285ebf642aa80b316689cc8",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\before\\docs\\implementation\\W30-03-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\before\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\before",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\before\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-8cc355e390e44ae482d36c461da3f426\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\before\\docs\\implementation\\W30-03-validation.json",
+      "evidence": {
+        "task": "W30-03",
+        "timestamp": "2026-09-08T08:07:47.5979197+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\before",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-8cc355e390e44ae482d36c461da3f426\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\before\\synthetic-spec.zip",
+        "source_zip_sha256": "DC5137F739A36F12E43D7BC54413AA9AD746142959F0313A1B7A9C047F51F5CA",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-8cc355e390e44ae482d36c461da3f426\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\before\\docs\\implementation\\W30-03-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-8cc355e390e44ae482d36c461da3f426\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\before\\docs\\implementation\\W30-03-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-03",
+      "case": "during",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 1,
+      "runner_sha256": "e2a018f9491a638ae4ee2a198e5c91a8baeb546c0285ebf642aa80b316689cc8",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\during\\docs\\implementation\\W30-03-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\during\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\during",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\during\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-349de72f61334498b0cdd0b20016e0e4\\4-me-not-collab-v0.4\nExisting code changed during run: 1\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\nChanged during run: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\during\\docs\\implementation\\W30-03-validation.json",
+      "evidence": {
+        "task": "W30-03",
+        "timestamp": "2026-09-08T08:07:49.8570039+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\during",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-349de72f61334498b0cdd0b20016e0e4\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\during\\synthetic-spec.zip",
+        "source_zip_sha256": "E9C1A9EA54FC41207B4E64B520C9035C73BFD8491C68826AFCC45449D4CD364A",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-349de72f61334498b0cdd0b20016e0e4\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\during\\docs\\implementation\\W30-03-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-03-run-349de72f61334498b0cdd0b20016e0e4\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-03\\during\\docs\\implementation\\W30-03-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [
+          {
+            "path": "sample.py",
+            "sha256": "F05A65413338D4D74CC2E7115DB156601CFCB7838936E091CB74C7ECF0609277"
+          }
+        ],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-04",
+      "case": "clean",
+      "exit_code": 0,
+      "historical_count": 0,
+      "during_count": 0,
+      "runner_sha256": "a5116dc7f7c20e8df3eedb59d71b9174077aee5f090ef011c84e99976cbb5d8b",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\clean\\docs\\implementation\\W30-04-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\clean\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\clean",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\clean\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-043db779858c4b2bb02e2db7d923793f\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 0\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\clean\\docs\\implementation\\W30-04-validation.json",
+      "evidence": {
+        "task": "W30-04",
+        "timestamp": "2026-09-08T08:07:52.1659387+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\clean",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-043db779858c4b2bb02e2db7d923793f\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\clean\\synthetic-spec.zip",
+        "source_zip_sha256": "B50E24D37A94C63B15833E1DDA4F925435E1C2015D4481688AF7BC9DEDAAA4C4",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONUTF8": "1",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-043db779858c4b2bb02e2db7d923793f\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\clean\\docs\\implementation\\W30-04-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-043db779858c4b2bb02e2db7d923793f\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\clean\\docs\\implementation\\W30-04-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-04",
+      "case": "before",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 0,
+      "runner_sha256": "a5116dc7f7c20e8df3eedb59d71b9174077aee5f090ef011c84e99976cbb5d8b",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\before\\docs\\implementation\\W30-04-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\before\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\before",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\before\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-2d8931916445406f9a84f777547b0ed9\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\before\\docs\\implementation\\W30-04-validation.json",
+      "evidence": {
+        "task": "W30-04",
+        "timestamp": "2026-09-08T08:07:54.3698346+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\before",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-2d8931916445406f9a84f777547b0ed9\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\before\\synthetic-spec.zip",
+        "source_zip_sha256": "0D203A38CCD06AD7BDDF127734EA1CA1A5F8A4518C40954FDCE083B902AE3817",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-2d8931916445406f9a84f777547b0ed9\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\before\\docs\\implementation\\W30-04-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-2d8931916445406f9a84f777547b0ed9\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\before\\docs\\implementation\\W30-04-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-04",
+      "case": "during",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 1,
+      "runner_sha256": "a5116dc7f7c20e8df3eedb59d71b9174077aee5f090ef011c84e99976cbb5d8b",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\during\\docs\\implementation\\W30-04-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\during\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\during",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\during\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-f94425941c1643c3af7676f16401a844\\4-me-not-collab-v0.4\nExisting code changed during run: 1\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\nChanged during run: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\during\\docs\\implementation\\W30-04-validation.json",
+      "evidence": {
+        "task": "W30-04",
+        "timestamp": "2026-09-08T08:07:56.4887498+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\during",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-f94425941c1643c3af7676f16401a844\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\during\\synthetic-spec.zip",
+        "source_zip_sha256": "B168DA0AAEECD38FA8D095BD4CB9E54DCE1926CED4C1B4A046BDC1CAA9846874",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-f94425941c1643c3af7676f16401a844\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\during\\docs\\implementation\\W30-04-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-04-run-f94425941c1643c3af7676f16401a844\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-04\\during\\docs\\implementation\\W30-04-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [
+          {
+            "path": "sample.py",
+            "sha256": "F05A65413338D4D74CC2E7115DB156601CFCB7838936E091CB74C7ECF0609277"
+          }
+        ],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-05",
+      "case": "clean",
+      "exit_code": 0,
+      "historical_count": 0,
+      "during_count": 0,
+      "runner_sha256": "1740d7d4e672484367b63e7afa1538cd04d222aa7629e39b2822486e9d7d0863",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\clean\\docs\\implementation\\W30-05-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\clean\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\clean",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\clean\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-c10ceb8b2c3741f1adc1b3331c7c641c\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 0\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\clean\\docs\\implementation\\W30-05-validation.json",
+      "evidence": {
+        "task": "W30-05",
+        "timestamp": "2026-09-08T08:07:58.7499180+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\clean",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-c10ceb8b2c3741f1adc1b3331c7c641c\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\clean\\synthetic-spec.zip",
+        "source_zip_sha256": "C4188F4E0234B053529C96BB161CD0378C93A91D42D06C1878BC027B86172D8F",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-05-mapping-audit.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_05_mapping.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-c10ceb8b2c3741f1adc1b3331c7c641c\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\clean\\docs\\implementation\\W30-05-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-c10ceb8b2c3741f1adc1b3331c7c641c\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\clean\\docs\\implementation\\W30-05-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-05",
+      "case": "before",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 0,
+      "runner_sha256": "1740d7d4e672484367b63e7afa1538cd04d222aa7629e39b2822486e9d7d0863",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\before\\docs\\implementation\\W30-05-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\before\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\before",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\before\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-72972c7b210d4a27869e29c79fa0e0b3\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\before\\docs\\implementation\\W30-05-validation.json",
+      "evidence": {
+        "task": "W30-05",
+        "timestamp": "2026-09-08T08:08:00.8649645+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\before",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-72972c7b210d4a27869e29c79fa0e0b3\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\before\\synthetic-spec.zip",
+        "source_zip_sha256": "BC21ED6382E496E7E3C518D6CDCB8BC0C72F5FA5FBFCA3C98283D7E8A779AA6D",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-05-mapping-audit.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_05_mapping.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-72972c7b210d4a27869e29c79fa0e0b3\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\before\\docs\\implementation\\W30-05-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-72972c7b210d4a27869e29c79fa0e0b3\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\before\\docs\\implementation\\W30-05-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-05",
+      "case": "during",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 1,
+      "runner_sha256": "1740d7d4e672484367b63e7afa1538cd04d222aa7629e39b2822486e9d7d0863",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\during\\docs\\implementation\\W30-05-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\during\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\during",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\during\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-60a2844a3882440f83c5d2b715a39d80\\4-me-not-collab-v0.4\nExisting code changed during run: 1\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\nChanged during run: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\during\\docs\\implementation\\W30-05-validation.json",
+      "evidence": {
+        "task": "W30-05",
+        "timestamp": "2026-09-08T08:08:03.8853994+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\during",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-60a2844a3882440f83c5d2b715a39d80\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\during\\synthetic-spec.zip",
+        "source_zip_sha256": "96A883F096A34CDCE4FBEEC71F6151445A8FC7377428230029F6BB953042DC66",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-05-mapping-audit.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_05_mapping.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-60a2844a3882440f83c5d2b715a39d80\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\during\\docs\\implementation\\W30-05-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-05-run-60a2844a3882440f83c5d2b715a39d80\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-05\\during\\docs\\implementation\\W30-05-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [
+          {
+            "path": "sample.py",
+            "sha256": "F05A65413338D4D74CC2E7115DB156601CFCB7838936E091CB74C7ECF0609277"
+          }
+        ],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-06",
+      "case": "clean",
+      "exit_code": 0,
+      "historical_count": 0,
+      "during_count": 0,
+      "runner_sha256": "a2d52e2008f4b4f6d2c912df11d3d4242e252f1ea0702fbd04f9a424251073d6",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\clean\\docs\\implementation\\W30-06-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\clean\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\clean",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\clean\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-4846f745fe9843c49e374d97e55221cd\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 0\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\clean\\docs\\implementation\\W30-06-validation.json",
+      "evidence": {
+        "task": "W30-06",
+        "timestamp": "2026-09-08T08:08:08.5568133+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\clean",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-4846f745fe9843c49e374d97e55221cd\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\clean\\synthetic-spec.zip",
+        "source_zip_sha256": "90E6922A8F1392B2A2B37E4C77316FF29A9AB1CFE1CA1DBDCE699120EEC2AD82",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONUTF8": "1",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-05-mapping-audit.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_05_mapping.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/migration.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/migration_examples.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_06_migration.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-4846f745fe9843c49e374d97e55221cd\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\clean\\docs\\implementation\\W30-06-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-4846f745fe9843c49e374d97e55221cd\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\clean\\docs\\implementation\\W30-06-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-06",
+      "case": "before",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 0,
+      "runner_sha256": "a2d52e2008f4b4f6d2c912df11d3d4242e252f1ea0702fbd04f9a424251073d6",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\before\\docs\\implementation\\W30-06-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\before\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\before",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\before\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-b750a13921b54f96b687a22555caf331\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\before\\docs\\implementation\\W30-06-validation.json",
+      "evidence": {
+        "task": "W30-06",
+        "timestamp": "2026-09-08T08:08:12.3326241+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\before",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-b750a13921b54f96b687a22555caf331\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\before\\synthetic-spec.zip",
+        "source_zip_sha256": "0BDCEFEB848CBE054873D3BCB72E5A8C0A3B95311E9B980B1C0385FA0A0A29FD",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONUTF8": "1",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-05-mapping-audit.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_05_mapping.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/migration.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/migration_examples.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_06_migration.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-b750a13921b54f96b687a22555caf331\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\before\\docs\\implementation\\W30-06-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-b750a13921b54f96b687a22555caf331\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\before\\docs\\implementation\\W30-06-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-06",
+      "case": "during",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 1,
+      "runner_sha256": "a2d52e2008f4b4f6d2c912df11d3d4242e252f1ea0702fbd04f9a424251073d6",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\during\\docs\\implementation\\W30-06-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\during\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\during",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\during\\docs\\implementation\\runner.log",
+      "log_text": "active: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-08a560c97a864fe182183536924e591a\\4-me-not-collab-v0.4\nExisting code changed during run: 1\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\nChanged during run: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\during\\docs\\implementation\\W30-06-validation.json",
+      "evidence": {
+        "task": "W30-06",
+        "timestamp": "2026-09-08T08:08:15.1875957+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\during",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-08a560c97a864fe182183536924e591a\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\during\\synthetic-spec.zip",
+        "source_zip_sha256": "ACEE873C999BD9E0B4ABA28F0144F95D93C8EF518FB0BA4CD838956512FA7413",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONUTF8": "1",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-05-mapping-audit.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_05_mapping.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/migration.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/migration_examples.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_06_migration.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-08a560c97a864fe182183536924e591a\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\during\\docs\\implementation\\W30-06-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-06-run-08a560c97a864fe182183536924e591a\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-06\\during\\docs\\implementation\\W30-06-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [
+          {
+            "path": "sample.py",
+            "sha256": "F05A65413338D4D74CC2E7115DB156601CFCB7838936E091CB74C7ECF0609277"
+          }
+        ],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-07",
+      "case": "clean",
+      "exit_code": 0,
+      "historical_count": 0,
+      "during_count": 0,
+      "runner_sha256": "d19bb29d62f21260c7db99dc959c1a23266e84bfb80de1270c8f6c876a59b5cd",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\clean\\docs\\implementation\\W30-07-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\clean\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\clean",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\clean\\docs\\implementation\\runner.log",
+      "log_text": "published: exit=0, tests=1\nactive: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-4018784c16fa41e3b9b1e21b64e6c18f\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 0\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\clean\\docs\\implementation\\W30-07-validation.json",
+      "evidence": {
+        "task": "W30-07",
+        "timestamp": "2026-09-08T08:08:18.6795730+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\clean",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-4018784c16fa41e3b9b1e21b64e6c18f\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\clean\\synthetic-spec.zip",
+        "source_zip_sha256": "6BF63A9B9B1467431CA94B3C3A8FEA7336697394C7FCF4BC3A0D7572EEB807A0",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-05-mapping-audit.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_05_mapping.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/migration.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/migration_examples.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_06_migration.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_contract_assets.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-review.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "published",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-4018784c16fa41e3b9b1e21b64e6c18f\\published\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\clean\\docs\\implementation\\W30-07-published.log"
+          },
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-4018784c16fa41e3b9b1e21b64e6c18f\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\clean\\docs\\implementation\\W30-07-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-4018784c16fa41e3b9b1e21b64e6c18f\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\clean\\docs\\implementation\\W30-07-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-07",
+      "case": "before",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 0,
+      "runner_sha256": "d19bb29d62f21260c7db99dc959c1a23266e84bfb80de1270c8f6c876a59b5cd",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\before\\docs\\implementation\\W30-07-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\before\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\before",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\before\\docs\\implementation\\runner.log",
+      "log_text": "published: exit=0, tests=1\nactive: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-b8918eaee217468a8571556df7f56301\\4-me-not-collab-v0.4\nExisting code changed during run: 0\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\before\\docs\\implementation\\W30-07-validation.json",
+      "evidence": {
+        "task": "W30-07",
+        "timestamp": "2026-09-08T08:08:22.4935841+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\before",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-b8918eaee217468a8571556df7f56301\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\before\\synthetic-spec.zip",
+        "source_zip_sha256": "0D105CF305FC48432276E24A980D611C155D15DBEDB0BB427F419D16F1CB4523",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONUTF8": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-05-mapping-audit.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_05_mapping.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/migration.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/migration_examples.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_06_migration.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_contract_assets.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-review.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "published",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-b8918eaee217468a8571556df7f56301\\published\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\before\\docs\\implementation\\W30-07-published.log"
+          },
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-b8918eaee217468a8571556df7f56301\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\before\\docs\\implementation\\W30-07-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-b8918eaee217468a8571556df7f56301\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\before\\docs\\implementation\\W30-07-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    },
+    {
+      "task": "W30-07",
+      "case": "during",
+      "exit_code": 1,
+      "historical_count": 1,
+      "during_count": 1,
+      "runner_sha256": "d19bb29d62f21260c7db99dc959c1a23266e84bfb80de1270c8f6c876a59b5cd",
+      "command": [
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\during\\docs\\implementation\\W30-07-validate.ps1",
+        "-Python",
+        "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-Dependencies",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "-SourceZip",
+        "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\during\\synthetic-spec.zip"
+      ],
+      "cwd": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\during",
+      "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\during\\docs\\implementation\\runner.log",
+      "log_text": "published: exit=0, tests=1\nactive: exit=0, tests=1\nbaselines: exit=0, tests=\nWorking SPEC_ROOT: C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-995d4c4b9fe34bf7aff80e44a76e0631\\4-me-not-collab-v0.4\nExisting code changed during run: 1\nExisting code changed since W30-01: 1\nChanged since W30-01: sample.py\nChanged during run: sample.py\n",
+      "evidence_path": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\during\\docs\\implementation\\W30-07-validation.json",
+      "evidence": {
+        "task": "W30-07",
+        "timestamp": "2026-09-08T08:08:26.8348324+09:00",
+        "repo": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\during",
+        "spec_root": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-995d4c4b9fe34bf7aff80e44a76e0631\\4-me-not-collab-v0.4",
+        "source_zip": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\during\\synthetic-spec.zip",
+        "source_zip_sha256": "B48A176F652B81220CC1C5396145BCE16B20975A4B81B2A2C0905898C5CC21DB",
+        "source_zip_unchanged": true,
+        "runtime": [
+          "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "jsonschema=4.26.0"
+        ],
+        "dependency_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-02-deps",
+        "environment": {
+          "PYTHONUTF8": "1",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "overlay_files": [
+          {
+            "path": "contracts/memory.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "docs/state-model.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-02-state-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_02_state_axes.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-matrix.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-03-use-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_03_use_conditions.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/authority-boundary.schema.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "contracts/authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/authority-boundary.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "fixtures/w30-04-authority-cases.json",
+            "sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F"
+          },
+          {
+            "path": "tests/test_w30_04_authority_boundary.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-05-mapping-audit.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_05_mapping.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/migration.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "contracts/migration_examples.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_w30_06_migration.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "tests/test_contract_assets.py",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          },
+          {
+            "path": "docs/w30-review.md",
+            "sha256": "7EB70257593DA06F682A3DDDA54A9D260D4FC514F645237F5CA74B08F8DA61A6"
+          }
+        ],
+        "results": [
+          {
+            "name": "published",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-995d4c4b9fe34bf7aff80e44a76e0631\\published\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\during\\docs\\implementation\\W30-07-published.log"
+          },
+          {
+            "name": "active",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-995d4c4b9fe34bf7aff80e44a76e0631\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "-X",
+              "utf8",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-p",
+              "test_*.py",
+              "-v"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [
+              1
+            ],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\during\\docs\\implementation\\W30-07-active.log"
+          },
+          {
+            "name": "baselines",
+            "working_directory": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-07-run-995d4c4b9fe34bf7aff80e44a76e0631\\4-me-not-collab-v0.4",
+            "executable": "C:\\Users\\keima\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "arguments": [
+              "scripts/check_baselines.py"
+            ],
+            "exit_code": 0,
+            "unittest_counts": [],
+            "log": "C:\\Users\\keima\\AppData\\Local\\Temp\\4-me-not-W30-R1-6ug45a_f\\W30-07\\during\\docs\\implementation\\W30-07-baselines.log"
+          }
+        ],
+        "existing_code_files_checked": 1,
+        "code_changed_during_run": [
+          {
+            "path": "sample.py",
+            "sha256": "F05A65413338D4D74CC2E7115DB156601CFCB7838936E091CB74C7ECF0609277"
+          }
+        ],
+        "code_changed_since_W30_01": [
+          {
+            "path": "sample.py",
+            "sha256": "f05a65413338d4d74cc2e7115db156601cfcb7838936e091cb74c7ecf0609277"
+          }
+        ],
+        "scope": "Specification schema/fixtures and existing reference rules only. No application acceptance, DB, real data, production Gate or independent review."
+      }
+    }
+  ]
+}

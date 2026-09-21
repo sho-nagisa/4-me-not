@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/forget-me-not/contracts/v3/authority-boundary.schema.json",
+  "$comment": "W30-04 local contract only; not an HTTP request or proof of authentication. Existing wire definitions remain unchanged. Caller fields must come from a verified adapter, never candidate JSON.",
+  "$defs": {
+    "Authority": {"$ref": "memory.schema.json#/$defs/GateDecision/properties/required_authorities/items"},
+    "AuthoritySet": {
+      "allOf": [{"$ref": "memory.schema.json#/$defs/GateDecision/properties/required_authorities"}],
+      "uniqueItems": true
+    },
+    "DecisionOutcome": {"$ref": "memory.schema.json#/$defs/GateDecision/properties/outcome"},
+    "PermissionBasis": {"$ref": "memory.schema.json#/$defs/GateDecision/properties/basis"},
+    "CandidateRequest": {"$ref": "memory.schema.json#/$defs/GateRequest"},
+    "AuditActor": {"$ref": "memory.schema.json#/$defs/Actor"},
+    "CallerFields": {
+      "type": "object",
+      "properties": {
+        "role": {"enum": ["owner", "model", "system", "importer"]},
+        "id": {"$ref": "memory.schema.json#/$defs/Actor/properties/id"},
+        "vault_id": {"type": "string", "format": "uuid"}
+      },
+      "required": ["role", "id", "vault_id"],
+      "additionalProperties": false
+    }
+  }
+}

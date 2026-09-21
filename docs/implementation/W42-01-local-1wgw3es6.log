@@ -1,0 +1,18 @@
+test_control_and_snapshot_shapes_do_not_change_registry (test_memory_features.FeatureRegistryTest.test_control_and_snapshot_shapes_do_not_change_registry) ... ok
+test_v04_001_three_tiers_and_independent_axes (test_memory_features.FeatureRegistryTest.test_v04_001_three_tiers_and_independent_axes) ... ok
+test_v04_002_extension_defaults_and_candidate_rejection (test_memory_features.FeatureRegistryTest.test_v04_002_extension_defaults_and_candidate_rejection) ... ok
+test_v04_004_core_import_boundary_with_negative_fixture (test_memory_features.FeatureRegistryTest.test_v04_004_core_import_boundary_with_negative_fixture) ... ok
+test_v04_004_core_requires_no_experimental_or_study (test_memory_features.FeatureRegistryTest.test_v04_004_core_requires_no_experimental_or_study) ... ok
+test_v04_004_optional_composition_starts_without_prediction (test_memory_features.FeatureRegistryTest.test_v04_004_optional_composition_starts_without_prediction) ... ok
+test_v04_004_unknown_feature_tier_duplicate_and_cycle (test_memory_features.FeatureRegistryTest.test_v04_004_unknown_feature_tier_duplicate_and_cycle) ... ok
+test_v04_035_study_cannot_enter_live (test_memory_features.FeatureRegistryTest.test_v04_035_study_cannot_enter_live) ... ok
+test_all_roles_positive_and_negative (test_schema_roles.SchemaRolesTest.test_all_roles_positive_and_negative) ... ok
+test_direct_principle_and_missing_model_scope (test_schema_roles.SchemaRolesTest.test_direct_principle_and_missing_model_scope) ... ok
+test_explicit_legacy_map_preserves_id_text_and_fields (test_schema_roles.SchemaRolesTest.test_explicit_legacy_map_preserves_id_text_and_fields) ... ok
+test_new_fields_or_reverse_migration_are_not_silently_accepted (test_schema_roles.SchemaRolesTest.test_new_fields_or_reverse_migration_are_not_silently_accepted) ... ok
+test_unknown_time_and_invalid_time_shape (test_schema_roles.SchemaRolesTest.test_unknown_time_and_invalid_time_shape) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.909s
+
+OK

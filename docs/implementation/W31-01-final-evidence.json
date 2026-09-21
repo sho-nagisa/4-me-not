@@ -1,0 +1,61 @@
+{
+  "task": "W31-01",
+  "passed": true,
+  "basis": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-start.json",
+  "full_validation": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-validation-7rrf2ayv.json",
+  "local_final": {
+    "command": [
+      "C:/Users/keima/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe",
+      "-X",
+      "utf8",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/memory",
+      "-p",
+      "test_*.py",
+      "-v"
+    ],
+    "cwd": "C:\\Users\\keima\\Desktop\\4-me-not",
+    "exit_code": 0,
+    "counts": [
+      26
+    ],
+    "log": "C:\\Users\\keima\\Desktop\\4-me-not\\docs\\implementation\\W31-01-local-final.log",
+    "log_sha256": "A511932344F35928C4F54730042842BF918183DC5D61EA43652D936C870EC2F1"
+  },
+  "changes_since_task_start": [
+    "backend/services/source_evidence.py",
+    "docs/implementation/W31-01-active-7rrf2ayv.log",
+    "docs/implementation/W31-01-baselines-7rrf2ayv.log",
+    "docs/implementation/W31-01-contract.md",
+    "docs/implementation/W31-01-local-7rrf2ayv.log",
+    "docs/implementation/W31-01-local-final.log",
+    "docs/implementation/W31-01-report.md",
+    "docs/implementation/W31-01-runner-7rrf2ayv.log",
+    "docs/implementation/W31-01-start.json",
+    "docs/implementation/W31-01-validation-7rrf2ayv.json",
+    "docs/implementation/W31-01-whitespace-7rrf2ayv.log",
+    "tests/memory/test_source_evidence.py"
+  ],
+  "unexpected_changes": [],
+  "zip_unchanged": true,
+  "zip_sha256": "811A9B2E19FE4CFF7C3AE106D4B2115D40B83A67E429D3F8C8509B64FA307C5E",
+  "final_hashes": {
+    "backend/services/source_evidence.py": "020DD8C2A32ED90AC0BE0AD434055F4912A07A38CD7CDF5FC5B97917F75614CB",
+    "docs/implementation/W31-01-active-7rrf2ayv.log": "A54E07BEBEC0FDFDE0FE3785779EA47FE182C44AF1FB6B37C0C3671A48BA2DF1",
+    "docs/implementation/W31-01-baselines-7rrf2ayv.log": "21F5603FB5FA75D1206406551C9D796618175BF8A5CAB4C56E88ADD3568F284F",
+    "docs/implementation/W31-01-contract.md": "D2FA2B80E151E166B8DA19182010A33949875BCB4EE35396BC6A17AAD0EB855C",
+    "docs/implementation/W31-01-local-7rrf2ayv.log": "00EDE447AF5DA54FD802FC6E5E361540DB05D4C51DB4A67B8388BD826E3ADABD",
+    "docs/implementation/W31-01-local-final.log": "A511932344F35928C4F54730042842BF918183DC5D61EA43652D936C870EC2F1",
+    "docs/implementation/W31-01-report.md": "76648C72314A52C0606B64D2AE665767A2D9F110ECB4384FF57A7674636D7A47",
+    "docs/implementation/W31-01-runner-7rrf2ayv.log": "E0B1A8A21AF5163BCBCD5AB8BD92081D8A4E497539E490E1A46C643AAB870AAC",
+    "docs/implementation/W31-01-start.json": "44E34DCE734E0F9E029A0DD77F0EF24D2ADEFA99A4DDAC3F9DE966BB10C3E355",
+    "docs/implementation/W31-01-validation-7rrf2ayv.json": "1814C3BD0D3273B4D00A0FB4F12A1E609FE450B960F5314093B1B5A5517B0073",
+    "docs/implementation/W31-01-whitespace-7rrf2ayv.log": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "tests/memory/test_source_evidence.py": "1758ABE7058E384638BB7187A49A9E2AE67E2ACD2068F7DDE013B9A20B239042"
+  },
+  "previous_baseline_files_preserved": 314,
+  "note": "Schema/overlay and prior task results unchanged. Local tests repeated after integral-number boundary fix. No app acceptance."
+}

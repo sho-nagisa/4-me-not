@@ -1,0 +1,44 @@
+{
+  "synthetic": true,
+  "scope": "Schema and reference rules only; not application transitions or authenticated caller evidence",
+  "schema_cases": [
+    {"id": "generated-adoption-forgery", "schema": "DerivationRequest", "set": {"review_status": "user_adopted"}, "valid": false},
+    {"id": "generated-lane-forgery", "schema": "DerivationRequest", "set": {"recorded_lane": "enabled"}, "valid": false},
+    {"id": "generated-feature-closure-forgery", "schema": "DerivationRequest", "set": {"required_features": []}, "valid": false},
+    {"id": "generated-producer-feature-forgery", "schema": "DerivationRequest", "set": {"producer_feature": "source"}, "valid": false},
+    {"id": "model-cannot-be-revision-approver", "schema": "MemoryRevision", "set": {"approved_by.kind": "model"}, "valid": false},
+    {"id": "no-silent-review-rename", "schema": "MemoryRevision", "set": {"review_state": "user_adopted"}, "valid": false},
+    {"id": "legacy-wire-name-preserved", "schema": "MemoryRevision", "set": {"review_state": "confirmed_by_user", "content.epistemic_kind": "ai_hypothesis"}, "valid": true},
+    {"id": "resummary-is-still-hypothesis", "schema": "DerivationRequest", "set": {"epistemic_kind": "self_report"}, "valid": false},
+    {"id": "adoption-is-not-truth", "schema": "ArtifactView", "set": {"objective_truth": true}, "valid": false},
+    {"id": "review-event-required", "schema": "ArtifactView", "set": {"review_status": "user_adopted", "review_event_id": null}, "valid": false},
+    {"id": "provisional-has-no-review-event", "schema": "ArtifactView", "set": {"review_status": "provisional", "review_event_id": "00000000-0000-4000-8000-000000000099"}, "valid": false},
+    {"id": "model-authored-owner-accepted-response-shape", "schema": "ChangeRecord", "set": {"author.kind": "model", "state": "accepted"}, "valid": true},
+    {"id": "dto-user-is-not-owner-proof", "schema": "MemoryRevision", "set": {"approved_by.kind": "user"}, "valid": true},
+    {"id": "suspended-is-not-recording-lane", "schema": "ArtifactView", "set": {"recorded_lane": "suspended"}, "valid": false},
+    {"id": "suspended-is-deployment-state", "schema": "DeploymentView", "set": {"stage": "suspended"}, "valid": true},
+    {"id": "quality-cannot-issue-allow", "schema": "QualityAssessmentRecord", "set": {"authority_effect": "allow"}, "valid": false},
+    {"id": "contract-two-is-not-three", "schema": "ImportRequest", "set": {"schema_version": 2}, "valid": false}
+  ],
+  "use_cases": [
+    {"id": "model-forged-user-still-forbidden", "operation": "profile_adopt", "facts": {"actor": "model", "valid_confirmation": true, "reported_confidence": 1.0}, "outcome": "deny", "reason": "FORBIDDEN"},
+    {"id": "importer-cannot-adopt", "operation": "profile_adopt", "facts": {"actor": "importer", "valid_confirmation": true}, "outcome": "deny", "reason": "FORBIDDEN"},
+    {"id": "owner-without-specific-confirmation", "operation": "profile_adopt", "facts": {"actor": "owner"}, "outcome": "require_confirmation", "reason": "INTERACTIVE_REQUIRED"},
+    {"id": "owner-confirmed-plan", "operation": "profile_adopt", "facts": {"actor": "owner", "valid_confirmation": true}, "outcome": "allow", "reason": "CONFIRMED_EXACT_PLAN"},
+    {"id": "adopted-but-stale", "operation": "recall_internal", "facts": {"provisional": false, "dependencies_current": false, "valid_confirmation": true}, "outcome": "defer", "reason": "STALE_DEPENDENCY"},
+    {"id": "adopted-but-erased", "operation": "recall_internal", "facts": {"provisional": false, "erased": true, "valid_confirmation": true}, "outcome": "deny", "reason": "FORBIDDEN"},
+    {"id": "adopted-but-shadow-live", "operation": "recall_internal", "facts": {"provisional": false, "stage": "shadow", "live_use": true}, "outcome": "defer", "reason": "SHADOW_ONLY"},
+    {"id": "current-provisional-internal", "operation": "recall_internal", "facts": {"provisional": true, "stage": "internal"}, "outcome": "allow_provisional", "reason": "WITHIN_POLICY"},
+    {"id": "adopted-feature-dependency-stopped", "operation": "recall_internal", "facts": {"provisional": false, "feature_dependencies_current": false}, "outcome": "defer", "reason": "FEATURE_DEPENDENCY_UNAVAILABLE"},
+    {"id": "evaluation-only-is-not-live-permission", "operation": "recall_internal", "facts": {"evaluation_only_material": true, "evaluation_use": false}, "outcome": "defer", "reason": "EVALUATION_ONLY"},
+    {"id": "revocation-overrides-old-confirmation", "operation": "recall_internal", "facts": {"provisional": false, "consent_revoked": true, "valid_confirmation": true}, "outcome": "deny", "reason": "CONSENT_REVOKED"}
+  ],
+  "review_examples": [
+    {"id": "owner-adopts-same-version", "actor": "owner", "after": {"review_status": "user_adopted", "review_event_id": "00000000-0000-4000-8000-000000000099"}, "violations": []},
+    {"id": "owner-rejects-same-version", "actor": "owner", "after": {"review_status": "user_rejected", "review_event_id": "00000000-0000-4000-8000-000000000099"}, "violations": []},
+    {"id": "model-adopts-same-version", "actor": "model", "after": {"review_status": "user_adopted", "review_event_id": "00000000-0000-4000-8000-000000000099"}, "violations": ["owner_required"]},
+    {"id": "adoption-drops-feature-dependency", "actor": "owner", "after": {"review_status": "user_adopted", "review_event_id": "00000000-0000-4000-8000-000000000099", "required_features": []}, "violations": ["immutable_fields_changed"]},
+    {"id": "adoption-changes-producer", "actor": "owner", "after": {"review_status": "user_adopted", "review_event_id": "00000000-0000-4000-8000-000000000099", "producer_feature": "source"}, "violations": ["immutable_fields_changed"]},
+    {"id": "adoption-promotes-recording-lane", "actor": "owner", "after": {"review_status": "user_adopted", "review_event_id": "00000000-0000-4000-8000-000000000099", "recorded_lane": "enabled"}, "violations": ["immutable_fields_changed"]}
+  ]
+}
